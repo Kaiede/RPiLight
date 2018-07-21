@@ -8,7 +8,7 @@
 #	Copyright 2018 <user@biticus.net>
 #
 
-import simulator
+from importlib import import_module
 
 # Constants for Modes
 MODE_SIMULATED = 1
@@ -20,10 +20,19 @@ MODE_DMA = 2
 _activeModule = None
 def Startup(mode):
 	global _activeModule
+	selectedModule = None
+
 	if mode == MODE_SIMULATED:
-		_activeModule = simulator.StartupPWM()
+		selectedModule = import_module(".simulator", __package__)
+	elif mode == MODE_DMA:
+		selectedModule = import_module(".dma", __package__)
 	else:
 		raise ValueError('mode')
+
+	if selectedModule is not None:
+		_activeModule = selectedModule.StartupPWM()
+	else:
+		raise ValueError('_activeModule')
 
 	return
 

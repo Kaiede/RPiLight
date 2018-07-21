@@ -14,6 +14,9 @@ from RPIO import PWM
 # Microseconds/Cycle
 UNITS_PER_CYCLE = 2000
 
+def StartupPWM():
+	return DMAModule()
+
 class DMAModule:
 	# m_dmaChannel - Int - RPi DMA Channel In Use
 	# m_gpioChannels - Dict - GPIO Pins Available for PWM Channels, and Active Channel Mapping
@@ -68,7 +71,7 @@ class DMAPWMChannel:
 	# m_dmaChannel
 	# m_gpioPin
 
-	def __init__(self, name, dmaChannel gpioPin):
+	def __init__(self, name, dmaChannel, gpioPin):
 		self.m_name = name if not None else ""
 		self.m_dmaChannel = dmaChannel
 		self.m_gpioPin = gpioPin
