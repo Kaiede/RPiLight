@@ -8,7 +8,8 @@
 #	Copyright 2018 <user@biticus.net>
 #
 
-import pigpio
+from collections import OrderedDict
+from importlib import import_module
 
 # Library scales this to however many steps actually exist
 #
@@ -19,13 +20,21 @@ PWM_FREQUENCY = 960 # Hz
 def StartupPWM():
 	return PIGPIOModule()
 
+def BoundValue(value, minValue, maxValue):
+	value = min(maxValue, value)
+	value = max(minValue, value)
+	return value
+
 class PIGPIOModule:
+	
 	# m_pigpio - Object - PIGPIO API Instance
 	# m_gpioChannels - Array - Available Channels
 
 	def __init__(self):
+		pigpio = import_module("pigpio")
 		self.m_gpioChannels = self.SetupGpioChannels()
-		self.m_pigpio = pigpio.pi()
+		pi = pigpio.pi()
+		self.m_pigpio = pi
 
 		print "Hardware PWM Initialized"
 
@@ -82,7 +91,7 @@ class PIGPIOChannel:
 		self.m_brightness = BoundValue(brightness, 0.0, 100.0)
 
 		brightnessUnits = int(round(self.m_brightness * UNITS_PER_CYCLE / 100.0))
-		self.m_pigpio.hardware_PWM(self.m_gpioPin)
+		self.m_pigpio.hardware_PWM(self.m_gpioPin, PWM_FREQUENCY, brightnessUnits)
 
 		print "[%s] Brightness Changed to: %0.1f" % (self.m_name, self.m_brightness)
 		return
