@@ -1,0 +1,4 @@
+{
+	"pwmMode": "pigpio",
+	"channels": 2
+}

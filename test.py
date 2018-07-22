@@ -9,22 +9,54 @@
 #
 
 import pwm
+import sys
 
 from time import sleep
 
-pwm.Startup(pwm.MODE_SIMULATED)
+#
+# Allow users to quickly test different configs
+#
+targetConfig = sys.argv[1]
+if targetConfig is None:
+	targetConfig = "testConfig.json"
 
-print pwm.GetValidTokens()
+#
+# Initialize PWM and get the list of channels
+#
+pwm.StartupWithConfigFile(targetConfig)
 
-channel1 = pwm.GetChannel("SIM1")
-channel2 = pwm.GetChannel("SIM2")
+availableChannels = pwm.GetValidTokens()
 
+activeChannels = []
+for token in availableChannels:
+	channel = pwm.GetChannel(token)
+	activeChannels.append(channel)
+
+
+#
+# Ramp up, then down
+#
 brightnessLevel = 0.0
 while (brightnessLevel <= 100.0):
 	brightnessLevel += 2.5
 	# brightnessLevel += 0.1
-	channel1.SetBrightness(brightnessLevel / 100.0)
-	channel2.SetBrightness(brightnessLevel / 100.0)
+
+	for channel in activeChannels:
+		channel.SetBrightness(brightnessLevel / 100.0)
+
 	sleep(0.1)
 
+while (brightnessLevel >= 0.0):
+	brightnessLevel -= 2.5
+	# brightnessLevel += 0.1
+
+	for channel in activeChannels:
+		channel.SetBrightness(brightnessLevel / 100.0)
+
+	sleep(0.1)
+
+
+#
+# Cleanup
+#
 pwm.Shutdown()

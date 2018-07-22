@@ -13,28 +13,36 @@ import pwmlib
 from collections import OrderedDict
 from importlib import import_module
 
+from constants import *
+
 # Library scales this to however many steps actually exist
 #
 # At 960Hz, we get about 250k steps. Which is pretty excessive, IMO. 
 UNITS_PER_CYCLE = 1000000
 PWM_FREQUENCY = 960 # Hz
 
-def StartupPWM():
-	return PIGPIOModule()
+def StartupPWM(channelCount):
+	return PIGPIOModule(channelCount)
 
 GPIO_MAP = {
 	"PWM0-GPIO18" : 18,
 	"PWM1-GPIO19" : 19
 }
 
+def CreateChannelArray(count):
+	count = pwmlib.BoundValue(count, 1, 2)
+
+	return GPIO_MAP.keys()[0:count]
+
+
 class PIGPIOModule(pwmlib.Module, object):
 	# m_pigpio - Object - Instance of the PIGPIO for PWM control
 
-	def __init__(self):
+	def __init__(self, channelCount):
 		pigpio = import_module("pigpio")
 		self.m_pigpio = pigpio.pi()
 
-		super(PIGPIOModule, self).__init__(GPIO_MAP.keys())
+		super(PIGPIOModule, self).__init__(CreateChannelArray(channelCount))
 
 
 	def Shutdown(self):

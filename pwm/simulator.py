@@ -10,13 +10,27 @@
 
 import pwmlib
 
-def StartupPWM():
-	return SimulatedModule()
+from constants import *
+
+
+def StartupPWM(channelCount):
+	return SimulatedModule(channelCount)
+
+
+def CreateChannelArray(count):
+	count = pwmlib.BoundValue(count, 1, 16)
+
+	channelArray = []
+	for x in range(count):
+		channelArray.append("SIM%02d" % (x+1))
+
+	return channelArray
 
 
 class SimulatedModule(pwmlib.Module, object):
-	def __init__(self):
-		super(SimulatedModule, self).__init__([ "SIM1", "SIM2" ])
+	def __init__(self, channelCount):
+		channels = CreateChannelArray(channelCount)
+		super(SimulatedModule, self).__init__(channels)
 
 
 	def CreateChannel(self, token):
