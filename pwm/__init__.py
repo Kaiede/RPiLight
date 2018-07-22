@@ -10,9 +10,17 @@
 
 from importlib import import_module
 
+# Modes Supported
+#
+# Simulated:
+#   Doesn't provide any output, it is used for testing.
+# RPIO:
+#   Uses the RPIO library to provide DMA-timed output.
+#   16 Channels
+#   500Hz PWM Frequency, 2000 dimming steps.
 # Constants for Modes
 MODE_SIMULATED = 1
-MODE_DMA = 2
+MODE_RPIO = 2
 #MODE_EXTERNAL = 3
 #MODE_GPIO = 4
 
@@ -24,8 +32,8 @@ def Startup(mode):
 
 	if mode == MODE_SIMULATED:
 		selectedModule = import_module(".simulator", __package__)
-	elif mode == MODE_DMA:
-		selectedModule = import_module(".dma", __package__)
+	elif mode == MODE_RPIO:
+		selectedModule = import_module(".rpio", __package__)
 	else:
 		raise ValueError('mode')
 

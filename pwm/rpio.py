@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#	dma.py
+#	rpio.py
 #
 #	Package: PiLight
 #	Module: PWM
@@ -28,14 +28,14 @@ ZONES_PER_SUBCYCLE = 2
 UNITS_PER_SUBCYCLE = UNITS_PER_ZONE * ZONES_PER_SUBCYCLE
 
 def StartupPWM():
-	return DMAModule()
+	return RPIOModule()
 	
 def BoundValue(value, minValue, maxValue):
 	value = min(maxValue, value)
 	value = max(minValue, value)
 	return value
 
-class DMAModule:
+class RPIOModule:
 	# m_dmaChannel - Int - RPi DMA Channel In Use
 	# m_gpioChannels - Dict - GPIO Pins Available for PWM Channels, and Active Channel Mapping
 
@@ -63,7 +63,7 @@ class DMAModule:
 		if gpioPin is None:
 			raise ValueError('gpioPin')
 
-		channel = DMAPWMChannel(name, self.m_dmaChannel, gpioPin)
+		channel = RPIOChannel(name, self.m_dmaChannel, gpioPin)
 		self.m_gpioChannels[ gpioPin ] = channel
 		return channel
 
@@ -83,7 +83,7 @@ class DMAModule:
 		return None
 
 
-class DMAPWMChannel:
+class RPIOChannel:
 	# m_brightness
 	# m_name
 	# m_dmaChannel
