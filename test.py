@@ -14,15 +14,17 @@ from time import sleep
 
 pwm.Startup(pwm.MODE_SIMULATED)
 
-channel1 = pwm.CreateChannel("Channel 1")
-channel2 = pwm.CreateChannel("Channel 2")
+print pwm.GetValidTokens()
+
+channel1 = pwm.GetChannel("SIM1")
+channel2 = pwm.GetChannel("SIM2")
 
 brightnessLevel = 0.0
 while (brightnessLevel <= 100.0):
 	brightnessLevel += 2.5
 	# brightnessLevel += 0.1
-	channel1.SetBrightness(brightnessLevel)
-	channel2.SetBrightness(brightnessLevel)
+	channel1.SetBrightness(brightnessLevel / 100.0)
+	channel2.SetBrightness(brightnessLevel / 100.0)
 	sleep(0.1)
 
 pwm.Shutdown()

@@ -8,44 +8,27 @@
 #	Copyright 2018 <user@biticus.net>
 #
 
-
+import pwmlib
 
 def StartupPWM():
 	return SimulatedModule()
 
-def BoundValue(value, minValue, maxValue):
-	value = min(maxValue, value)
-	value = max(minValue, value)
-	return value
 
-class SimulatedModule:
+class SimulatedModule(pwmlib.Module, object):
 	def __init__(self):
-		print "Simulated PWM Initialized"
+		super(SimulatedModule, self).__init__([ "SIM1", "SIM2" ])
 
-	def Shutdown(self):
-		print "Simulated PWM Shutdown"
 
-	def CreateChannel(self, name):
-		return SimulatedChannel(name)
+	def CreateChannel(self, token):
+		return SimulatedChannel(token)
 
-class SimulatedChannel:
-	def __init__(self, name):
-		self.m_brightness = 0
-		self.m_name = name if not None else ""
-		print "[%s] Channel Created" % self.m_name
 
-	def Brightness(self):
-		return 0
+class SimulatedChannel(pwmlib.Channel, object):
+	def __init__(self, token):
+		super(SimulatedChannel, self).__init__(token)
 
-	def SetBrightness(self, brightness):
-		self.m_brightness = BoundValue(brightness, 0.0, 100.0)
-		print "[%s] Brightness Changed to: %0.1f" % (self.m_name, self.m_brightness)
-		return
 
-	def Name(self):
-		return 
-
-	def SetName(self, name):
-		print "[%s] Channel Name Changed to: %s" % (self.m_name, name)
-		self.m_name = name
+	def OnBrightnessChanged(self, brightness):
+		# Convert the brightness to a percentage before writing out.
+		print "[%s] Brightness Changed to: %0.1f" % (self.Token(), brightness * 100.0)
 		return

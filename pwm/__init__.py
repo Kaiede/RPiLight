@@ -61,11 +61,19 @@ def Shutdown():
 
 	return
 
-# Create Channel
-def CreateChannel(name):
+# Get Tokens
+def GetValidTokens():
 	global _activeModule
 	if _activeModule is None:
 		raise ValueError('_activeModule')
 
-	return _activeModule.CreateChannel(name)
+	return _activeModule.GetValidTokens()	
+
+# Get Channel
+def GetChannel(token):
+	global _activeModule
+	if _activeModule is None:
+		raise ValueError('_activeModule')
+
+	return _activeModule.GetChannel(token)
 
