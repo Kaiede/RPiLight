@@ -18,11 +18,16 @@ from importlib import import_module
 #   Uses the RPIO library to provide DMA-timed output.
 #   16 Channels
 #   500Hz PWM Frequency, 2000 dimming steps.
+# PIGPIO:
+#   Uses the PIGPIO library and daemon to provide hardware support.
+#   2 Channels
+#   960Hz PWM Frequency, Maaaany dimming steps.
+
 # Constants for Modes
 MODE_SIMULATED = 1
 MODE_RPIO = 2
+MODE_PIGPIO = 3
 #MODE_EXTERNAL = 3
-#MODE_GPIO = 4
 
 # Startup
 _activeModule = None
@@ -34,6 +39,8 @@ def Startup(mode):
 		selectedModule = import_module(".simulator", __package__)
 	elif mode == MODE_RPIO:
 		selectedModule = import_module(".rpio", __package__)
+	elif mode == MODE_PIGPIO:
+		selectedModule = import_module(".pigpio", __package__)
 	else:
 		raise ValueError('mode')
 
