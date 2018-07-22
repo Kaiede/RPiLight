@@ -11,11 +11,29 @@
 from collections import OrderedDict
 from RPIO import PWM
 
-# Microseconds/Cycle
-UNITS_PER_CYCLE = 2000
+# RPIO has some issues with using really small subcycles. (2ms)
+# To get the behavior we want, we need to do something a bit more
+# drastic. So let's create a subcycle that RPIO likes, but then
+# place multiple pulses inside it to get the resulting frequency
+# we need.
+#
+# To keep this simple, a "zone" is an actual PWM cycle we want to
+# create. A subcycle is the DMA channel's subcycle. The subcycle
+# is split into zones.
+
+# Microseconds/Zone
+# Zones/DMA Subcycle
+UNITS_PER_ZONE = 2000
+ZONES_PER_SUBCYCLE = 2
+UNITS_PER_SUBCYCLE = UNITS_PER_ZONE * ZONES_PER_SUBCYCLE
 
 def StartupPWM():
 	return DMAModule()
+	
+def BoundValue(value, minValue, maxValue):
+	value = min(maxValue, value)
+	value = max(minValue, value)
+	return value
 
 class DMAModule:
 	# m_dmaChannel - Int - RPi DMA Channel In Use
@@ -26,7 +44,7 @@ class DMAModule:
 		self.m_gpioChannels = self.SetupGpioChannels()
 
 		PWM.setup(pulse_incr_us = 1)
-		PWM.init_channel(self.m_dmaChannel, subcycle_time_us = UNITS_PER_CYCLE)
+		PWM.init_channel(self.m_dmaChannel, subcycle_time_us = UNITS_PER_SUBCYCLE)
 
 		print "DMA PWM Initialized"
 
@@ -77,6 +95,8 @@ class DMAPWMChannel:
 		self.m_gpioPin = gpioPin
 		print "[%s] Channel Created" % self.m_name
 
+		# This is bad, but it forces the GPIO pin to be configured
+		PWM.add_channel_pulse(self.m_dmaChannel, self.m_gpioPin, 0, 0)
 		self.SetBrightness(0.0)
 
 	def Shutdown(self):
@@ -88,10 +108,11 @@ class DMAPWMChannel:
 	def SetBrightness(self, brightness):
 		self.m_brightness = BoundValue(brightness, 0.0, 100.0)
 
-		brightnessMicrosec = int(round(self.m_brightness * UNITS_PER_CYCLE / 100.0))
+		brightnessMicrosec = int(round(self.m_brightness * UNITS_PER_ZONE / 100.0))
 
 		PWM.clear_channel_gpio(self.m_dmaChannel, self.m_gpioPin)
-		PWM.add_channel_pulse(self.m_dmaChannel, self.m_gpioPin, 0, brightnessMicrosec)
+		for zone in range(0, ZONES_PER_SUBCYCLE):
+			PWM.add_channel_pulse(self.m_dmaChannel, self.m_gpioPin, zone * UNITS_PER_ZONE, brightnessMicrosec)
 
 		print "[%s] Brightness Changed to: %0.1f" % (self.m_name, self.m_brightness)
 		return
