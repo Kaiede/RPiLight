@@ -24,15 +24,16 @@ PWM_FREQUENCY = 960 # Hz
 def StartupPWM(channelCount):
 	return PIGPIOModule(channelCount)
 
-GPIO_MAP = {
-	"PWM0-GPIO18" : 18,
-	"PWM1-GPIO19" : 19
-}
+GPIO_MAP = OrderedDict([
+	("PWM0-GPIO18", 18),
+	("PWM1-GPIO19", 19)
+])
 
 def CreateChannelArray(count):
 	count = pwmlib.BoundValue(count, 1, 2)
+	tokens = GPIO_MAP.keys()
 
-	return GPIO_MAP.keys()[0:count]
+	return tokens[:count]
 
 
 class PIGPIOModule(pwmlib.Module, object):

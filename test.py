@@ -16,9 +16,12 @@ from time import sleep
 #
 # Allow users to quickly test different configs
 #
-targetConfig = sys.argv[1]
-if targetConfig is None:
+
+if len(sys.argv) < 2:
 	targetConfig = "testConfig.json"
+else:
+	targetConfig = sys.argv[1]
+
 
 #
 # Initialize PWM and get the list of channels
