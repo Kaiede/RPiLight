@@ -23,8 +23,8 @@ def StartupPWM():
 	return PIGPIOModule()
 
 GPIO_MAP = {
-	"PWM-GPIO18" : 18,
-	"PWM-GPIO19" : 19
+	"PWM0-GPIO18" : 18,
+	"PWM1-GPIO19" : 19
 }
 
 class PIGPIOModule(pwmlib.Module, object):
