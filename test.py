@@ -10,8 +10,16 @@
 
 import pwm
 import sys
+import controller
 
-from time import sleep
+from datetime import datetime, timedelta
+
+#
+# Test Ramp Generators
+#
+def StateForChannels(channels, brightness):
+	return [brightness for channel in channels]
+
 
 #
 # Allow users to quickly test different configs
@@ -39,27 +47,34 @@ for token in availableChannels:
 #
 # Ramp up, then down
 #
-brightnessLevel = 0.0
-while (brightnessLevel <= 100.0):
-	brightnessLevel += 2.5
-	# brightnessLevel += 0.1
+lightController = controller.LightController(activeChannels)
 
-	for channel in activeChannels:
-		channel.SetBrightness(brightnessLevel / 100.0)
+highStates = StateForChannels(activeChannels, 1.0)
+lowStates = StateForChannels(activeChannels, 0.0)
 
-	sleep(0.1)
+print "Start Ramp"
 
-while (brightnessLevel >= 0.0):
-	brightnessLevel -= 2.5
-	# brightnessLevel += 0.1
+rampBehavior = controller.RampBehavior(lowStates, highStates)
+now = datetime.now()
+lightController.AddBehavior(rampBehavior, now, now + timedelta(seconds=10))
 
-	for channel in activeChannels:
-		channel.SetBrightness(brightnessLevel / 100.0)
+print "Wait on Ramp"
 
-	sleep(0.1)
+rampBehavior.Wait()
+
+print "Start Ramp 2"
+
+now = datetime.now()
+#rampBehavior = controller.RampBehavior(lowStates, highStates)
+lightController.AddBehavior(rampBehavior, now, now + timedelta(seconds=10))
+
+print "Wait on Ramp 2"
+
+rampBehavior.Wait()
 
 
 #
 # Cleanup
 #
+lightController.Shutdown()
 pwm.Shutdown()
