@@ -42,7 +42,6 @@ class SimulatedChannel(pwmlib.Channel, object):
 		super(SimulatedChannel, self).__init__(token)
 
 
-	def OnBrightnessChanged(self, brightness):
-		# Convert the brightness to a percentage before writing out.
-		print "[%s] Brightness Changed to: %0.1f" % (self.Token(), brightness * 100.0)
+	def OnLuminanceChanged(self, luminance):
+		# Should this still do something?
 		return

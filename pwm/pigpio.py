@@ -65,7 +65,6 @@ class PIGPIOChannel(pwmlib.Channel, object):
 		super(PIGPIOChannel, self).__init__(token)
 
 
-	def OnBrightnessChanged(self, brightness):
-		brightnessUnits = int(round(brightness * UNITS_PER_CYCLE))
-		self.m_pigpio.hardware_PWM(self.m_gpioPin, PWM_FREQUENCY, brightnessUnits)
-		print "[%s] Brightness Changed to: %0.1f" % (self.Token(), brightness * 100.0)
+	def OnLuminanceChanged(self, luminance):
+		luminanceUnits = int(round(luminance * UNITS_PER_CYCLE))
+		self.m_pigpio.hardware_PWM(self.m_gpioPin, PWM_FREQUENCY, luminanceUnits)

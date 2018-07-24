@@ -33,3 +33,8 @@ MODE_PIGPIO = "pigpio"
 #
 KEY_PWM_MODE = "pwmMode"
 KEY_CHANNELS = "channels"
+
+#
+# Reasonable Gamma Value
+#
+GAMMA_VALUE = 2.2
