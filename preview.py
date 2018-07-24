@@ -52,6 +52,13 @@ for token in availableChannels:
 
 lightController = controller.LightController(activeChannels)
 
+#
+# Run the Preview
+#
+
+preview = controller.SchedulePreview(lightController, activeChannels, schedule)
+
+preview.Run()
 
 #
 # Cleanup
