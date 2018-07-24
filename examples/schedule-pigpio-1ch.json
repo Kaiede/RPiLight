@@ -1,0 +1,56 @@
+{
+	"channels" : [
+		{ "token": "PWM0-GPIO18", "name" : "Twinstar 600E" }
+	],
+
+	"schedule" : [
+		{
+			"time" : "08:00:00",
+			"channels" : [
+				{ "token": "PWM0-GPIO18", "brightness": 0.0 }
+			]
+		},
+		{
+			"time" : "08:30:00",
+			"channels" : [
+				{ "token": "PWM0-GPIO18", "brightness": 0.25 }
+			]
+		},
+		{
+			"time" : "12:00:00",
+			"channels" : [
+				{ "token": "PWM0-GPIO18", "brightness": 0.25 }
+			]
+		},
+		{
+			"time" : "14:00:00",
+			"channels" : [
+				{ "token": "PWM0-GPIO18", "brightness": 0.50 }
+			]
+		},
+		{
+			"time" : "18:00:00",
+			"channels" : [
+				{ "token": "PWM0-GPIO18", "brightness": 0.50 }
+			]
+		},
+		{
+			"time" : "20:00:00",
+			"channels" : [
+				{ "token": "PWM0-GPIO18", "brightness": 0.10 }
+			]
+		},
+		{
+			"time" : "22:30:00",
+			"channels" : [
+				{ "token": "PWM0-GPIO18", "brightness": 0.10 }
+			]
+		},
+		{
+			"time" : "23:00:00",
+			"channels" : [
+				{ "token": "PWM0-GPIO18", "brightness": 0.0 }
+			]
+		}
+	]
+}
