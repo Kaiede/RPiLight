@@ -24,6 +24,7 @@ class LightController:
 
 	def __init__(self, channels):
 		self.m_channels = channels
+		self.m_events = []
 
 		self.m_scheduler = BackgroundScheduler()
 		self.m_scheduler.add_listener(self.OnJobRemoved, apevents.EVENT_JOB_REMOVED)
@@ -42,6 +43,25 @@ class LightController:
 
 		return
 
+	def SetSchedule(self, schedule):
+		for event in self.m_events:
+			continue
+
+		self.m_events = CreateLightEventsFromSchedule(schedule)
+		currentTime = datetime.now().time()
+		latestEvent = None
+		for event in self.m_events:
+			self.m_scheduler.add_job(event.OnEventFired, 'cron', [self], hour=event.Hour(), minute=event.Minute(), second=event.Second())
+			if event.Time() < currentTime:
+				latestEvent = event
+
+		if latestEvent is None:
+			latestEvent = self.m_events[-1]
+
+		# Make sure the previous event fires and does the work. 
+		latestEvent.OnEventFired(self)
+
+
 	def AddBehavior(self, behavior, startDate, endDate):
 		if self.m_activeJob is not None:
 			return
@@ -59,7 +79,59 @@ class LightController:
 		return
 
 
-class Behavior:
+class Event(object):
+	# m_time - time
+
+	def __init__(self, time):
+		self.m_time = time
+		return
+
+	def Time(self):
+		return self.m_time
+
+	def Hour(self):
+		return self.m_time.hour
+
+	def Minute(self):
+		return self.m_time.minute
+
+	def Second(self):
+		return self.m_time.second
+
+	def OnEventFired(self, controller):
+		return
+
+def CreateLightEventsFromSchedule(schedule):
+	jobEvents = []
+	events = schedule.Events()
+	for idxEvent, scheduleEvent in enumerate(events):
+		channelRanges, idxNext = schedule.ChannelValueRangeForEventIndex(idxEvent)
+		eventNext = events[idxNext]
+
+		lightEvent = LightEvent(scheduleEvent.Time(), eventNext.Time(), channelRanges)
+		jobEvents.append(lightEvent)
+
+	return jobEvents
+
+class LightEvent(Event, object):
+
+	def __init__(self, time, endTime, channelRanges):
+		self.m_endTime = endTime
+		self.m_behavior = LightBehavior(channelRanges)
+		super(LightEvent, self).__init__(time)
+
+	def OnEventFired(self, controller):
+		today = datetime.today()
+		startTime =	datetime.combine(today.date(), self.Time())
+		endTime = datetime.combine(today.date(), self.m_endTime)
+		if endTime < startTime:
+			endTime = endTime + timedelta(days=1)
+
+		controller.AddBehavior(self.m_behavior, startTime, endTime)
+		return
+
+
+class Behavior(object):
 	# m_controller - LightController
 	# m_event - threading.Event
 
@@ -103,41 +175,31 @@ class Behavior:
 # Let's try to update about 5000 times during the ramp.
 # If we can't, update every 10ms instead.
 #
-RAMP_STEP_TARGET = 5000		# Steps
+RAMP_STEP_TARGET = 2 ** 12	# Steps
 MIN_RAMP_INTERVAL = 0.01 	# 10ms
+MAX_RAMP_INTERVAL = 1.0		# 1s
 
-class RampBehavior(Behavior, object):
-	def __init__(self, startStates, endStates):
-		self.m_startStates = startStates
-		self.m_channelDeltas = self.CalculateDeltas(startStates, endStates)
+class LightBehavior(Behavior, object):
+	def __init__(self, channelRanges):
+		# Convert to deltas from ranges
+		self.m_channelDeltas = {token : (startState, endState - startState) for token, (startState, endState) in channelRanges.iteritems()}
 
-		self.m_currentInterval = 1
-		super(RampBehavior, self).__init__()
-		return
+		super(LightBehavior, self).__init__()
 
 	def IntervalInSeconds(self):
 		rampTime = (self.EndDate() - self.StartDate()).total_seconds()
-		return max(rampTime / RAMP_STEP_TARGET, MIN_RAMP_INTERVAL)
-
-	def CalculateDeltas(self, startStates, endStates):
-		channelDeltas = []
-		for x, startState in enumerate(startStates):
-			delta = endStates[x] - startState
-			channelDeltas.append(delta)
-
-		return channelDeltas
+		interval = rampTime / RAMP_STEP_TARGET
+		return min(max(interval, MIN_RAMP_INTERVAL), MAX_RAMP_INTERVAL)
 
 	def DoBehavior(self, channels):
 		now = datetime.now()
 		timeSpent = (now - self.StartDate()).total_seconds()
 		timeRange = (self.EndDate() - self.StartDate()).total_seconds()
 
+
 		factor = timeSpent / timeRange
-		for x, channel in enumerate(channels):
-			brightness = self.m_startStates[x] + (factor * self.m_channelDeltas[x])
+		for token, (startState, delta) in self.m_channelDeltas.iteritems():
+			channel = channels[token]
+			brightness = startState + (factor * delta)
 			channel.SetBrightness(brightness)
 
-		#if timeSpent >= timeRange:
-			#self.Complete()
-			#endTime = time.time()
-			#print "Ramp Complete: %0.2f seconds" % (endTime - self.m_startTime)

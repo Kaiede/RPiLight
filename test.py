@@ -17,8 +17,8 @@ from datetime import datetime, timedelta
 #
 # Test Ramp Generators
 #
-def StateForChannels(channels, brightness):
-	return [brightness for channel in channels]
+def RampForChannels(channels, brightnessStart, brightnessEnd):
+	return {token : (brightnessStart, brightnessEnd) for token, _ in channels.items()}
 
 
 #
@@ -38,10 +38,10 @@ pwm.StartupWithConfigFile(targetConfig)
 
 availableChannels = pwm.GetValidTokens()
 
-activeChannels = []
+activeChannels = {}
 for token in availableChannels:
 	channel = pwm.GetChannel(token)
-	activeChannels.append(channel)
+	activeChannels[token] = channel
 
 
 #
@@ -49,12 +49,11 @@ for token in availableChannels:
 #
 lightController = controller.LightController(activeChannels)
 
-highStates = StateForChannels(activeChannels, 1.0)
-lowStates = StateForChannels(activeChannels, 0.0)
+rampToHigh = RampForChannels(activeChannels, 0.0, 1.0)
 
 print "Start Ramp"
 
-rampBehavior = controller.RampBehavior(lowStates, highStates)
+rampBehavior = controller.LightBehavior(rampToHigh)
 now = datetime.now()
 lightController.AddBehavior(rampBehavior, now, now + timedelta(seconds=10))
 

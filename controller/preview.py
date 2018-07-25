@@ -33,28 +33,13 @@ class SchedulePreview:
 
 	def CalculateRamps(self, channels, schedule):
 		events = schedule.Events()
-		for idx, event in enumerate(events):
-			startStateDict = {}
-			endStateDict = {}
+		for idxEvent, event in enumerate(events):
+			channelRanges, idxNext = schedule.ChannelValueRangeForEventIndex(idxEvent)
+			rampBehavior = controller.LightBehavior(channelRanges)
 
-			nextIdx = nextIndex(events, idx)
-			nextEvent = events[nextIdx]
-
-			for channel in event.ChannelValues():
-				startStateDict[channel.Token()] = channel.Brightness()
-			for channel in nextEvent.ChannelValues():
-				endStateDict[channel.Token()] = channel.Brightness()
-
-			startStates = []
-			endStates = []
-			for channel in channels:
-				startStates.append(startStateDict[channel.Token()])
-				endStates.append(endStateDict[channel.Token()])
-
-			rampBehavior = controller.RampBehavior(startStates, endStates)
-
+			nextEvent = events[idxNext]
 			nextEventDatetime = nextEvent.DatetimeForToday()
-			if (nextIdx < idx):
+			if (idxNext < idxEvent):
 				nextEventDatetime = nextEventDatetime + timedelta(days=1)
 
 			rampDuration = (nextEventDatetime - event.DatetimeForToday()).total_seconds()

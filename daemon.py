@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#	preview.py
+#	daemon.py
 #
 #	Package: PiLight
 #	Module: PiLight
 #	Copyright 2018 <user@biticus.net>
 #
 
+import controller
 import pwm
 import sys
-import controller
+import time
 
 from datetime import datetime, timedelta
 
@@ -53,12 +54,13 @@ for token in availableChannels:
 lightController = controller.LightController(activeChannels)
 
 #
-# Run the Preview
+# Run the Daemon
 #
 
-preview = controller.SchedulePreview(lightController, activeChannels, schedule)
+lightController.SetSchedule(schedule)
 
-preview.Run()
+while True:
+	time.sleep(5)
 
 #
 # Cleanup

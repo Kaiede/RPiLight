@@ -14,4 +14,4 @@
 #
 from schedule import ReadSchedule
 from preview import SchedulePreview
-from controller import LightController, RampBehavior
+from controller import LightController, LightBehavior

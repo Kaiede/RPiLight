@@ -24,6 +24,10 @@ KEY_TIME = "time"
 KEY_TOKEN = "token"
 
 
+#
+# Schedule Loading
+#
+
 def GetConfigurationDir():
 	scriptPath = os.path.realpath(__file__)
 	scriptDir = os.path.dirname(scriptPath)
@@ -44,6 +48,17 @@ def ReadSchedule(configFile, channelTokens):
 	return Schedule(configDict, channelTokens)
 
 
+#
+# Schedule Model
+#
+
+def NextEventIdx(events, idxEvent):
+	idxNext = idxEvent + 1
+	if idxNext >= len(events):
+		idxNext = 0
+
+	return idxNext
+
 class Schedule:
 	# m_events - Array:Event - Array of the events in the schedule. 
 
@@ -60,6 +75,18 @@ class Schedule:
 		self.m_events = sorted(self.m_events, key = lambda event: event.Time())
 
 		return
+
+	def ChannelValueRangeForEventIndex(self, idxEvent):
+		channelDeltas = {}
+		idxNext = NextEventIdx(self.m_events, idxEvent)
+
+		event = self.m_events[idxEvent]
+		nextEvent = self.m_events[idxNext]
+		nextEventValues = nextEvent.ChannelValues()
+		for token, channelValue in event.ChannelValues().iteritems():
+			channelDeltas[token] = (channelValue.Brightness(), nextEventValues[token].Brightness())
+
+		return channelDeltas, idxNext
 
 	def Events(self):
 		return self.m_events;
@@ -83,10 +110,10 @@ class Event:
 
 		self.m_time = datetime.strptime(eventDict[KEY_TIME], '%H:%M:%S').time()
 
-		self.m_channelValues = []
+		self.m_channelValues = {}
 		for channelDict in eventDict[KEY_CHANNELS]:
-			channel = ChannelValue(channelDict, channelTokenSet)
-			self.m_channelValues.append(channel)
+			channelValue = ChannelValue(channelDict, channelTokenSet)
+			self.m_channelValues[channelValue.Token()] = channelValue
 
 		return
 
@@ -101,8 +128,8 @@ class Event:
 
 	def __str__(self):
 		string = str(self.m_time) + " - "
-		for value in self.m_channelValues:
-			string += "{ %s : %0.2f } " % (value.Token(), value.Brightness() * 100.0)
+		for token, value in self.m_channelValues.iteritems():
+			string += "{ %s : %0.2f } " % (token, value.Brightness() * 100.0)
 			
 		return string
 
