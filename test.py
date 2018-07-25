@@ -55,7 +55,7 @@ print "Start Ramp"
 
 rampBehavior = controller.LightBehavior(rampToHigh)
 now = datetime.now()
-lightController.AddBehavior(rampBehavior, now, now + timedelta(seconds=10))
+lightController.AddBehavior(rampBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=10))
 
 print "Wait on Ramp"
 
@@ -65,7 +65,7 @@ print "Start Ramp 2"
 
 now = datetime.now()
 #rampBehavior = controller.RampBehavior(lowStates, highStates)
-lightController.AddBehavior(rampBehavior, now, now + timedelta(seconds=10))
+lightController.AddBehavior(rampBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=10))
 
 print "Wait on Ramp 2"
 

@@ -10,6 +10,7 @@
 
 import controller
 
+from constants import *
 from datetime import datetime, timedelta
 
 #
@@ -56,7 +57,7 @@ class SchedulePreview:
 			print "Ramp %d: %0.1f Seconds" % (idx, rampDuration)
 
 			now = datetime.now()
-			self.m_lightController.AddBehavior(rampBehavior, now, now + timedelta(seconds=rampDuration))
+			self.m_lightController.AddBehavior(rampBehavior, PRIORITY_PREVIEW, now, now + timedelta(seconds=rampDuration))
 			rampBehavior.Wait()
 
 
