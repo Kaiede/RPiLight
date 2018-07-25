@@ -37,4 +37,4 @@ KEY_CHANNELS = "channels"
 #
 # Reasonable Gamma Value
 #
-GAMMA_VALUE = 2.2
+GAMMA_VALUE = 1.8
