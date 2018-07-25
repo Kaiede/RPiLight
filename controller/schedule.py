@@ -57,6 +57,8 @@ class Schedule:
 			event = Event(eventDict, channelTokenSet)
 			self.m_events.append(event)
 
+		self.m_events = sorted(self.m_events, key = lambda event: event.Time())
+
 		return
 
 	def Events(self):
