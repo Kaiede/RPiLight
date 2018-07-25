@@ -1,4 +1,5 @@
 {
 	"pwmMode": "pigpio",
+	"freq": 960,
 	"channels": 2
 }

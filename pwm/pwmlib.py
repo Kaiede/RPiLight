@@ -44,6 +44,20 @@ def ValidateHardwareConfig(configDict):
 	if not isinstance(configDict[KEY_CHANNELS], (int, long)):
 		raise ValueError(KEY_CHANNELS)
 
+	#
+	# Validate Frequency
+	#
+	# Default to 480 hertz if not provided
+
+	if not configDict.has_key(KEY_FREQUENCY):
+		configDict[KEY_FREQUENCY] = 480
+
+	if not isinstance(configDict[KEY_FREQUENCY], (int, long)):
+		raise ValueError(KEY_FREQUENCY)
+
+	if configDict[KEY_FREQUENCY] % 480 != 0:
+		raise ValueError(KEY_FERQUENCY)
+
 	return configDict
 
 
@@ -79,11 +93,12 @@ def BoundValue(value, minValue, maxValue):
 class Module:
 	# m_channels - Dictionary - Token:Channel
 
-	def __init__(self, channelTokens):
+	def __init__(self, channelTokens, frequency):
 		self.RegisterChannels(channelTokens)
 
 		print "PWM Initialized"
 		print "Channels: " + str(channelTokens)
+		print "Frequency: %d Hz" % frequency
 		print 
 
 

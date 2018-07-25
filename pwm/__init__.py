@@ -20,7 +20,7 @@ from constants import *
 
 # Startup
 _activeModule = None
-def Startup(mode, channelCount = 1):
+def Startup(mode, channelCount = 1, frequency = PWM_BASE_FREQ):
 	global _activeModule
 	selectedModule = None
 
@@ -36,7 +36,7 @@ def Startup(mode, channelCount = 1):
 		raise ValueError('mode')
 
 	if selectedModule is not None:
-		_activeModule = selectedModule.StartupPWM(channelCount)
+		_activeModule = selectedModule.StartupPWM(channelCount, frequency)
 	else:
 		raise ValueError('_activeModule')
 
@@ -45,7 +45,7 @@ def Startup(mode, channelCount = 1):
 # Startup With Config
 def StartupWithConfigFile(configFile):
 	config = pwmlib.ReadConfiguration(configFile)
-	return Startup(config[KEY_PWM_MODE], channelCount = config[KEY_CHANNELS])
+	return Startup(config[KEY_PWM_MODE], channelCount = config[KEY_CHANNELS], frequency = config[KEY_FREQUENCY])
 
 # Shutdown
 def Shutdown():

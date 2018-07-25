@@ -13,8 +13,8 @@ import pwmlib
 from constants import *
 
 
-def StartupPWM(channelCount):
-	return SimulatedModule(channelCount)
+def StartupPWM(channelCount, frequency):
+	return SimulatedModule(channelCount, frequency)
 
 
 def CreateChannelArray(count):
@@ -28,9 +28,12 @@ def CreateChannelArray(count):
 
 
 class SimulatedModule(pwmlib.Module, object):
-	def __init__(self, channelCount):
+	def __init__(self, channelCount, frequency):
+		if frequency != PWM_BASE_FREQ:
+			raise ValueError('frequency')
+
 		channels = CreateChannelArray(channelCount)
-		super(SimulatedModule, self).__init__(channels)
+		super(SimulatedModule, self).__init__(channels, frequency)
 
 
 	def CreateChannel(self, token):

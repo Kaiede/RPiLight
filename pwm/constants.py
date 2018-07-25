@@ -33,8 +33,15 @@ MODE_PIGPIO = "pigpio"
 #
 KEY_PWM_MODE = "pwmMode"
 KEY_CHANNELS = "channels"
+KEY_FREQUENCY = "freq"
 
 #
 # Reasonable Gamma Value
 #
 GAMMA_VALUE = 1.8
+
+
+#
+# PWM Base Value
+#
+PWM_BASE_FREQ = 480 # Hz
