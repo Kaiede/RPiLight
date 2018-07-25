@@ -170,9 +170,9 @@ class Channel:
 
 	def SetBrightness(self, brightness):
 		self.m_brightness = BoundValue(brightness, 0.0, 1.0)
-		luminance = BoundValue(brightness ** GAMMA_VALUE, 0.0, 1.0)
+		luminance = BoundValue(self.m_brightness ** GAMMA_VALUE, 0.0, 1.0)
 		self.OnLuminanceChanged(luminance)
-		print "[%s] Brightness: %0.1f, Luminance: %0.1f" % (self.Token(), brightness * 100.0, luminance * 100.0)
+		print "[%s] Brightness: %0.1f, Luminance: %0.1f" % (self.Token(), self.m_brightness * 100.0, luminance * 100.0)
 
 
 	def OnLuminanceChanged(self, luminance):

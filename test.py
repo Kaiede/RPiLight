@@ -50,26 +50,28 @@ for token in availableChannels:
 lightController = controller.LightController(activeChannels)
 
 rampToHigh = RampForChannels(activeChannels, 0.0, 1.0)
+rampToLow = RampForChannels(activeChannels, 1.0, 0.0)
 
 print "Start Ramp"
 
-rampBehavior = controller.LightBehavior(rampToHigh)
+rampToHighBehavior = controller.LightBehavior(rampToHigh)
+rampToLowBehavior = controller.LightBehavior(rampToLow)
+
+
+print "First Pulse:"
+# First Pulse: 10 seconds total, 4 up, 4 down. Break of 2 in the middle
 now = datetime.now()
-lightController.AddBehavior(rampBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=10))
+lightController.AddBehavior(rampToHighBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=4))
+lightController.AddBehavior(rampToLowBehavior, controller.PRIORITY_LIGHTRAMP, now + timedelta(seconds=6), now + timedelta(seconds=10))
+rampToLowBehavior.Wait()
 
-print "Wait on Ramp"
 
-rampBehavior.Wait()
-
-print "Start Ramp 2"
-
+print "Second Pulse:"
+# Second Pulse: 10 seconds total, 6 up, 5 down. 1 second overlap
 now = datetime.now()
-#rampBehavior = controller.RampBehavior(lowStates, highStates)
-lightController.AddBehavior(rampBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=10))
-
-print "Wait on Ramp 2"
-
-rampBehavior.Wait()
+lightController.AddBehavior(rampToHighBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=6))
+lightController.AddBehavior(rampToLowBehavior, controller.PRIORITY_LIGHTRAMP, now + timedelta(seconds=5), now + timedelta(seconds=10))
+rampToLowBehavior.Wait()
 
 
 #

@@ -69,50 +69,67 @@ class LightController:
 		latestEvent.OnEventFired(self)
 
 
-	def GetCurrentBehavior(self):
+	def GetCurrentBehavior(self, now):
 		if not self.m_behaviorHeap:
-			return None, False
+			return None, False, None
 
-		# Find the highest priority candidate that is still valid
-		reconfigureJob = False
-		now = datetime.now()
-		_, _, candidate  = self.m_behaviorHeap[0]
-		while candidate.EndDate() <= now:
-			_, _, expiredBehavior = heapq.heappop(self.m_behaviorHeap)
-			expiredBehavior.OnBehaviorRemoved()
+		# We provide details on what to execute, and
+		# if we need to reconfigure after execution
+		_, _, currentBehavior = self.m_behaviorHeap[0]
+		lastRun = False
+		nextBehavior = None
 
-			if not self.m_behaviorHeap:
-				candidate = None
-				break
+		# If the current behavior is expiring, find the next one that hasn't
+		# also expired.
+		if currentBehavior.EndDate() <= now:
+			lastRun = True
+			nextBehavior = currentBehavior
+			while nextBehavior.EndDate() <= now:
+				_, _, expiredBehavior = heapq.heappop(self.m_behaviorHeap)
+				if expiredBehavior != currentBehavior:
+					expiredBehavior.OnBehaviorRemoved()
 
-			# Because the first one has expired, we need to reconfigure
-			# our interval for the new job
-			_, _, candidate = self.m_behaviorHeap[0]
-			reconfigureJob = True
+				if not self.m_behaviorHeap:
+					nextBehavior = None
+					break
 
-		return candidate, reconfigureJob
+				# Because the first one has expired, we need to reconfigure
+				# our interval for the new job
+				_, _, nextBehavior = self.m_behaviorHeap[0]
+
+		return currentBehavior, lastRun, nextBehavior
 
 
 	def ReconfigureJobForBehavior(self, behavior):
 		startDate = behavior.StartDate()
 		intervalSeconds = behavior.IntervalInSeconds()
-		print 
 		self.m_behaviorJob = self.m_behaviorJob.reschedule(trigger='interval', start_date=startDate, seconds=intervalSeconds)
-		print self.m_behaviorJob
 		self.m_behaviorJob.resume()
+
+		print
+		print self.m_behaviorJob
+
 		return
 
 
 	def RunBehaviors(self):
-		currentBehavior, reconfigureJob = self.GetCurrentBehavior()
-		if currentBehavior is None:
+		now = datetime.now()
+		currentBehavior, lastRun, nextBehavior = self.GetCurrentBehavior(now)
+		if currentBehavior is None and nextBehavior is None:
 			self.m_behaviorJob.pause()
 			return
 
-		currentBehavior.DoBehavior(self.m_channels)
+		# Guard against being asked to trigger behavior before the start time
+		# Can happen when reconfiguring for a new behavior
+		if currentBehavior.StartDate() <= now:
+			currentBehavior.DoBehavior(self.m_channels)
 
-		if reconfigureJob is True:
-			self.ReconfigureJobForBehavior(currentBehavior)
+		if lastRun:
+			currentBehavior.OnBehaviorRemoved()
+			if nextBehavior is not None:
+				self.ReconfigureJobForBehavior(currentBehavior)
+			else:
+				self.m_behaviorJob.pause()
 
 
 	def AddBehavior(self, behavior, priority, startDate, endDate):
