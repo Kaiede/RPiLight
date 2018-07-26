@@ -127,7 +127,7 @@ class LightController:
 		if lastRun:
 			currentBehavior.OnBehaviorRemoved()
 			if nextBehavior is not None:
-				self.ReconfigureJobForBehavior(currentBehavior)
+				self.ReconfigureJobForBehavior(nextBehavior)
 			else:
 				self.m_behaviorJob.pause()
 
