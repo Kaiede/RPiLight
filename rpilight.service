@@ -1,0 +1,14 @@
+[Unit]
+Description=RPiLight
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python -u daemon.py
+WorkingDirectory=/home/pi/rpilight
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
