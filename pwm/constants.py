@@ -17,15 +17,15 @@
 # PIGPIO:
 #   Uses the PIGPIO library and daemon to provide hardware support.
 #   2 Channels
-#   960Hz PWM Frequency, Maaaany dimming steps.
+#   2880Hz Max PWM Frequency, Maaaany dimming steps.
 # Adafruit:
-#   Uses the Adafruit Servo/PWM Hat/Bonnet.
+#   Uses the Adafruit PCA9685 Servo/PWM Hat/Bonnet.
 #   16 Channels
 #   1440Hz Max PWM Frequency, 4096 dimming steps.
 
 MODE_SIMULATED = "simulated"
 MODE_PIGPIO = "pigpio"
-#MODE_ADAFRUIT = "adafruit"
+MODE_ADAFRUIT = "adafruit"
 
 
 #
