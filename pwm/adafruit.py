@@ -14,7 +14,9 @@ from importlib import import_module
 
 from constants import *
 
-UNITS_PER_CYCLE = 4096 # 12-bit resolution
+# If we let the PWM width hit 4096, that has special meaning,
+# So we use one less than that value.
+UNITS_PER_CYCLE = 4095 # 12-bit resolution
 MAX_FREQUENCY = PWM_BASE_FREQ * 3 # 1440 Hz
 
 def StartupPWM(channelCount, frequency):
