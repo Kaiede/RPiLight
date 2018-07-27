@@ -9,6 +9,7 @@
 #
 
 import json
+import logging
 import os
 import sets
 
@@ -96,10 +97,9 @@ class Module:
 	def __init__(self, channelTokens, frequency):
 		self.RegisterChannels(channelTokens)
 
-		print "PWM Initialized"
-		print "Channels: " + str(channelTokens)
-		print "Frequency: %d Hz" % frequency
-		print 
+		logging.info("PWM Initialized")
+		logging.info("Channels: " + str(channelTokens))
+		logging.info("Frequency: %d Hz" % frequency)
 
 
 	def Shutdown(self):
@@ -109,8 +109,7 @@ class Module:
 
 		self.m_channels = None
 
-		print
-		print "PWM Shutdown"
+		logging.info("PWM Shutdown")
 
 
 	def RegisterChannels(self, channelTokens):
@@ -149,7 +148,7 @@ class Channel:
 		if token is None:
 			raise ValueException('token')
 
-		print "[%s] Channel Created" % token		
+		logging.info("[%s] Channel Created" % token)
 		self.m_token = token
 		self.SetBrightness(0.0)
 		return
@@ -160,7 +159,7 @@ class Channel:
 
 
 	def Shutdown(self):
-		print "[%s] Channel Shutdown" % self.m_token		
+		logging.info("[%s] Channel Shutdown" % self.m_token)
 		return
 
 
@@ -172,7 +171,7 @@ class Channel:
 		self.m_brightness = BoundValue(brightness, 0.0, 1.0)
 		luminance = BoundValue(self.m_brightness ** GAMMA_VALUE, 0.0, 1.0)
 		self.OnLuminanceChanged(luminance)
-		print "[%s] Brightness: %0.1f, Luminance: %0.1f" % (self.Token(), self.m_brightness * 100.0, luminance * 100.0)
+		logging.debug("[%s] Brightness: %0.1f, Luminance: %0.1f" % (self.Token(), self.m_brightness * 100.0, luminance * 100.0))
 
 
 	def OnLuminanceChanged(self, luminance):

@@ -8,9 +8,10 @@
 #	Copyright 2018 <user@biticus.net>
 #
 
+import controller
+import logging
 import pwm
 import sys
-import controller
 
 from datetime import datetime, timedelta
 
@@ -33,16 +34,23 @@ else:
 
 
 #
+# Configure Logging
+#
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
+
+
+#
 # Initialize PWM, Read Schedule, Initialize Light Controller
 #
 pwm.StartupWithConfigFile(targetConfig)
 
 availableChannels = pwm.GetValidTokens()
-print availableChannels
+logging.info(availableChannels)
 
 schedule = controller.ReadSchedule(targetSchedule, availableChannels)
 
-print schedule
+logging.info(schedule)
 
 activeChannels = {}
 for token in availableChannels:

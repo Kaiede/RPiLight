@@ -8,6 +8,7 @@
 #	Copyright 2018 <user@biticus.net>
 #
 
+import logging
 import pwm
 import sys
 import controller
@@ -32,6 +33,14 @@ else:
 
 
 #
+# Configure Logging
+#
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
+logging.getLogger("apscheduler.scheduler").setLevel(logging.INFO)
+
+
+#
 # Initialize PWM and get the list of channels
 #
 pwm.StartupWithConfigFile(targetConfig)
@@ -52,13 +61,13 @@ lightController = controller.LightController(activeChannels)
 rampToHigh = RampForChannels(activeChannels, 0.0, 1.0)
 rampToLow = RampForChannels(activeChannels, 1.0, 0.0)
 
-print "Start Ramp"
+logging.info("Start Ramp")
 
 rampToHighBehavior = controller.LightBehavior(rampToHigh)
 rampToLowBehavior = controller.LightBehavior(rampToLow)
 
 
-print "First Pulse:"
+logging.info("First Pulse:")
 # First Pulse: 10 seconds total, 4 up, 4 down. Break of 2 in the middle
 now = datetime.now()
 lightController.AddBehavior(rampToHighBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=4))
@@ -66,7 +75,7 @@ lightController.AddBehavior(rampToLowBehavior, controller.PRIORITY_LIGHTRAMP, no
 rampToLowBehavior.Wait()
 
 
-print "Second Pulse:"
+logging.info("Second Pulse:")
 # Second Pulse: 10 seconds total, 6 up, 5 down. 1 second overlap
 now = datetime.now()
 lightController.AddBehavior(rampToHighBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=6))

@@ -11,6 +11,7 @@
 import apscheduler.events as apevents
 import heapq
 import itertools
+import logging
 import threading
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -46,7 +47,6 @@ class LightController:
 
 
 	def Shutdown(self):
-		self.m_behaviorJob.remove()
 		self.m_scheduler.shutdown()
 
 
@@ -106,8 +106,7 @@ class LightController:
 		self.m_behaviorJob = self.m_behaviorJob.reschedule(trigger='interval', start_date=startDate, seconds=intervalSeconds)
 		self.m_behaviorJob.resume()
 
-		print
-		print self.m_behaviorJob
+		logging.info(self.m_behaviorJob)
 
 		return
 
@@ -188,6 +187,9 @@ class LightEvent(Event, object):
 		super(LightEvent, self).__init__(time)
 
 	def OnEventFired(self, controller):
+		now = datetime.now().strftime("%H:%M:%S")
+		logging.info("LightEvent Fired: %s" % now)
+
 		today = datetime.today()
 		startTime =	datetime.combine(today.date(), self.Time())
 		endTime = datetime.combine(today.date(), self.m_endTime)
@@ -225,12 +227,19 @@ class Behavior(object):
 		self.m_startDate = startDate
 		self.m_endDate = endDate
 		self.m_controller = controller
+
+		startTime = self.m_startDate.strftime("%H:%M:%S")
+		endTime = self.m_endDate.strftime("%H:%M:%S")
+		logging.info("Behavior Attached: {%s - %s}" % (startTime, endTime))
 		return
 
 
 	def OnBehaviorRemoved(self):
-		print "Behavior Removed"
 		self.m_event.set()
+
+		startTime = self.m_startDate.strftime("%H:%M:%S")
+		endTime = self.m_endDate.strftime("%H:%M:%S")
+		logging.info("Behavior Removed: {%s - %s}" % (startTime, endTime))
 		return
 
 

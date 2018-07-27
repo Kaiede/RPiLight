@@ -9,6 +9,7 @@
 #
 
 import controller
+import logging
 
 from constants import *
 from datetime import datetime, timedelta
@@ -54,7 +55,7 @@ class SchedulePreview:
 	def Run(self):
 		for idx, rampBehavior in enumerate(self.m_ramps):
 			rampDuration = self.m_rampDurations[idx]
-			print "Ramp %d: %0.1f Seconds" % (idx, rampDuration)
+			logging.info("Ramp %d: %0.1f Seconds" % (idx, rampDuration))
 
 			now = datetime.now()
 			self.m_lightController.AddBehavior(rampBehavior, PRIORITY_PREVIEW, now, now + timedelta(seconds=rampDuration))
