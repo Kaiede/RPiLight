@@ -27,7 +27,7 @@ def Startup(mode, channelCount = 1, frequency = PWM_BASE_FREQ):
 	validModules = {
 		MODE_SIMULATED : ".simulator",
 		MODE_PIGPIO : ".pigpio",
-		MODE_ADAFRUIT : “.adafruit”
+		MODE_ADAFRUIT : ".adafruit"
 	}
 
 	mode = mode.lower()
