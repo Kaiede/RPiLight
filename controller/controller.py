@@ -115,6 +115,7 @@ class LightController:
 		now = datetime.now()
 		currentBehavior, lastRun, nextBehavior = self.GetCurrentBehavior(now)
 		if currentBehavior is None and nextBehavior is None:
+			logging.info("No Behaviors. Pausing.")
 			self.m_behaviorJob.pause()
 			return
 
@@ -122,12 +123,16 @@ class LightController:
 		# Can happen when reconfiguring for a new behavior
 		if currentBehavior.StartDate() <= now:
 			currentBehavior.DoBehavior(self.m_channels)
+		else:
+			logging.warning("Skipping Behavior. Too Early")
 
 		if lastRun:
 			currentBehavior.OnBehaviorRemoved()
 			if nextBehavior is not None:
+				logging.info("Reconfiguring For New Job")
 				self.ReconfigureJobForBehavior(nextBehavior)
 			else:
+				logging.info("No More Jobs. Pausing.")
 				self.m_behaviorJob.pause()
 
 
