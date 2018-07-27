@@ -260,9 +260,9 @@ class Behavior(object):
 # Let's try to update about 5000 times during the ramp.
 # If we can't, update every 10ms instead.
 #
-RAMP_STEP_TARGET = 2 ** 12	# Steps
-MIN_RAMP_INTERVAL = 0.01 	# 10ms
-MAX_RAMP_INTERVAL = 1.0		# 1s
+RAMP_STEP_TARGET = 2 ** 12		# Steps
+MIN_RAMP_INTERVAL = 1. / 24.0	# 1/24th of a second
+MAX_RAMP_INTERVAL = 1.0			# 1 second
 
 class LightBehavior(Behavior, object):
 	def __init__(self, channelRanges):
