@@ -40,22 +40,22 @@ class AdafruitModule(pwmlib.Module, object):
 		if frequency > MAX_FREQUENCY:
 			raise ValueError('frequency')
 
-		self.m_channels = CreateChannelDict(channelCount)
+		self.m_channelMap = CreateChannelDict(channelCount)
 
 		self.m_adafruit = import_module("Adafruit_PCA9685")
-		self.m_pca9685 = adafruit.PCA9685()
-		self.m_pca9685.set_pwm_frequency(frequency)
+		self.m_pca9685 = self.m_adafruit.PCA9685()
+		self.m_pca9685.set_pwm_freq(frequency)
 
-		super(AdafruitModule, self).__init__(self.m_channels.keys(), frequency)
+		super(AdafruitModule, self).__init__(self.m_channelMap.keys(), frequency)
 
 
 	def Shutdown(self):
-		self.m_adafruit.software_reset()
 		super(AdafruitModule, self).Shutdown()
 
 
 	def CreateChannel(self, token):
-		return AdafruitChannel(token, self.m_pca9685, self.m_channels[token])
+		pwmChannel = self.m_channelMap[token]
+		return AdafruitChannel(token, self.m_pca9685, pwmChannel)
 
 
 class AdafruitChannel(pwmlib.Channel, object):

@@ -26,7 +26,7 @@ def ValidateHardwareConfig(configDict):
 	#
 	# Must be provided
 
-	validModes = sets.Set([ MODE_SIMULATED, MODE_PIGPIO ])
+	validModes = sets.Set([ MODE_SIMULATED, MODE_PIGPIO, MODE_ADAFRUIT ])
 	if not configDict.has_key(KEY_PWM_MODE):
 		raise ValueError(KEY_PWM_MODE)
 
