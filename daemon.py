@@ -38,7 +38,6 @@ else:
 # Configure Logging
 #
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
 
 
 #
@@ -65,6 +64,7 @@ lightController = controller.LightController(activeChannels)
 # Run the Daemon
 #
 
+lightController.Start()
 lightController.SetSchedule(schedule)
 
 while True:
@@ -73,5 +73,5 @@ while True:
 #
 # Cleanup
 #
-lightController.Shutdown()
+lightController.Stop()
 pwm.Shutdown()

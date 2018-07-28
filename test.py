@@ -8,10 +8,11 @@
 #	Copyright 2018 <user@biticus.net>
 #
 
+import controller
 import logging
 import pwm
 import sys
-import controller
+import time
 
 from datetime import datetime, timedelta
 
@@ -36,8 +37,6 @@ else:
 # Configure Logging
 #
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
-logging.getLogger("apscheduler.scheduler").setLevel(logging.INFO)
 
 
 #
@@ -57,34 +56,46 @@ for token in availableChannels:
 # Ramp up, then down
 #
 lightController = controller.LightController(activeChannels)
+lightController.Start()
 
 rampToHigh = RampForChannels(activeChannels, 0.0, 1.0)
 rampToLow = RampForChannels(activeChannels, 1.0, 0.0)
 
-logging.info("Start Ramp")
+logging.info("Start Ramps")
 
-rampToHighBehavior = controller.LightBehavior(rampToHigh)
-rampToLowBehavior = controller.LightBehavior(rampToLow)
+rampToHighBehavior = controller.LightLevelChangeBehavior(rampToHigh)
+rampToLowBehavior = controller.LightLevelChangeBehavior(rampToLow)
 
 
 logging.info("First Pulse:")
 # First Pulse: 10 seconds total, 4 up, 4 down. Break of 2 in the middle
 now = datetime.now()
-lightController.AddBehavior(rampToHighBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=4))
-lightController.AddBehavior(rampToLowBehavior, controller.PRIORITY_LIGHTRAMP, now + timedelta(seconds=6), now + timedelta(seconds=10))
-rampToLowBehavior.Wait()
+lightController.SetBehavior(rampToHighBehavior, now, now + timedelta(seconds=6))
+rampToHighBehavior.Join()
 
+now = datetime.now()
+lightController.SetBehavior(rampToLowBehavior, now, now + timedelta(seconds=6))
+rampToLowBehavior.Join()
 
 logging.info("Second Pulse:")
+
+rampToHighBehavior.Reset()
+rampToLowBehavior.Reset()
+
 # Second Pulse: 10 seconds total, 6 up, 5 down. 1 second overlap
 now = datetime.now()
-lightController.AddBehavior(rampToHighBehavior, controller.PRIORITY_LIGHTRAMP, now, now + timedelta(seconds=6))
-lightController.AddBehavior(rampToLowBehavior, controller.PRIORITY_LIGHTRAMP, now + timedelta(seconds=5), now + timedelta(seconds=10))
-rampToLowBehavior.Wait()
+lightController.SetBehavior(rampToHighBehavior, now, now + timedelta(seconds=6))
+
+# Test smashing the existing ramp
+time.sleep(5)
+
+now = datetime.now()
+lightController.SetBehavior(rampToLowBehavior, now, now + timedelta(seconds=5))
+rampToLowBehavior.Join()
 
 
 #
 # Cleanup
 #
-lightController.Shutdown()
+lightController.Stop()
 pwm.Shutdown()

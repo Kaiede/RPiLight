@@ -8,146 +8,178 @@
 #	Copyright 2018 <user@biticus.net>
 #
 
-import apscheduler.events as apevents
 import heapq
 import itertools
 import logging
 import threading
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from constants import *
 from datetime import datetime, timedelta
 
 
 class LightController:
-	# m_channels - Dict:(Token, PWM.Channel) - The channel objects being controlled
-	# m_scheduler - BackgroundScheduler - This is how we toggle events.
-	# m_events - Array:Event - Events with cron jobs 
-
-	# m_behaviorJob - Job - Singular job used to manage behaviors.
-	# m_behaviorHeap - heapq
-	# m_behaviorCounter 
+	# m_controlEvent - Event
 
 	def __init__(self, channels):
-		# Store away the channel dictionary for later		
+		# Control Variables
+		self.m_controlEvent = threading.Event()
+		self.m_controlThread = threading.Thread(target=self.RunLoop)
+		self.m_isRunning = False
+
+		# Behavior Variables
 		self.m_channels = channels
-
-		# Initialize the Scheduler
-		self.m_events = []
-		self.m_scheduler = BackgroundScheduler()
-		self.m_scheduler.start()
-
-		# Intialize the Job handling behaviors
-		self.m_behaviorJob = self.m_scheduler.add_job(self.RunBehaviors, 'interval', id='run_behaviors_job', seconds=1, next_run_time=None)
-		self.m_behaviorHeap = []
-		self.m_behaviorCounter = itertools.count()
-
-		self.m_activeBehavior = None
-		self.m_activeJob = None
-
-
-	def Shutdown(self):
-		self.m_scheduler.shutdown()
+		self.m_channelEvents = []
+		self.m_nextChannelEventIdx = None
+		self.m_nextChannelEventDatetime = None
+		self.m_currentBehavior = None
 
 
 	def SetSchedule(self, schedule):
-		for event in self.m_events:
-			continue
-
-		self.m_events = CreateLightEventsFromSchedule(schedule)
+		self.m_channelEvents = CreateLightEventsFromSchedule(schedule)
 		currentTime = datetime.now().time()
-		latestEvent = None
-		for event in self.m_events:
-			self.m_scheduler.add_job(event.OnEventFired, 'cron', [self], hour=event.Hour(), minute=event.Minute(), second=event.Second())
+		idxLatestEvent = -1
+		for idxEvent, event in enumerate(self.m_channelEvents):
 			if event.Time() < currentTime:
-				latestEvent = event
+				idxLatestEvent = idxEvent
 
-		if latestEvent is None:
-			latestEvent = self.m_events[-1]
-
-		# Make sure the previous event fires and does the work. 
-		latestEvent.OnEventFired(self)
-
-
-	def GetCurrentBehavior(self, now):
-		if not self.m_behaviorHeap:
-			return None, False, None
-
-		# We provide details on what to execute, and
-		# if we need to reconfigure after execution
-		_, _, currentBehavior = self.m_behaviorHeap[0]
-		lastRun = False
-		nextBehavior = None
-
-		# If the current behavior is expiring, find the next one that hasn't
-		# also expired.
-		if currentBehavior.EndDate() <= now:
-			lastRun = True
-			nextBehavior = currentBehavior
-			while nextBehavior.EndDate() <= now:
-				_, _, expiredBehavior = heapq.heappop(self.m_behaviorHeap)
-				if expiredBehavior != currentBehavior:
-					expiredBehavior.OnBehaviorRemoved()
-
-				if not self.m_behaviorHeap:
-					nextBehavior = None
-					break
-
-				# Because the first one has expired, we need to reconfigure
-				# our interval for the new job
-				_, _, nextBehavior = self.m_behaviorHeap[0]
-
-		return currentBehavior, lastRun, nextBehavior
+		# Wake up the thread so it can fire things
+		logging.info("Scheduling Next Event: %s", str(idxLatestEvent))
+		self.m_nextChannelEventIdx = idxLatestEvent
+		self.m_nextChannelEventDatetime = datetime.combine(datetime.today(), self.m_channelEvents[idxLatestEvent].Time())
+		self.m_controlEvent.set()
 
 
-	def ReconfigureJobForBehavior(self, behavior):
-		startDate = behavior.StartDate()
-		intervalSeconds = behavior.IntervalInSeconds()
-		self.m_behaviorJob = self.m_behaviorJob.reschedule(trigger='interval', start_date=startDate, seconds=intervalSeconds)
-		self.m_behaviorJob.resume()
+	def SetBehavior(self, behavior, startDate, endDate):
+		self.ClearBehavior()
+		self.m_currentBehavior = behavior
+		behavior.ConfigureForRunning(startDate, endDate)
 
-		logging.info(self.m_behaviorJob)
-
-		return
+		logging.info("New Behavior {%s -> %s}" % (startDate.strftime("%H:%M:%S.%f"), endDate.strftime("%H:%M:%S.%f")))
+		self.m_controlEvent.set()
 
 
-	def RunBehaviors(self):
-		now = datetime.now()
-		currentBehavior, lastRun, nextBehavior = self.GetCurrentBehavior(now)
-		if currentBehavior is None and nextBehavior is None:
-			logging.info("No Behaviors. Pausing.")
-			self.m_behaviorJob.pause()
+	def ClearBehavior(self):
+		if self.m_currentBehavior is not None:
+			self.m_currentBehavior.Complete()
+
+		self.m_currentBehavior = None
+		self.m_controlEvent.set()
+
+
+	def Start(self):
+		self.m_isRunning = True
+		self.m_controlThread.start()
+
+
+	def Stop(self):
+		self.m_isRunning = False
+		self.m_controlEvent.set()
+		self.m_controlThread.join()
+
+
+	def CalculateNextEventIdx(self, now, idxEvent):
+		idxNextEvent = idxEvent + 1
+		if idxNextEvent >= len(self.m_channelEvents):
+			idxNextEvent = 0
+
+		currentEvent = self.m_channelEvents[idxEvent]
+		nextEvent = self.m_channelEvents[idxNextEvent]
+
+		datetimeNextEvent = datetime.combine(now.date(), nextEvent.Time())
+		if nextEvent.Time() < currentEvent.Time():
+			datetimeNextEvent = datetimeNextEvent + timedelta(days=1)
+
+		return idxNextEvent, datetimeNextEvent
+
+
+	def RunEvent(self, now):
+		if not self.m_channelEvents:
 			return
 
-		# Guard against being asked to trigger behavior before the start time
-		# Can happen when reconfiguring for a new behavior
-		if currentBehavior.StartDate() <= now:
-			currentBehavior.DoBehavior(self.m_channels)
+		logging.debug("Checking Event %d" % self.m_nextChannelEventIdx)
+		while self.m_nextChannelEventDatetime <= now:
+			nextEvent = self.m_channelEvents[self.m_nextChannelEventIdx]
+			nextEvent.OnEventFired(self)
+			self.m_nextChannelEventIdx, self.m_nextChannelEventDatetime = self.CalculateNextEventIdx(now, self.m_nextChannelEventIdx)	
+			logging.debug("Checking Event %d" % self.m_nextChannelEventIdx)
+
+
+	def WaitNextInterval(self, now):
+		interval = None
+		intervalEvent = None
+
+		# Check Event
+		if self.m_nextChannelEventDatetime is not None:
+			intervalEvent = (self.m_nextChannelEventDatetime - now).total_seconds()
+
+		# Check Behavior
+		if self.m_currentBehavior is not None:
+			interval = self.m_currentBehavior.Interval()
+
+		# Do an override so interval is the smallest of the two,
+		# or the one that exists.
+		if intervalEvent is not None and interval is not None:
+			interval = min(intervalEvent, interval)
+		elif intervalEvent is not None:
+			interval = intervalEvent
+
+		if interval is not None:
+			spentTime = (datetime.now() - now).total_seconds()
+			logging.debug("%s: Next Wakeup: %s" % (now.strftime("%H:%M:%S.%f"), (now + timedelta(seconds=interval)).strftime("%H:%M:%S.%f")))
+			self.m_controlEvent.wait(interval - spentTime)
 		else:
-			logging.warning("Skipping Behavior. Too Early")
+			logging.debug("%s: Pausing Controller Thread" % now.strftime("%H:%M:%S.%f"))
+			self.m_controlEvent.wait()
 
-		if lastRun:
-			currentBehavior.OnBehaviorRemoved()
-			if nextBehavior is not None:
-				logging.info("Reconfiguring For New Job")
-				self.ReconfigureJobForBehavior(nextBehavior)
-			else:
-				logging.info("No More Jobs. Pausing.")
-				self.m_behaviorJob.pause()
+		return interval
 
 
-	def AddBehavior(self, behavior, priority, startDate, endDate):
-		behavior.AttachToController(self, startDate, endDate)
+	def RunBehavior(self, now):
+		if self.m_currentBehavior is not None:
+			lightLevels = self.m_currentBehavior.GetLightLevelForDate(now, self.m_channels)
 
-		behaviorId = next(self.m_behaviorCounter)
-		behaviorItem = [priority, behaviorId, behavior]
-		heapq.heappush(self.m_behaviorHeap, behaviorItem)
+			for token, brightness in lightLevels.iteritems():
+				if not self.m_channels.has_key(token):
+					logging.warning("Unknown Channel Token: %s", token)
+					continue
 
-		# Handle the case of the insert changing the current behavior
-		_, frontId, _ = self.m_behaviorHeap[0]
-		if frontId == behaviorId:
-			self.ReconfigureJobForBehavior(behavior)
+				channel = self.m_channels[token]
+				channel.SetBrightness(brightness)
 
+			if self.m_currentBehavior.EndDate() <= now:
+				self.ClearBehavior()
+
+
+	def RunLoop(self):
+		while True:
+			# Early Abort
+			if not self.m_isRunning:
+				return
+
+			#
+			# Get Current Time
+			#
+			now = datetime.now()
+
+			#
+			# Run Current Event(s) If Needed
+			#
+			logging.debug("Running Events")
+			self.RunEvent(now)
+
+			#
+			# Handle The Current Behavior
+			#
+			logging.debug("Running Behavior")
+			self.RunBehavior(now)
+
+			# 
+			# Pause For Next Work Item
+			#
+			interval = self.WaitNextInterval(now)
+			if self.m_controlEvent.is_set():
+				logging.debug("Early Wakeup From Control Event")
+			self.m_controlEvent.clear()
 
 
 class Event(object):
@@ -160,15 +192,6 @@ class Event(object):
 	def Time(self):
 		return self.m_time
 
-	def Hour(self):
-		return self.m_time.hour
-
-	def Minute(self):
-		return self.m_time.minute
-
-	def Second(self):
-		return self.m_time.second
-
 	def OnEventFired(self, controller):
 		return
 
@@ -179,21 +202,21 @@ def CreateLightEventsFromSchedule(schedule):
 		channelRanges, idxNext = schedule.ChannelValueRangeForEventIndex(idxEvent)
 		eventNext = events[idxNext]
 
-		lightEvent = LightEvent(scheduleEvent.Time(), eventNext.Time(), channelRanges)
+		lightEvent = LightLevelChangeEvent(scheduleEvent.Time(), eventNext.Time(), channelRanges)
 		jobEvents.append(lightEvent)
 
 	return jobEvents
 
-class LightEvent(Event, object):
+class LightLevelChangeEvent(Event, object):
 
 	def __init__(self, time, endTime, channelRanges):
 		self.m_endTime = endTime
-		self.m_behavior = LightBehavior(channelRanges)
-		super(LightEvent, self).__init__(time)
+		self.m_behavior = LightLevelChangeBehavior(channelRanges)
+		super(LightLevelChangeEvent, self).__init__(time)
 
 	def OnEventFired(self, controller):
 		now = datetime.now().strftime("%H:%M:%S")
-		logging.info("LightEvent Fired: %s" % now)
+		logging.info("%s: LightLevelChangeEvent Fired" % now.strftime("%H:%M:%S.%f"))
 
 		today = datetime.today()
 		startTime =	datetime.combine(today.date(), self.Time())
@@ -201,90 +224,99 @@ class LightEvent(Event, object):
 		if endTime < startTime:
 			endTime = endTime + timedelta(days=1)
 
-		controller.AddBehavior(self.m_behavior, PRIORITY_LIGHTRAMP, startTime, endTime)
+		controller.SetBehavior(self.m_behavior, startTime, endTime)
 		return
 
 
-class Behavior(object):
-	# m_controller - LightController
-	# m_event - threading.Event
+class Behavior:
+	# m_startDate
+	# m_endDate
+	# m_event
 
 	def __init__(self):
+		self.m_startDate = None
+		self.m_endDate = None
 		self.m_event = threading.Event()
-		self.m_controller = None
-		return
+		pass
 
+	def ConfigureForRunning(self, startDate, endDate):
+		self.m_startDate = startDate
+		self.m_endDate = endDate
 
 	def StartDate(self):
 		return self.m_startDate
 
-
 	def EndDate(self):
 		return self.m_endDate
 
+	def Interval(self):
+		return 0.01
 
-	def IntervalInSeconds(self):
-		return 1.0 # Seconds
-
-
-	def AttachToController(self, controller, startDate, endDate):
-		self.m_event.clear()
-		self.m_startDate = startDate
-		self.m_endDate = endDate
-		self.m_controller = controller
-
-		startTime = self.m_startDate.strftime("%H:%M:%S")
-		endTime = self.m_endDate.strftime("%H:%M:%S")
-		logging.info("Behavior Attached: {%s - %s}" % (startTime, endTime))
-		return
-
-
-	def OnBehaviorRemoved(self):
+	def Complete(self):
 		self.m_event.set()
 
-		startTime = self.m_startDate.strftime("%H:%M:%S")
-		endTime = self.m_endDate.strftime("%H:%M:%S")
-		logging.info("Behavior Removed: {%s - %s}" % (startTime, endTime))
-		return
-
-
-	def Wait(self):
+	def Join(self):
+		logging.debug("Join Started")
 		self.m_event.wait()
+		logging.debug("Join Ended")
+
+	def Reset(self):
+		self.m_startDate = None
+		self.m_endDate = None
+		self.m_event.clear()
+
+	def GetLightLevelForDate(self, now, channels):
+		return 1.0
 
 
-	def DoBehavior(self, channels):
-		return
+MIN_INTERVAL = 1.0 / 24.0	# 24 updates per second
+TARGET_UPDATES = 2 ** 10 	# 1024 updates per interpolation if we run a full ramp
 
 
-#
-# Let's try to update about 5000 times during the ramp.
-# If we can't, update every 10ms instead.
-#
-RAMP_STEP_TARGET = 2 ** 12		# Steps
-MIN_RAMP_INTERVAL = 1. / 24.0	# 1/24th of a second
-MAX_RAMP_INTERVAL = 1.0			# 1 second
+class LightLevelChangeBehavior(Behavior, object):
+	# m_channelDeltas
 
-class LightBehavior(Behavior, object):
 	def __init__(self, channelRanges):
-		# Convert to deltas from ranges
+		self.m_timeDelta = None
+		self.m_interval = None
 		self.m_channelDeltas = {token : (startState, endState - startState) for token, (startState, endState) in channelRanges.iteritems()}
-		super(LightBehavior, self).__init__()
+		super(LightLevelChangeBehavior, self).__init__()
 
 
-	def IntervalInSeconds(self):
-		rampTime = (self.EndDate() - self.StartDate()).total_seconds()
-		interval = rampTime / RAMP_STEP_TARGET
-		return min(max(interval, MIN_RAMP_INTERVAL), MAX_RAMP_INTERVAL)
+	def Interval(self):
+		if self.m_interval is None:
+			max_change = 0.0
+			for _, (_, delta) in self.m_channelDeltas.iteritems():
+				max_change = max(max_change, abs(delta))
+
+			if max_change == 0.0:
+				return self.TimeDelta()
+
+			self.m_interval = max(MIN_INTERVAL, self.TimeDelta() / (max_change * TARGET_UPDATES))
+
+		return self.m_interval
 
 
-	def DoBehavior(self, channels):
-		now = datetime.now()
+	def TimeDelta(self):
+		if getattr(self, 'm_timeRange', None) is None:
+			self.m_timeDelta = (self.EndDate() - self.StartDate()).total_seconds()
+
+		return self.m_timeDelta
+
+
+	def Reset(self):
+		self.m_timeRange = None
+		self.m_interval = None
+		super(LightLevelChangeBehavior, self).Reset()
+
+
+	def GetLightLevelForDate(self, now, channels):
 		timeSpent = (now - self.StartDate()).total_seconds()
-		timeRange = (self.EndDate() - self.StartDate()).total_seconds()
 
-		factor = timeSpent / timeRange
-		for token, (startState, delta) in self.m_channelDeltas.iteritems():
-			channel = channels[token]
+		channelOutputs = {}
+		factor = min(timeSpent / self.TimeDelta(), 1.0)
+		for token, (startState, delta) in self.m_channelDeltas.items():
 			brightness = startState + (factor * delta)
-			channel.SetBrightness(brightness)
+			channelOutputs[token] = brightness
 
+		return channelOutputs

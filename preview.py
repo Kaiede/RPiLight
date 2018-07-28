@@ -37,7 +37,6 @@ else:
 # Configure Logging
 #
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
 
 
 #
@@ -71,5 +70,4 @@ preview.Run()
 #
 # Cleanup
 #
-lightController.Shutdown()
 pwm.Shutdown()

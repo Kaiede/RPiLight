@@ -37,7 +37,7 @@ class SchedulePreview:
 		events = schedule.Events()
 		for idxEvent, event in enumerate(events):
 			channelRanges, idxNext = schedule.ChannelValueRangeForEventIndex(idxEvent)
-			rampBehavior = controller.LightBehavior(channelRanges)
+			rampBehavior = controller.LightLevelChangeBehavior(channelRanges)
 
 			nextEvent = events[idxNext]
 			nextEventDatetime = nextEvent.DatetimeForToday()
@@ -53,13 +53,14 @@ class SchedulePreview:
 		return
 
 	def Run(self):
+		self.m_lightController.Start()
+
 		for idx, rampBehavior in enumerate(self.m_ramps):
 			rampDuration = self.m_rampDurations[idx]
-			logging.info("Ramp %d: %0.1f Seconds" % (idx, rampDuration))
+			logging.info("Segment %d: %0.1f Seconds" % (idx, rampDuration))
 
 			now = datetime.now()
-			self.m_lightController.AddBehavior(rampBehavior, PRIORITY_PREVIEW, now, now + timedelta(seconds=rampDuration))
-			rampBehavior.Wait()
+			self.m_lightController.SetBehavior(rampBehavior, now, now + timedelta(seconds=rampDuration))
+			rampBehavior.Join()
 
-
-		return
+		self.m_lightController.Stop()
