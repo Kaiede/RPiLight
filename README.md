@@ -14,17 +14,19 @@ RPiLight supports the 2 built-in PWM channels, but if you need more, it is compa
 
 When it comes to driving your lights, there are a couple different options. Some Meanwell LDD drivers like the LDD-H work fine with 3.3V PWM input, and can be used directly. Other Meanwells like the LDD-L need a 5V output. 
 
-It is recommended that you research how you intend to drive your lights and check your work before proceeding.
+Another option for driving lights like Beamswork or Twinstar lights are MOSFET Trigger Switches. The ones I use can be found cheaply on e-bay, and [look a bit like this](examples/mosfet_trigger_switch.jpg). You will find it easier if you solder on headers, and will need to track down the correct power plugs so they can be between the power supply of the light, and the light itself. For the Twinstar, you can get 2.5mm ID x 5.5mm OD DC power plugs (male and female). They hook up much like the Current USA ramp timers. 
+
+It is recommended that you research how you intend to drive your lights and check your work before proceeding. This setup is specific to your situation, and is hard to cover in a simple guide.
 
 ### Wiring Up the Pi
 
 When using the built-in PWM channels, it's recommended to [use a pinout guide](https://pinout.xyz). RPiLight currently supports two channels using the hardware: PWM0 on GPIO18 and PWM1 on GPIO19. These are pins 12 and 35. You will also want to use the ground pins next to these pins when wiring things up. 
 
-When using the Adafruit PWM bonnet, the channels are marked 0-15 on the board, and in 
+When using the Adafruit PWM bonnet, the channels are marked 0-15 on the board, and these will map the same way in your configuration of RPiLight, making it easier. 
 
 ### Bootstrapping the Raspberry Pi
 
-These instructions assume you are starting fresh with a clean Micro SD card, and want to install . 
+These instructions assume you are starting fresh with a clean Micro SD card, and want to make this Raspberry Pi headless. 
 
 Start by [getting Rasbian Lite](https://www.raspberrypi.org/downloads/raspbian/), and writing the image to an SD card. [For headless setup, these instructions](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) should point you in the right direction for setting up wireless networking, and turning on SSH. 
 
@@ -34,6 +36,21 @@ Additionally, [these instructions](https://hackernoon.com/raspberry-pi-headless-
 
 ### Installing RPiLight
 
+Installing Prerequisties:
+```
+sudo apt-get install python-pip pigpio
+sudo pip install adafruit-pca9685 pigpio
+```
+
+It is also recommended to install git:
+```
+sudo apt-get install git
+```
+
+If you are using the built-in PWM channels, you now need to kick off pigpiod, so it launches on boot:
+```
+sudo systemctl enable pigpiod.service
+```
 
 ### Configuring RPiLight Hardware
 
@@ -52,6 +69,8 @@ The `pwmMode` parameter tells RPiLight what PWM controller to use. It can be `si
 The `freq` parameter tells RPiLight what PWM frequency to use, in Hz. It must be a multiple of `480`: `480`, `960`, `1440`, `1920`, `2400`, or `2880`. For `adafruit`, the maximum value this can be is `1440`. Before picking a value, check to see what your LED drivers support. Meanwell LDD drivers can only go so high (1 KHz), and so RPiLight should not use a value over `960` when driving Meanwell LDDs. This value should not be used with `simulated`, as it has no meaning.
 
 The `channels` parameter tells RPiLight how many channels to use. This can be `1-2` for `pigpio`, and `1-16` for `simulated` and `adafruit`. This will always count up from the first channel, So if you pass in `4` to the `adafruit` controller, then you will get control over channels 0-3. 
+
+Once you have the configuration file set. Make a directory in the RPiLight folder called `config`, and place it in there. You can also copy an example to the `config/` directory and modify it to suit your needs.
 
 ### Configuring RPiLight Schedule
 
@@ -92,14 +111,45 @@ The `channels` array at the top is currently not used. In the future it will be 
 
 The `schedule` array is where the work really happens. It is an array of events used to control the lights. Inside each event, we have two children:
 
-`time` is a 24-hour time of the event, in hours, minutes, and seconds. So 8:15pm would be 20:15:00. This time is in the local timezone set on the Raspberry Pi. 
+`time` is a 24-hour time of the event, in hours, minutes, and seconds. So 8:15 pm would be 20:15:00. This time is in the local timezone set on the Raspberry Pi. 
 
-This internal `channels` array contains items with a `token` and a `brightness` value. The token is short-hand for the channel 
+This internal `channels` array contains items with a `token` and a `brightness` value. The `token` is short-hand for the channel name, and depends on what PWM controller you are using. Examples are below. The `brightness` is a floating point value between `0` and `1.0`, with `1.0` being fully on, and `0` being off. 
 
 Example Channel Tokens:
 ```
-AF-PWM
+AF-PWM00 - AF-PWM15 : Adafruit Channels 0-15
+PWM0-GPIO18 		: pigpio PWM channel 0, on GPIO18
+PWM1-GPIO19 		: pigpio PWM channel 1, on GPIO19
+SIM00 - SIM15		: Simulated Channels 0-15
 ```
+
+In this example, the lights will be off at 8:00 am. Starting at 8:00 am, it will ramp up the lights until they are at 25% at 8:30 am. Then they will remain at 25% until 12:00 pm. 
+
+### Testing Your Hardware / Schedule
+
+`test.py` was meant to test hardware configurations with simple ramps:
+
+```
+python test.py <testConfig.json>
+```
+
+You can use the `preview.py` script to test your schedule:
+
+```
+python preview.py <testConfig.json> <testSchedule.json>
+```
+
+In both cases, they look in the `config/` directory for you. You don't need a full path to the file, just the name of the file. By default, they use `testConfig.json` and `testSchedule.json` if no arguments are provided. 
+
+### Starting the Daemon
+
+The `daemon.py` script will run indefinitely, looping the schedule each day. For now, it can be launched manually over ssh like so:
+
+```
+python daemon.py <testConfig.json> <testSchedule.json>
+```
+
+> WARNING: By default `daemon.py` still uses `testConfig.json` and `testSchedule.json` when no arguments are probided. A change will fix this, but you can pass in what config/schedule to use manually as a work-around.
 
 ## Built With
 
