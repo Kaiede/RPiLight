@@ -27,7 +27,7 @@ def CreateChannelDict(count):
 
 	channelDict = {}
 	for x in range(count):
-		channelName = "AF-PWM%02d" % (x+1)
+		channelName = "AF-PWM%02d" % x
 		channelDict[channelName] = x
 
 	return channelDict
