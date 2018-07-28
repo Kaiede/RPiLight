@@ -215,7 +215,7 @@ class LightLevelChangeEvent(Event, object):
 		super(LightLevelChangeEvent, self).__init__(time)
 
 	def OnEventFired(self, controller):
-		now = datetime.now().strftime("%H:%M:%S")
+		now = datetime.now()
 		logging.info("%s: LightLevelChangeEvent Fired" % now.strftime("%H:%M:%S.%f"))
 
 		today = datetime.today()
