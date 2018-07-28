@@ -22,7 +22,7 @@ def CreateChannelArray(count):
 
 	channelArray = []
 	for x in range(count):
-		channelArray.append("SIM%02d" % (x+1))
+		channelArray.append("SIM%02d" % x)
 
 	return channelArray
 
