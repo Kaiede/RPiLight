@@ -1,10 +1,10 @@
 [Unit]
 Description=RPiLight
-After=network.target
+After=network.target pigpiod.service
 
 [Service]
 ExecStart=/usr/bin/python -u daemon.py
-WorkingDirectory=/home/pi/rpilight
+WorkingDirectory=/home/pi/RPiLight
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
