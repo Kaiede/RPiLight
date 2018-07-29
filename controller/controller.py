@@ -50,19 +50,22 @@ class LightController:
 
 
 	def SetBehavior(self, behavior, startDate, endDate):
-		self.ClearBehavior()
-		self.m_currentBehavior = behavior
+		self.ClearBehavior(self.m_currentBehavior)
 		behavior.ConfigureForRunning(startDate, endDate)
+		self.m_currentBehavior = behavior
 
 		logging.info("New Behavior {%s -> %s}" % (startDate.strftime("%H:%M:%S.%f"), endDate.strftime("%H:%M:%S.%f")))
 		self.m_controlEvent.set()
 
 
-	def ClearBehavior(self):
-		if self.m_currentBehavior is not None:
-			self.m_currentBehavior.Complete()
+	def ClearBehavior(self, currentBehavior):
+		if currentBehavior == self.m_currentBehavior:
+			self.m_currentBehavior = None
 
-		self.m_currentBehavior = None
+		logging.info("Clear Behavior {%s -> %s}" % (currentBehavior.StartDate().strftime("%H:%M:%S.%f"), currentBehavior.EndDate().strftime("%H:%M:%S.%f")))
+		if currentBehavior is not None:
+			currentBehavior.Complete()
+
 		self.m_controlEvent.set()
 
 
@@ -113,8 +116,9 @@ class LightController:
 			intervalEvent = (self.m_nextChannelEventDatetime - now).total_seconds()
 
 		# Check Behavior
-		if self.m_currentBehavior is not None:
-			interval = self.m_currentBehavior.Interval()
+		currentBehavior = self.m_currentBehavior
+		if currentBehavior is not None:
+			interval = currentBehavior.Interval()
 
 		# Do an override so interval is the smallest of the two,
 		# or the one that exists.
@@ -135,19 +139,22 @@ class LightController:
 
 
 	def RunBehavior(self, now):
-		if self.m_currentBehavior is not None:
-			lightLevels = self.m_currentBehavior.GetLightLevelForDate(now, self.m_channels)
+		currentBehavior = self.m_currentBehavior
+		if currentBehavior is None:
+			return
 
-			for token, brightness in lightLevels.iteritems():
-				if not self.m_channels.has_key(token):
-					logging.warning("Unknown Channel Token: %s", token)
-					continue
+		lightLevels = currentBehavior.GetLightLevelForDate(now, self.m_channels)
 
-				channel = self.m_channels[token]
-				channel.SetBrightness(brightness)
+		for token, brightness in lightLevels.iteritems():
+			if not self.m_channels.has_key(token):
+				logging.warning("Unknown Channel Token: %s", token)
+				continue
 
-			if self.m_currentBehavior.EndDate() <= now:
-				self.ClearBehavior()
+			channel = self.m_channels[token]
+			channel.SetBrightness(brightness)
+
+		if currentBehavior.EndDate() <= now:
+			self.ClearBehavior(currentBehavior)
 
 
 	def RunLoop(self):
@@ -305,7 +312,7 @@ class LightLevelChangeBehavior(Behavior, object):
 
 
 	def Reset(self):
-		self.m_timeRange = None
+		self.m_timeDelta = None
 		self.m_interval = None
 		super(LightLevelChangeBehavior, self).Reset()
 
