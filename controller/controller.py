@@ -85,7 +85,7 @@ class LightController:
 		self.m_controlThread.join()
 
 
-	def CalculateNextEventIdx(self, now, idxEvent):
+	def CalculateNextEventIdx(self, now, idxEvent, datetimeEvent):
 		idxNextEvent = idxEvent + 1
 		if idxNextEvent >= len(self.m_channelEvents):
 			idxNextEvent = 0
@@ -93,7 +93,7 @@ class LightController:
 		currentEvent = self.m_channelEvents[idxEvent]
 		nextEvent = self.m_channelEvents[idxNextEvent]
 
-		datetimeNextEvent = datetime.combine(now.date(), nextEvent.Time())
+		datetimeNextEvent = datetime.combine(datetimeEvent.date(), nextEvent.Time())
 		if nextEvent.Time() < currentEvent.Time():
 			datetimeNextEvent = datetimeNextEvent + timedelta(days=1)
 
@@ -105,11 +105,16 @@ class LightController:
 			return
 
 		logging.debug("Checking Event %d" % self.m_nextChannelEventIdx)
+		didFire = False
 		while self.m_nextChannelEventDatetime <= now:
 			nextEvent = self.m_channelEvents[self.m_nextChannelEventIdx]
 			nextEvent.OnEventFired(self)
-			self.m_nextChannelEventIdx, self.m_nextChannelEventDatetime = self.CalculateNextEventIdx(now, self.m_nextChannelEventIdx)	
+			self.m_nextChannelEventIdx, self.m_nextChannelEventDatetime = self.CalculateNextEventIdx(now, self.m_nextChannelEventIdx, self.m_nextChannelEventDatetime)
+			didFire = True
 			logging.debug("Checking Event %d" % self.m_nextChannelEventIdx)
+
+		if didFire:
+			logging.info("Next Event (%d) At: %s", self.m_nextChannelEventIdx, str(self.m_nextChannelEventDatetime))
 
 
 	def WaitNextInterval(self, now):
