@@ -47,9 +47,16 @@ It is also recommended to install git:
 sudo apt-get install git
 ```
 
-If you are using the built-in PWM channels, you now need to kick off pigpiod, so it launches on boot:
+If you are using the built-in PWM channels, you now need to kick off pigpiod and enable it to launch on boot:
 ```
 sudo systemctl enable pigpiod.service
+sudo systemctl start pigpiod.service
+```
+
+Now, it's time to get RPiLight installed. It's recommended to clone it from GitHub to make updates easier. When using git, you can simply use `git pull` to update to the latest version.
+```
+cd ~
+git clone https://github.com/Kaiede/RPiLight.git
 ```
 
 ### Configuring RPiLight Hardware
@@ -143,13 +150,25 @@ In both cases, they look in the `config/` directory for you. You don't need a fu
 
 ### Starting the Daemon
 
-The `daemon.py` script will run indefinitely, looping the schedule each day. For now, it can be launched manually over ssh like so:
+The `daemon.py` script will run indefinitely, looping the schedule each day. It uses `config.json` and `schedule.json`, keeping the files separate from testing and previewing. 
+
+Setting up the service to boot automatically takes a couple of steps. This will configure the service to start automatically at boot, and start it immediately:
 
 ```
-python daemon.py <testConfig.json> <testSchedule.json>
+sudo cp rpilight.service /lib/systemd/system
+sudo systemctl enable rpilight.service
+sudo systemctl start rpilight.service
 ```
 
-> WARNING: By default `daemon.py` still uses `testConfig.json` and `testSchedule.json` when no arguments are probided. A change will fix this, but you can pass in what config/schedule to use manually as a work-around.
+If you need to restart the service after making changes to the schedule:
+```
+sudo systemctl restart rpilight.service
+```
+
+Or stop it to run previews:
+```
+sudo systemctl stop rpilight.service
+```
 
 ## Built With
 
