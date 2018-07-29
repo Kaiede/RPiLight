@@ -64,8 +64,8 @@ lightController = controller.LightController(activeChannels)
 # Run the Daemon
 #
 
-lightController.Start()
 lightController.SetSchedule(schedule)
+lightController.Start()
 
 while True:
 	time.sleep(5)
