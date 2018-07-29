@@ -25,6 +25,7 @@ class LightController:
 		self.m_controlEvent = threading.Event()
 		self.m_controlThread = threading.Thread(target=self.RunLoop)
 		self.m_isRunning = False
+		self.m_shouldLogState = False
 
 		# Behavior Variables
 		self.m_channels = channels
@@ -85,6 +86,13 @@ class LightController:
 		self.m_controlThread.join()
 
 
+	def LogCurrentChannelState(self, logLevel, now):
+		channels = self.m_channels
+		logging.log(logLevel, "%s: Channel State", now.strftime("%H:%M:%S.%f"))
+		for token, channel in channels.iteritems():
+			logging.log(logLevel, "    {%s, %0.1f}", token, channel.Brightness() * 100.0)
+
+
 	def CalculateNextEventIdx(self, now, idxEvent, datetimeEvent):
 		idxNextEvent = idxEvent + 1
 		if idxNextEvent >= len(self.m_channelEvents):
@@ -114,6 +122,7 @@ class LightController:
 			logging.debug("Checking Event %d" % self.m_nextChannelEventIdx)
 
 		if didFire:
+			self.m_shouldLogState = True
 			logging.info("Next Event (%d) At: %s", self.m_nextChannelEventIdx, str(self.m_nextChannelEventDatetime))
 
 
@@ -192,7 +201,14 @@ class LightController:
 			logging.debug("Running Behavior")
 			self.RunBehavior(now)
 
-			# 
+			#
+			# Log State, Maybe
+			#
+			if self.m_shouldLogState:
+				self.m_shouldLogState = False
+				self.LogCurrentChannelState(logging.INFO, now)
+
+			#
 			# Pause For Next Work Item
 			#
 			interval = self.WaitNextInterval(now)
