@@ -46,6 +46,11 @@ class LightController:
 		logging.info("Scheduling Next Event: %s", str(idxLatestEvent))
 		self.m_nextChannelEventIdx = idxLatestEvent
 		self.m_nextChannelEventDatetime = datetime.combine(datetime.today(), self.m_channelEvents[idxLatestEvent].Time())
+
+		# Handle the case where we are in the period of time before any of today's events.
+		if idxLatestEvent == -1:
+			self.m_nextChannelEventDatetime = self.m_nextChannelEventDatetime - timedelta(days=1)
+
 		self.m_controlEvent.set()
 
 
@@ -62,8 +67,8 @@ class LightController:
 		if currentBehavior == self.m_currentBehavior:
 			self.m_currentBehavior = None
 
-		logging.info("Clear Behavior {%s -> %s}" % (currentBehavior.StartDate().strftime("%H:%M:%S.%f"), currentBehavior.EndDate().strftime("%H:%M:%S.%f")))
 		if currentBehavior is not None:
+			logging.info("Clear Behavior {%s -> %s}" % (currentBehavior.StartDate().strftime("%H:%M:%S.%f"), currentBehavior.EndDate().strftime("%H:%M:%S.%f")))
 			currentBehavior.Complete()
 
 		self.m_controlEvent.set()
@@ -158,9 +163,11 @@ class LightController:
 
 
 	def RunLoop(self):
+		logging.info("Light Controller Loop Started")
 		while True:
 			# Early Abort
 			if not self.m_isRunning:
+				logging.info("Light Controller Loop Stopped")
 				return
 
 			#
