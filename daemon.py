@@ -24,12 +24,12 @@ from datetime import datetime, timedelta
 #
 
 if len(sys.argv) < 2:
-	targetConfig = "testConfig.json"
+	targetConfig = "config.json"
 else:
 	targetConfig = sys.argv[1]
 
 if len(sys.argv) < 3:
-	targetSchedule = "testSchedule.json"
+	targetSchedule = "schedule.json"
 else:
 	targetSchedule = sys.argv[2]
 
