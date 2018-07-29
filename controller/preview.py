@@ -12,7 +12,7 @@ import controller
 import logging
 
 from constants import *
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 
 #
 # Compress 24 Hours to 1 Minute
@@ -42,7 +42,8 @@ class SchedulePreview:
 			nextEvent = events[idxNext]
 			nextEventDatetime = nextEvent.DatetimeForToday()
 			if (idxNext < idxEvent):
-				nextEventDatetime = nextEventDatetime + timedelta(days=1)
+				today = datetime.combine(date.today(), time())
+				nextEventDatetime = today + timedelta(days=1)
 
 			rampDuration = (nextEventDatetime - event.DatetimeForToday()).total_seconds()
 			rampDuration = rampDuration / PREVIEW_COMPRESSION_FACTOR

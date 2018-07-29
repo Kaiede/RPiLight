@@ -62,8 +62,8 @@ class LightController:
 		if currentBehavior == self.m_currentBehavior:
 			self.m_currentBehavior = None
 
-		logging.info("Clear Behavior {%s -> %s}" % (currentBehavior.StartDate().strftime("%H:%M:%S.%f"), currentBehavior.EndDate().strftime("%H:%M:%S.%f")))
 		if currentBehavior is not None:
+			logging.info("Clear Behavior {%s -> %s}" % (currentBehavior.StartDate().strftime("%H:%M:%S.%f"), currentBehavior.EndDate().strftime("%H:%M:%S.%f")))
 			currentBehavior.Complete()
 
 		self.m_controlEvent.set()
