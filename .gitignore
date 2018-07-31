@@ -1,6 +1,15 @@
 # PiLight Specific Ignores
 /config
 
+##### SWIFT BUILD
+.DS_Store
+/.build
+/Packages
+/*.xcodeproj
+/Package.resolved
+
+##### PYTHON
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
