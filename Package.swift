@@ -12,6 +12,6 @@ let package = Package(
     	Target(name: "PWM")
     ],
     dependencies: [
-        .Package(url: "https://github.com/uraimo/SwiftyGPIO.git", majorVersion: 1),
+        .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", majorVersion: 1),
     ]
 )
