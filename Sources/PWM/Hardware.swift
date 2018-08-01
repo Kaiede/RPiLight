@@ -54,8 +54,8 @@ class HardwarePWM : Module, CustomStringConvertible {
 		guard let pwms = SwiftyGPIO.hardwarePWMs(for:.RaspberryPiPlusZero) else {
 			throw ModuleInitError.noHardwareAccess
 		}
-		guard channelCount > 0 && channelCount < pwms.count else {
-			throw ModuleInitError.invalidChannelCount(min: 1, max: 16)
+		guard channelCount > 0 && channelCount <= pwms.count else {
+			throw ModuleInitError.invalidChannelCount(min: 1, max: 2)
 		}
 		guard frequency % 480 == 0 && frequency <= 2880 else {
 			throw ModuleInitError.invalidFrequency(min: 480, max: 480)
