@@ -9,7 +9,11 @@ let package = Package(
     		name: "RPiLight",
     		dependencies: ["PWM"]
     	),
-    	Target(name: "PWM")
+    	Target(
+            name: "PWM",
+            dependencies: ["PCA9685"]
+        ),
+        Target(name: "PCA9685")
     ],
     dependencies: [
         .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", majorVersion: 1),

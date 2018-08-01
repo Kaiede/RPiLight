@@ -34,6 +34,7 @@
 public enum ModuleType {
 	case simulated
 	case hardware
+    case pca9685
 
 	public func createModule(channelCount: Int, frequency: Int) throws -> Module {
 		switch(self) {
@@ -41,6 +42,8 @@ public enum ModuleType {
 			return try SimulatedPWM(channelCount: channelCount, frequency: frequency)
 		case .hardware:
 			return try HardwarePWM(channelCount: channelCount, frequency: frequency)
+        case .pca9685:
+            return try ExpansionPWM(channelCount: channelCount, frequency: frequency)
 		}
 	}
 }
