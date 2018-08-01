@@ -41,21 +41,20 @@ let SUBADR1 : UInt8            = 0x02
 let SUBADR2 : UInt8            = 0x03
 let SUBADR3 : UInt8            = 0x04
 let PRESCALE : UInt8           = 0xFE
-let LED0_ON_L : UInt8          = 0x06
-let LED0_ON_H : UInt8          = 0x07
-let LED0_OFF_L : UInt8         = 0x08
-let LED0_OFF_H : UInt8         = 0x09
-let ALL_LED_ON_L : UInt8       = 0xFA
-let ALL_LED_ON_H : UInt8       = 0xFB
-let ALL_LED_OFF_L : UInt8      = 0xFC
-let ALL_LED_OFF_H : UInt8      = 0xFD
+let LED0_ON : UInt8            = 0x06 // Word
+let LED0_OFF : UInt8           = 0x08 // Word
+let ALL_LED_ON : UInt8         = 0xFA // Word
+let ALL_LED_OFF : UInt8        = 0xFC // Word
 
-
-let RESTART : UInt8            = 0x80
-let SLEEP : UInt8              = 0x10
+// MODE 1
 let ALLCALL : UInt8            = 0x01
-let INVRT : UInt8              = 0x10
 let OUTDRV : UInt8             = 0x04
+let SLEEP : UInt8              = 0x10
+let AUTOINC : UInt8            = 0x20
+let RESTART : UInt8            = 0x80
+
+// MODE 2
+let INVRT : UInt8              = 0x10
 
 public class PCA9685 {
     public var frequency : UInt {
@@ -64,8 +63,10 @@ public class PCA9685 {
         }
     }
 
+
     private let address : Int
     private let i2c : I2CInterface
+
     
     public init(address: Int = PCA9685_ADDRESS) {
         self.frequency = 0
@@ -74,6 +75,10 @@ public class PCA9685 {
         let i2cs = SwiftyGPIO.hardwareI2Cs(for:.RaspberryPiPlusZero)!
         self.i2c = i2cs[1]
         
+        guard self.i2c.isReachable(self.address) else {
+            fatalError("I2C Address is Unreachable")
+        }
+
         // Now, Configure the PCA9685
         self.setAllChannels(on: 0, off: 0)
         self.i2c.writeByte(self.address, command: MODE2, value: OUTDRV)
@@ -82,29 +87,33 @@ public class PCA9685 {
         // Wait for Oscillator
         usleep(5)
         
-        // Reset Sleep
+        // Reset Sleep, Set Auto Increment (for writeWord)
         var mode1 = self.i2c.readByte(self.address, command: MODE1)
-        mode1 = mode1 & ~SLEEP
+        mode1 &= ~SLEEP
+	mode1 |= AUTOINC
         self.i2c.writeByte(self.address, command: MODE1, value: mode1)
 
         // Wait for Oscillator
         usleep(5)
     }
     
+
     public func setChannel(_ channel: UInt8, on: UInt16, off: UInt16) {
         guard channel < 16 else { fatalError("channel must be 0-15") }
 
-        let commandOn = LED0_ON_L + (4 * channel)
-        let commandOff = LED0_OFF_L + (4 * channel)
+        let commandOn = LED0_ON + (4 * channel)
+        let commandOff = LED0_OFF + (4 * channel)
         
         self.i2c.writeWord(self.address, command: commandOn, value: on)
         self.i2c.writeWord(self.address, command: commandOff, value: off)
     }
     
+
     public func setAllChannels(on: UInt16, off: UInt16) {
-        self.i2c.writeWord(self.address, command: ALL_LED_ON_L, value: on)
-        self.i2c.writeWord(self.address, command: ALL_LED_OFF_L, value: off)
+        self.i2c.writeWord(self.address, command: ALL_LED_ON, value: on)
+        self.i2c.writeWord(self.address, command: ALL_LED_OFF, value: off)
     }
+
     
     func onFrequencyChanged() {
         // Calculate Prescale
@@ -115,13 +124,15 @@ public class PCA9685 {
         
         let prescale = UInt8(prescaleFlt + 0.5)
         
-        // Go To Sleep
+        // Go To Sleep & Set Prescale
         let mode1 = self.i2c.readByte(self.address, command: MODE1)
-        let sleepMode = mode1 & ~RESTART | SLEEP
+        let sleepMode = (mode1 & ~RESTART) | SLEEP
         self.i2c.writeByte(self.address, command: MODE1, value: sleepMode)
         self.i2c.writeByte(self.address, command: PRESCALE, value: prescale)
         self.i2c.writeByte(self.address, command: MODE1, value: mode1)
         
+        usleep(5) 
+
         // Restart
         let restartMode = mode1 | RESTART
         self.i2c.writeByte(self.address, command: MODE1, value: restartMode)
