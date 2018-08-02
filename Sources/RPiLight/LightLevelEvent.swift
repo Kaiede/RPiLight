@@ -23,6 +23,7 @@
  SOFTWARE.)
 */
 
+import Dispatch
 import Foundation
 import PWM
 
