@@ -141,6 +141,21 @@ class LightLevelChangeBehavior : LightBehavior {
         self.startDate = Date.distantPast
         self.endDate = Date.distantPast
     }
+
+    func calcUpdateInterval(withChannels channels: [String: Channel]) -> DispatchTimeInterval {
+    	let timeDelta = self.endDate.timeIntervalSince(self.startDate)
+		let brightnessDelta = self.lightRanges.map({ return $1.delta }).max()!
+
+		let targetInterval = timeDelta * 1000.0 / (brightnessDelta * 4096)
+
+		let brightnessMin = channels.map({ return $1.brightness }).min()!
+		let curveConst = 0.4
+		let brightnessFactor = ((1.0 + curveConst) * brightnessMin) / (curveConst + brightnessMin)
+
+		let minInterval = 10.0 // Milliseconds
+		let finalInterval = minInterval + (brightnessFactor * (targetInterval - minInterval))
+		return DispatchTimeInterval.milliseconds(Int(finalInterval))
+	}
     
     func getLightLevelsForDate(now: Date, channels: [String : Channel]) -> ChannelOutputs {
         let timeSpent = now.timeIntervalSince(self.startDate)

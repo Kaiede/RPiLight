@@ -44,14 +44,14 @@ typealias ChannelOutputs = [String:Double]
 protocol LightBehavior {
     var startDate : Date { get set }
     var endDate : Date { get set }
-    
-    var interval : DispatchTimeInterval { get }
-    
+        
     func complete()
     func join()
     
     func reset()
-    
+
+    func calcUpdateInterval(withChannels channels: [String: Channel]) -> DispatchTimeInterval
+
     func getLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs
 }
 
@@ -86,6 +86,7 @@ class LightController {
     private var schedule : [LightEvent]
     private var scheduleIndex : Int
     private var currentBehavior : LightBehavior?
+    private var lastBehaviorRefresh : Date?
 
     
     init(channels: [Channel]) {
@@ -135,11 +136,7 @@ class LightController {
             localBehavior.prepareForRunning(startDate: startDate, endDate: endDate)
             self.currentBehavior = localBehavior
             
-            if !self.isBehaviorSuspended {
-                self.behaviorTimer.suspend()
-            }
-            self.behaviorTimer.scheduleRepeating(wallDeadline: DispatchWallTime(date: startDate), interval: localBehavior.interval, leeway: .milliseconds(1))
-            self.behaviorTimer.resume()
+			self.rescheduleBehaviorHandler(withBehavior: localBehavior)
         }
     }
     
@@ -152,7 +149,21 @@ class LightController {
             self.isBehaviorSuspended = true
         }
     }
-    
+
+    private func rescheduleBehaviorHandler(withBehavior behavior: LightBehavior) {
+		if !self.isBehaviorSuspended {
+        	self.behaviorTimer.suspend()
+		}
+
+		let startDate = behavior.startDate
+		let updateInterval = behavior.calcUpdateInterval(withChannels: self.channels)
+        self.behaviorTimer.scheduleRepeating(wallDeadline: DispatchWallTime(date: startDate), interval: updateInterval, leeway: .milliseconds(1))
+        self.behaviorTimer.resume()
+        self.isBehaviorSuspended = false
+
+        self.lastBehaviorRefresh = Date()
+	}
+
     private func handleNextEvent() {
         let now = Date()
         let event = self.schedule[self.scheduleIndex]
@@ -178,7 +189,12 @@ class LightController {
                 
                 channel.brightness = brightness
             }
-            
+
+			// Update our interval about once a second
+			if let lastBehaviorRefresh = self.lastBehaviorRefresh, now.timeIntervalSince(lastBehaviorRefresh) > 1.0 {
+				self.rescheduleBehaviorHandler(withBehavior: currentBehavior)
+			}
+
             if currentBehavior.endDate <= now {
                 self.clearCurrentBehavior()
             }
