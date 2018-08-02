@@ -90,7 +90,7 @@ public class PCA9685 {
         // Reset Sleep, Set Auto Increment (for writeWord)
         var mode1 = self.i2c.readByte(self.address, command: MODE1)
         mode1 &= ~SLEEP
-	mode1 |= AUTOINC
+		mode1 |= AUTOINC
         self.i2c.writeByte(self.address, command: MODE1, value: mode1)
 
         // Wait for Oscillator
@@ -117,9 +117,9 @@ public class PCA9685 {
     
     func onFrequencyChanged() {
         // Calculate Prescale
-        var prescaleFlt : Float = 25000000.0    // 25MHz
+        var prescaleFlt = 25000000.0    // 25MHz
         prescaleFlt /= 4096.0           // 12-Bit
-        prescaleFlt /= Float(self.frequency)
+        prescaleFlt /= Double(self.frequency)
         prescaleFlt -= 1.0
         
         let prescale = UInt8(prescaleFlt + 0.5)

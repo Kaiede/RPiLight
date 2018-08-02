@@ -39,7 +39,7 @@ protocol LightEvent {
     func OnEvent(now: Date, controller: LightController)
 }
 
-typealias ChannelOutputs = [String:Float]
+typealias ChannelOutputs = [String:Double]
 
 protocol LightBehavior {
     var startDate : Date { get set }
@@ -47,12 +47,12 @@ protocol LightBehavior {
     
     var interval : DispatchTimeInterval { get }
     
-    func Complete()
-    func Join()
+    func complete()
+    func join()
     
-    func Reset()
+    func reset()
     
-    func GetLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs
+    func getLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs
 }
 
 extension LightBehavior {
@@ -131,7 +131,7 @@ class LightController {
     func setCurrentBehavior(behavior: LightBehavior, startDate: Date, endDate: Date) {
         self.queue.async {
             var localBehavior = behavior
-            localBehavior.Reset()
+            localBehavior.reset()
             localBehavior.prepareForRunning(startDate: startDate, endDate: endDate)
             self.currentBehavior = localBehavior
             
@@ -145,7 +145,7 @@ class LightController {
     
     func clearCurrentBehavior() {
         self.queue.async {
-            self.currentBehavior?.Complete()
+            self.currentBehavior?.complete()
             self.currentBehavior = nil
             
             self.behaviorTimer.suspend()
@@ -172,7 +172,7 @@ class LightController {
         if let currentBehavior = self.currentBehavior {
             let now = Date()
             
-            let lightLevels = currentBehavior.GetLightLevelsForDate(now: now, channels: self.channels)
+            let lightLevels = currentBehavior.getLightLevelsForDate(now: now, channels: self.channels)
             for (token, brightness) in lightLevels {
                 guard var channel = self.channels[token] else { continue }
                 

@@ -84,7 +84,7 @@ class ExpansionPWM : Module, CustomStringConvertible {
 
 class ExpansionPWMChannel : Channel {
     let token: String
-    var luminance: Float {
+    var luminance: Double {
         didSet { self.onLuminanceChanged() }
     }
     

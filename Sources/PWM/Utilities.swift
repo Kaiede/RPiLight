@@ -27,11 +27,11 @@ import Foundation
 
 infix operator ** : MultiplicationPrecedence
 
-func ** (num: Float, power: Float) -> Float {
+func ** (num: Double, power: Double) -> Double {
     return pow(num, power)
 }
 
-func BindValue(_ value: Float, min: Float, max: Float) -> Float {
+func BindValue(_ value: Double, min: Double, max: Double) -> Double {
 	if value < min {
 		return min
 	} else if value > max {

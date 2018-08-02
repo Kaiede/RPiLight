@@ -35,21 +35,21 @@ import PWM
 
 typealias ChannelLightRanges = [String:LightRange]
 struct LightRange {
-    var origin : Float
-    var delta : Float
+    var origin : Double
+    var delta : Double
     
-    var end : Float {
+    var end : Double {
         get {
             return self.origin + self.delta
         }
     }
     
-    init(origin: Float, delta: Float) {
+    init(origin: Double, delta: Double) {
         self.origin = origin
         self.delta = delta
     }
     
-    init(origin: Float, end: Float) {
+    init(origin: Double, end: Double) {
         self.init(origin: origin, delta: end - origin)
     }
 }
@@ -98,7 +98,7 @@ class LightLevelChangeEvent : LightEvent {
     }
     
     func OnEvent(now: Date, controller: LightController) {
-        self.behavior.Reset()
+        self.behavior.reset()
         
         let behaviorStart = self.time.calcNextDate(after: now, direction: .backward)
         let behaviorEnd = self.endTime.calcNextDate(after: now, direction: .forward)
@@ -129,22 +129,22 @@ class LightLevelChangeBehavior : LightBehavior {
         self.endDate = Date.distantPast
     }
     
-    func Complete() {
+    func complete() {
         // TODO
     }
     
-    func Join() {
+    func join() {
         // TODO
     }
     
-    func Reset() {
+    func reset() {
         self.startDate = Date.distantPast
         self.endDate = Date.distantPast
     }
     
-    func GetLightLevelsForDate(now: Date, channels: [String : Channel]) -> ChannelOutputs {
+    func getLightLevelsForDate(now: Date, channels: [String : Channel]) -> ChannelOutputs {
         let timeSpent = now.timeIntervalSince(self.startDate)
-        let factor = Float(min(timeSpent / self.timeDelta, 1.0))
+        let factor = min(timeSpent / self.timeDelta, 1.0)
         
         var channelOutputs: ChannelOutputs = [:]
         for (token, lightRange) in self.lightRanges {

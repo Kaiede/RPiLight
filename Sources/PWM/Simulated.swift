@@ -76,7 +76,7 @@ class SimulatedPWM : Module, CustomStringConvertible {
 
 class SimulatedPWMChannel : Channel {
 	let token: String
-	var luminance: Float {
+	var luminance: Double {
 		didSet { self.onLuminanceChanged() }
 	}
 

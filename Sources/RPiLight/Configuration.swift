@@ -121,16 +121,16 @@ struct Event {
 
 struct ChannelValue {
 	let token: String
-	let brightness: Float
+	let brightness: Double
 
 	init?(json: JsonDict) {
 		guard let token = json["token"] as? String else { return nil }
 		guard let brightness = json["brightness"] as? Double else { return nil }
 
-		self.init(token: token, brightness: Float(brightness))
+		self.init(token: token, brightness: brightness)
 	}
 
-	init(token: String, brightness: Float) {
+	init(token: String, brightness: Double) {
 		self.token = token
 		self.brightness = brightness
 	}

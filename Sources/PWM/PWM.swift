@@ -126,13 +126,13 @@ public enum ChannelInitError: Error {
 
 public protocol Channel {
 	var token: String { get }
-	var luminance: Float { get set }
+	var luminance: Double { get set }
 }
 
 
-let GAMMA: Float = 1.8
+let GAMMA = 1.8
 public extension Channel {
-	var brightness: Float {
+	var brightness: Double {
 		get {
 			return self.luminance ** (1.0 / GAMMA)
 		}
