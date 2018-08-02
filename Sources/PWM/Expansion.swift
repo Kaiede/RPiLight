@@ -54,7 +54,7 @@ class ExpansionPWM : Module, CustomStringConvertible {
     private let controller : PCA9685
 
     init(channelCount: Int, frequency: Int) throws {
-        guard channelCount > 0 && channelCount < 16 else {
+        guard channelCount > 0 && channelCount <= 16 else {
             throw ModuleInitError.invalidChannelCount(min: 1, max: 16)
         }
         guard frequency % 480 == 0 && frequency <= 1440 else {
@@ -102,6 +102,5 @@ class ExpansionPWMChannel : Channel {
     func onLuminanceChanged() {
         let steps = UInt16(self.luminance * 4095)
         self.controller.setChannel(self.channel, on: 0, off: steps)
-        print("\(self.token): Luminance Now \(self.luminance)")
     }
 }
