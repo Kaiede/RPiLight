@@ -88,6 +88,6 @@ class SimulatedPWMChannel : Channel {
 
 
 	func onLuminanceChanged() {
-		print("\(self.token): Luminance Now \(self.luminance)")
+		print("\(self.token): Luminance Now \(self.luminance * 100)")
 	}	
 }
