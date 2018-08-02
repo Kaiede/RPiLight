@@ -37,8 +37,9 @@ formatter.calendar = Calendar.current
 formatter.timeZone = TimeZone.current
 let now = Date()
 for event in configuration.schedule {
-    let nextDate = event.time.calcNextDate(after: now, direction: .backward)
-	print(formatter.string(from: nextDate))
+    let prevDate = event.time.calcNextDate(after: now, direction: .backward)
+    let nextDate = event.time.calcNextDate(after: now, direction: .forward)
+	print("\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
 }
 
 let module = try! configuration.hardware.createModule()
