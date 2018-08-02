@@ -86,13 +86,19 @@ struct Hardware {
 }
 
 
-struct Event {
+protocol Timed {
+    var time : DateComponents { get }
+}
+
+extension Timed {
+    func calcNextDate(direction: Calendar.SearchDirection = .forward) -> Date {
+        return Calendar.current.nextDate(after: Date(), matching: self.time, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: direction)!
+    }
+}
+
+struct Event : Timed {
 	let time : DateComponents
 	let channelValues : [ChannelValue]
-
-	func calcNextDate(direction: Calendar.SearchDirection = .forward) -> Date {
-		return Calendar.current.nextDate(after: Date(), matching: self.time, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: direction)!
-	}
 
 	static private let dateFormatter: DateFormatter = {
 		let dateFormatter = DateFormatter()
@@ -129,9 +135,9 @@ struct ChannelValue {
 
 	init?(json: JsonDict) {
 		guard let token = json["token"] as? String else { return nil }
-		guard let brightness = json["brightness"] as? Float else { return nil }
+		guard let brightness = json["brightness"] as? Double else { return nil }
 
-		self.init(token: token, brightness: brightness)
+		self.init(token: token, brightness: Float(brightness))
 	}
 
 	init(token: String, brightness: Float) {

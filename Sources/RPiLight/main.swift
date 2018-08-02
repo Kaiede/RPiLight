@@ -41,7 +41,14 @@ for event in configuration.schedule {
 
 let module = try! configuration.hardware.createModule()
 print(module)
-var channel = try! module.createChannel(with: "SIM00")
 
-channel.brightness = 0.5
+let activeChannels = module.availableChannels.map {
+    return try! module.createChannel(with: $0)
+}
+
+var controller = LightController(channels: activeChannels)
+
+controller.applySchedule(schedule: configuration.schedule)
+
+dispatchMain()
 

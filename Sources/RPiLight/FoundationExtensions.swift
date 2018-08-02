@@ -32,3 +32,10 @@ extension FileManager {
 		}
 	}
 }
+
+
+extension DateComponents {
+    func calcNextDate(after: Date, direction: Calendar.SearchDirection = .forward) -> Date {
+        return Calendar.current.nextDate(after: after, matching: self, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: direction)!
+    }
+}
