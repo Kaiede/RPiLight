@@ -36,6 +36,12 @@ extension FileManager {
 
 extension DateComponents {
     func calcNextDate(after: Date, direction: Calendar.SearchDirection = .forward) -> Date {
-        return Calendar.current.nextDate(after: after, matching: self, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: direction)!
+        #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
+            return Calendar.current.nextDate(after: after, matching: self, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: direction)!
+        #elseif os(Linux)
+            fatalError("No Implementation Available for this OS")
+        #else
+            fatalError("No Implementation Available for this OS")
+        #endif
     }
 }

@@ -86,17 +86,7 @@ struct Hardware {
 }
 
 
-protocol Timed {
-    var time : DateComponents { get }
-}
-
-extension Timed {
-    func calcNextDate(direction: Calendar.SearchDirection = .forward) -> Date {
-        return Calendar.current.nextDate(after: Date(), matching: self.time, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: direction)!
-    }
-}
-
-struct Event : Timed {
+struct Event {
 	let time : DateComponents
 	let channelValues : [ChannelValue]
 

@@ -33,7 +33,7 @@ import PWM
     import Darwin
 #endif
 
-protocol LightEvent : Timed {
+protocol LightEvent {
     var time : DateComponents { get }
     
     func OnEvent(now: Date, controller: LightController)
@@ -123,7 +123,7 @@ class LightController {
             self.schedule = LightLevelChangeEvent.createFromSchedule(schedule: schedule)
             
             // Figure out which event
-            self.scheduleIndex = self.calcPreviousEventIndex()
+            self.scheduleIndex = self.calcPreviousEventIndex(now: Date())
             self.handleNextEvent()
         }
     }
@@ -185,8 +185,8 @@ class LightController {
         }
     }
     
-    private func calcPreviousEventIndex() -> Int {
-        let (maxIndex, _) = self.schedule.map({ $0.calcNextDate(direction: .backward) }).enumerated().max(by: { $0.element < $1.element })!
+    private func calcPreviousEventIndex(now: Date) -> Int {
+        let (maxIndex, _) = self.schedule.map({ $0.time.calcNextDate(after: now, direction: .backward) }).enumerated().max(by: { $0.element < $1.element })!
         return maxIndex
     }
 }

@@ -35,8 +35,9 @@ let formatter = DateFormatter()
 formatter.dateFormat = "d MMM yyyy HH:mm:ss Z"
 formatter.calendar = Calendar.current
 formatter.timeZone = TimeZone.current
+let now = Date()
 for event in configuration.schedule {
-	let nextDate = event.calcNextDate(direction: .backward)
+    let nextDate = event.time.calcNextDate(after: now, direction: .backward)
 	print(formatter.string(from: nextDate))
 }
 
