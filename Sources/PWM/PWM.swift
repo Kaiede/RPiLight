@@ -31,22 +31,48 @@
 // modes in a safe way.
 // 
 
-public enum ModuleType {
+public enum ModuleType: String {
 	case simulated
+
 	case hardware
+	case pigpio // DEPRECATED: Alias of hardware
+
     case pca9685
+    case adafruit // DEPRECATED: Alias of pca9685
 
 	public func createModule(channelCount: Int, frequency: Int) throws -> Module {
 		switch(self) {
 		case .simulated:
 			return try SimulatedPWM(channelCount: channelCount, frequency: frequency)
+		case .pigpio:
+			fallthrough
 		case .hardware:
 			return try HardwarePWM(channelCount: channelCount, frequency: frequency)
+		case .adafruit:
+			fallthrough
         case .pca9685:
             return try ExpansionPWM(channelCount: channelCount, frequency: frequency)
 		}
 	}
 }
+
+
+extension ModuleType: RawRepresentable {
+    public typealias RawValue = String
+
+    public init?(rawValue: RawValue) {
+    	let lowercaseString = rawValue.lowercased()
+        switch lowercaseString {
+        case "simulated": self = .simulated
+        case "hardware": self = .hardware
+        case "pigpio": self = .pigpio
+        case "pca9685": self = .pca9685
+        case "adafruit": self = .adafruit
+        default: return nil
+        }
+    }
+}
+
 
 //
 // ModuleInitError

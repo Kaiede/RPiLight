@@ -24,26 +24,11 @@
 */
 
 import Foundation
-import PWM
 
-guard let configuration = Configuration(withPath: "config/testConfig.json") else {
-	fatalError()
+extension FileManager {
+	var currentDirectoryUrl : URL {
+		get {
+			return URL(fileURLWithPath: self.currentDirectoryPath)
+		}
+	}
 }
-
-print("Hello, world!")
-
-let formatter = DateFormatter()
-formatter.dateFormat = "d MMM yyyy HH:mm:ss Z"
-formatter.calendar = Calendar.current
-formatter.timeZone = TimeZone.current
-for event in configuration.schedule {
-	let nextDate = event.calcNextDate(direction: .backward)
-	print(formatter.string(from: nextDate))
-}
-
-let module = try! configuration.hardware.createModule()
-print(module)
-var channel = try! module.createChannel(with: "SIM00")
-
-channel.brightness = 0.5
-
