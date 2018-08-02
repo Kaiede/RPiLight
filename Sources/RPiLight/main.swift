@@ -30,8 +30,6 @@ guard let configuration = Configuration(withPath: "config/testConfig.json") else
 	fatalError()
 }
 
-print("Hello, world!")
-
 let formatter = DateFormatter()
 formatter.dateFormat = "d MMM yyyy HH:mm:ss Z"
 formatter.calendar = Calendar.current

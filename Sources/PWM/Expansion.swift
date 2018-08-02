@@ -44,7 +44,7 @@ class ExpansionPWM : Module, CustomStringConvertible {
     func calculateAvailableChannels() -> [String: UInt8] {
         var channels: [String: UInt8] = [:]
         for i in 0..<self.channelCount {
-            channels[String(format: "AF-PWM%02d", i)] = UInt8(i)
+            channels[String(format: "PWM%02d", i)] = UInt8(i)
         }
         
         return channels
@@ -52,18 +52,7 @@ class ExpansionPWM : Module, CustomStringConvertible {
     
     private let channelCount : Int
     private let controller : PCA9685
-    
-    func calculateAvailableChannels() -> [String] {
-        var channels : [String] = []
-        
-        for i in 0..<self.channelCount {
-            channels.append(String(format: "AF-PWM%02d", i))
-        }
-        
-        return channels
-    }
-    
-    
+
     init(channelCount: Int, frequency: Int) throws {
         guard channelCount > 0 && channelCount < 16 else {
             throw ModuleInitError.invalidChannelCount(min: 1, max: 16)

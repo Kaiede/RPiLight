@@ -1,7 +1,8 @@
 {
-	"channels" : [
-		{ "token": "SIM00", "name" : "Twinstar 600E" }
-	],
+	"hardware" :{
+		"pwmMode": "simulated",
+		"channels": 1
+	},
 
 	"schedule" : [
 		{
@@ -54,3 +55,4 @@
 		}
 	]
 }
+
