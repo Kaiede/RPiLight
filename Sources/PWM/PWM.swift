@@ -69,8 +69,8 @@ extension ModuleType: RawRepresentable {
 
 public enum ModuleInitError: Error {
     case noHardwareAccess
-    case invalidChannelCount(min: Int, max: Int)
-    case invalidFrequency(min: Int, max: Int)
+    case invalidChannelCount(min: Int, max: Int, actual: Int)
+    case invalidFrequency(min: Int, max: Int, actual: Int)
 }
 
 //

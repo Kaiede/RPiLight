@@ -54,10 +54,10 @@ class HardwarePWM: Module, CustomStringConvertible {
             throw ModuleInitError.noHardwareAccess
         }
         guard channelCount > 0 && channelCount <= pwms.count else {
-            throw ModuleInitError.invalidChannelCount(min: 1, max: 2)
+            throw ModuleInitError.invalidChannelCount(min: 1, max: 2, actual: channelCount)
         }
         guard frequency % 480 == 0 && frequency <= 2880 else {
-            throw ModuleInitError.invalidFrequency(min: 480, max: 480)
+            throw ModuleInitError.invalidFrequency(min: 480, max: 480, actual: frequency)
         }
 
         self.pwms = pwms
