@@ -29,29 +29,28 @@ import PCA9685
 // Expansion PWM Module (PCA 9685)
 //
 
-class ExpansionPWM : Module, CustomStringConvertible {
+class ExpansionPWM: Module, CustomStringConvertible {
     private(set) lazy var availableChannels: [String] = {
         [unowned self] in
         return Array(self.availableChannelMap.keys)
         }()
-    
-    
+
     private(set) lazy var availableChannelMap: [String: UInt8] = {
         [unowned self] in
         return self.calculateAvailableChannels()
         }()
-    
+
     func calculateAvailableChannels() -> [String: UInt8] {
         var channels: [String: UInt8] = [:]
         for i in 0..<self.channelCount {
             channels[String(format: "PWM%02d", i)] = UInt8(i)
         }
-        
+
         return channels
     }
-    
-    private let channelCount : Int
-    private let controller : PCA9685
+
+    private let channelCount: Int
+    private let controller: PCA9685
 
     init(channelCount: Int, frequency: Int) throws {
         guard channelCount > 0 && channelCount <= 16 else {
@@ -60,47 +59,43 @@ class ExpansionPWM : Module, CustomStringConvertible {
         guard frequency % 480 == 0 && frequency <= 1440 else {
             throw ModuleInitError.invalidFrequency(min: 480, max: 1440)
         }
-        
+
         self.channelCount = channelCount
         self.controller = PCA9685()
         self.controller.frequency = UInt(frequency)
     }
-    
-    
-    func createChannel(with token: String) throws -> Channel  {
+
+    func createChannel(with token: String) throws -> Channel {
         guard let channel = self.availableChannelMap[token] else {
             throw ChannelInitError.invalidToken
         }
-        
-        
+
         return ExpansionPWMChannel(token: token, channel: channel, controller: self.controller)
     }
 }
-
 
 //
 // Simulated PWM Channel
 //
 
-class ExpansionPWMChannel : Channel {
+class ExpansionPWMChannel: Channel {
     let token: String
     var luminance: Double {
         didSet { self.onLuminanceChanged() }
     }
-    
-    private let controller : PCA9685
-    private let channel : UInt8
-    
+
+    private let controller: PCA9685
+    private let channel: UInt8
+
     init(token: String, channel: UInt8, controller: PCA9685) {
         self.token = token
         self.luminance = 0.0
         self.channel = channel
         self.controller = controller
     }
-    
-    
+
     func onLuminanceChanged() {
         let steps = UInt16(self.luminance * 4095)
-        self.controller.setChannel(self.channel, on: 0, off: steps)
+        self.controller.setChannel(self.channel, onStep: 0, offStep: steps)
     }
 }

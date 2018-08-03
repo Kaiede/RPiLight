@@ -28,7 +28,7 @@ import Foundation
 import PWM
 
 guard let configuration = Configuration(withPath: "config/testConfig.json") else {
-	fatalError()
+    fatalError()
 }
 
 let formatter = DateFormatter()
@@ -39,7 +39,7 @@ let now = Date()
 for event in configuration.schedule {
     let prevDate = event.time.calcNextDate(after: now, direction: .backward)
     let nextDate = event.time.calcNextDate(after: now, direction: .forward)
-	print("\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+    print("\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
 }
 
 let module = try! configuration.hardware.createModule()
@@ -54,4 +54,3 @@ var controller = LightController(channels: activeChannels)
 controller.applySchedule(schedule: configuration.schedule)
 
 dispatchMain()
-

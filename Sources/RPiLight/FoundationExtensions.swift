@@ -26,13 +26,10 @@
 import Foundation
 
 extension FileManager {
-	var currentDirectoryUrl : URL {
-		get {
-			return URL(fileURLWithPath: self.currentDirectoryPath)
-		}
-	}
+    var currentDirectoryUrl: URL {
+        return URL(fileURLWithPath: self.currentDirectoryPath)
+    }
 }
-
 
 extension DateComponents {
     // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
@@ -42,19 +39,23 @@ extension DateComponents {
         let startOfDay = calendar.startOfDay(for: date)
         var copyOfSelf = self
         guard let targetDate = calendar.date(byAdding: copyOfSelf, to: startOfDay) else { return nil }
-        switch(direction) {
+        switch direction {
         case .forward:
             if targetDate < date { copyOfSelf.day = 1 }
         case .backward:
             if targetDate > date { copyOfSelf.day = -1 }
         }
-        
+
         return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: true)
     }
-    
+
     func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date {
         #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
-            return Calendar.current.nextDate(after: date, matching: self, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: direction)!
+            return Calendar.current.nextDate(after: date,
+                                          matching: self,
+                                    matchingPolicy: .nextTime,
+                                repeatedTimePolicy: .first,
+                                         direction: direction)!
         #elseif os(Linux)
             return self.calcNextDateCustom(after: date, direction: direction)!
         #else

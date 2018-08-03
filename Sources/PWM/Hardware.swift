@@ -25,81 +25,75 @@
 
 import SwiftyGPIO
 
+class HardwarePWM: Module, CustomStringConvertible {
+    private(set) var isDisposed: Bool = false
+    private(set) lazy var availableChannels: [String] = {
+        [unowned self] in
+        return Array(self.availableChannelMap.keys)
+    }()
 
-class HardwarePWM : Module, CustomStringConvertible {
-	private(set) var isDisposed: Bool = false
-	private(set) lazy var availableChannels: [String] = {
-		[unowned self] in
-		return Array(self.availableChannelMap.keys)
-	}()
+    let pwms: [Int: [GPIOName: PWMOutput]]
+    private(set) lazy var availableChannelMap: [String: PWMOutput] = {
+        [unowned self] in
+        return self.calculateAvailableChannels()
+    }()
 
+    func calculateAvailableChannels() -> [String: PWMOutput] {
+        var channels: [String: PWMOutput] = [:]
+        channels["PWM0-IO18"] = (self.pwms[0]?[.P18])!
+        channels["PWM1-IO19"] = (self.pwms[1]?[.P19])!
 
-	let pwms: [Int:[GPIOName:PWMOutput]]
-	private(set) lazy var availableChannelMap: [String: PWMOutput] = {
-		[unowned self] in
-		return self.calculateAvailableChannels()
-	}()
-
-	func calculateAvailableChannels() -> [String: PWMOutput] {
-		var channels: [String: PWMOutput] = [:]
-		channels["PWM0-IO18"] = (self.pwms[0]?[.P18])!
-		channels["PWM1-IO19"] = (self.pwms[1]?[.P19])!
-
-		return channels
-	}
+        return channels
+    }
 
     let frequency: Int
-    
-	init(channelCount: Int, frequency: Int) throws {
-		guard let pwms = SwiftyGPIO.hardwarePWMs(for:.RaspberryPiPlusZero) else {
-			throw ModuleInitError.noHardwareAccess
-		}
-		guard channelCount > 0 && channelCount <= pwms.count else {
-			throw ModuleInitError.invalidChannelCount(min: 1, max: 2)
-		}
-		guard frequency % 480 == 0 && frequency <= 2880 else {
-			throw ModuleInitError.invalidFrequency(min: 480, max: 480)
-		}
 
-		self.pwms = pwms
+    init(channelCount: Int, frequency: Int) throws {
+        guard let pwms = SwiftyGPIO.hardwarePWMs(for: .RaspberryPiPlusZero) else {
+            throw ModuleInitError.noHardwareAccess
+        }
+        guard channelCount > 0 && channelCount <= pwms.count else {
+            throw ModuleInitError.invalidChannelCount(min: 1, max: 2)
+        }
+        guard frequency % 480 == 0 && frequency <= 2880 else {
+            throw ModuleInitError.invalidFrequency(min: 480, max: 480)
+        }
+
+        self.pwms = pwms
         self.frequency = frequency
-	}
+    }
 
-
-	func createChannel(with token: String) throws -> Channel  {
-		guard let output = self.availableChannelMap[token] else {
-			throw ChannelInitError.invalidToken
-		}
+    func createChannel(with token: String) throws -> Channel {
+        guard let output = self.availableChannelMap[token] else {
+            throw ChannelInitError.invalidToken
+        }
 
         let NANOSECONDS = 1000000
         return HardwarePWMChannel(token: token, output: output, period: NANOSECONDS / self.frequency)
-	}
+    }
 }
 
-class HardwarePWMChannel : Channel {
-	let token: String
-	var luminance: Double {
-		didSet { self.onLuminanceChanged() }
-	}
+class HardwarePWMChannel: Channel {
+    let token: String
+    var luminance: Double {
+        didSet { self.onLuminanceChanged() }
+    }
 
+    let period: Int         // nanoseconds
+    let output: PWMOutput
 
-	let period: Int 		// nanoseconds
-	let output: PWMOutput
+    init(token: String, output: PWMOutput, period: Int) {
+        self.token = token
+        self.period = period
+        self.luminance = 0.0
+        self.output = output
 
+        self.output.initPWM()
+    }
 
-	init(token: String, output: PWMOutput, period: Int) {
-		self.token = token
-		self.period = period
-		self.luminance = 0.0
-		self.output = output
-
-		self.output.initPWM()
-	}
-
-
-	func onLuminanceChanged() {
-		print("\(self.token): Luminance Now \(self.luminance)")
-		let maxValue = 100.0
-		output.startPWM(period: self.period, duty: Float(self.luminance * maxValue))
-	}	
+    func onLuminanceChanged() {
+        print("\(self.token): Luminance Now \(self.luminance)")
+        let maxValue = 100.0
+        output.startPWM(period: self.period, duty: Float(self.luminance * maxValue))
+    }
 }

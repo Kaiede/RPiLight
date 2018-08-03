@@ -30,13 +30,3 @@ infix operator ** : MultiplicationPrecedence
 func ** (num: Double, power: Double) -> Double {
     return pow(num, power)
 }
-
-func BindValue(_ value: Double, min: Double, max: Double) -> Double {
-	if value < min {
-		return min
-	} else if value > max {
-		return max
-	}
-
-	return value
-}

@@ -27,67 +27,62 @@
 // Simulated PWM Module
 //
 
-class SimulatedPWM : Module, CustomStringConvertible {
-	private(set) var isDisposed: Bool = false
+class SimulatedPWM: Module, CustomStringConvertible {
+    private(set) var isDisposed: Bool = false
 
-	private let channelCount: Int
-	private(set) lazy var availableChannels: [String] = {
-		[unowned self] in
-		return self.calculateAvailableChannels() 
-	}()
+    private let channelCount: Int
+    private(set) lazy var availableChannels: [String] = {
+        [unowned self] in
+        return self.calculateAvailableChannels()
+    }()
 
+    func calculateAvailableChannels() -> [String] {
+        var channels: [String] = []
 
-	func calculateAvailableChannels() -> [String] {
-		var channels : [String] = []
+        for i in 0..<self.channelCount {
+            channels.append(String(format: "SIM%02d", i))
+        }
 
-		for i in 0..<self.channelCount {
-			channels.append(String(format: "SIM%02d", i))
-		}
+        return channels
+    }
 
-		return channels
-	}
+    init(channelCount: Int, frequency: Int) throws {
+        guard channelCount > 0 && channelCount < 16 else {
+            throw ModuleInitError.invalidChannelCount(min: 1, max: 16)
+        }
+        guard frequency % 480 == 0 && frequency <= 480 else {
+            throw ModuleInitError.invalidFrequency(min: 480, max: 480)
+        }
 
+        self.channelCount = channelCount
+    }
 
-	init(channelCount: Int, frequency: Int) throws {
-		guard channelCount > 0 && channelCount < 16 else {
-			throw ModuleInitError.invalidChannelCount(min: 1, max: 16)
-		}
-		guard frequency % 480 == 0 && frequency <= 480 else {
-			throw ModuleInitError.invalidFrequency(min: 480, max: 480)
-		}
+    func createChannel(with token: String) throws -> Channel {
+        guard self.channelTokenIsValid(token) else {
+            throw ChannelInitError.invalidToken
+        }
 
-		self.channelCount = channelCount
-	}
-
-
-	func createChannel(with token: String) throws -> Channel  {
-		guard self.channelTokenIsValid(token) else {
-			throw ChannelInitError.invalidToken
-		}
-
-		return SimulatedPWMChannel(token: token)
-	}
+        return SimulatedPWMChannel(token: token)
+    }
 }
-
 
 //
 // Simulated PWM Channel
 //
 
-class SimulatedPWMChannel : Channel {
-	let token: String
-	var luminance: Double {
-		didSet { self.onLuminanceChanged() }
-	}
+class SimulatedPWMChannel: Channel {
+    let token: String
+    var luminance: Double {
+        didSet { self.onLuminanceChanged() }
+    }
 
+    init(token: String) {
+        self.token = token
+        self.luminance = 0.0
+    }
 
-	init(token: String) {
-		self.token = token
-		self.luminance = 0.0
-	}
+    func onLuminanceChanged() {
+        print("\(self.token): Luminance Now \(self.luminance * 100)")
+    }
 
-
-	func onLuminanceChanged() {
-		print("\(self.token): Luminance Now \(self.luminance * 100)")
-	}	
 }

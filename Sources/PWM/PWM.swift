@@ -23,7 +23,6 @@
  SOFTWARE.)
 */
 
-
 //
 // ModuleType
 //
@@ -32,58 +31,47 @@
 // 
 
 public enum ModuleType: String {
-	case simulated
-
-	case hardware
-	case pigpio // DEPRECATED: Alias of hardware
-
+    case simulated
+    case hardware
     case pca9685
-    case adafruit // DEPRECATED: Alias of pca9685
 
-	public func createModule(channelCount: Int, frequency: Int) throws -> Module {
-		switch(self) {
-		case .simulated:
-			return try SimulatedPWM(channelCount: channelCount, frequency: frequency)
-		case .pigpio:
-			fallthrough
-		case .hardware:
-			return try HardwarePWM(channelCount: channelCount, frequency: frequency)
-		case .adafruit:
-			fallthrough
+    public func createModule(channelCount: Int, frequency: Int) throws -> Module {
+        switch self {
+        case .simulated:
+            return try SimulatedPWM(channelCount: channelCount, frequency: frequency)
+        case .hardware:
+            return try HardwarePWM(channelCount: channelCount, frequency: frequency)
         case .pca9685:
             return try ExpansionPWM(channelCount: channelCount, frequency: frequency)
-		}
-	}
+        }
+    }
 }
-
 
 extension ModuleType: RawRepresentable {
     public typealias RawValue = String
 
     public init?(rawValue: RawValue) {
-    	let lowercaseString = rawValue.lowercased()
+        let lowercaseString = rawValue.lowercased()
         switch lowercaseString {
         case "simulated": self = .simulated
         case "hardware": self = .hardware
-        case "pigpio": self = .pigpio
+        case "pigpio": self = .hardware
         case "pca9685": self = .pca9685
-        case "adafruit": self = .adafruit
+        case "adafruit": self = .pca9685
         default: return nil
         }
     }
 }
-
 
 //
 // ModuleInitError
 //
 
 public enum ModuleInitError: Error {
-	case noHardwareAccess
-	case invalidChannelCount(min: Int, max: Int)
-	case invalidFrequency(min: Int, max: Int)
+    case noHardwareAccess
+    case invalidChannelCount(min: Int, max: Int)
+    case invalidFrequency(min: Int, max: Int)
 }
-
 
 //
 // Module Protocol
@@ -92,25 +80,22 @@ public enum ModuleInitError: Error {
 //
 
 public protocol Module {
-	var availableChannels: [String] { get }
+    var availableChannels: [String] { get }
 
-	func createChannel(with token: String) throws -> Channel
+    func createChannel(with token: String) throws -> Channel
 }
-
 
 public extension Module {
-	func channelTokenIsValid(_ token: String) -> Bool {
-		return self.availableChannels.contains(token)
-	}
+    func channelTokenIsValid(_ token: String) -> Bool {
+        return self.availableChannels.contains(token)
+    }
 }
-
 
 public extension Module where Self : CustomStringConvertible {
-	var description: String {
-		return "\(self.availableChannels)"
-	}
+    var description: String {
+        return "\(self.availableChannels)"
+    }
 }
-
 
 //
 // Channel Protocol
@@ -120,37 +105,25 @@ public extension Module where Self : CustomStringConvertible {
 //
 
 public enum ChannelInitError: Error {
-	case invalidToken
+    case invalidToken
 }
-
 
 public protocol Channel {
-	var token: String { get }
-	var luminance: Double { get set }
+    var token: String { get }
+    var luminance: Double { get set }
 }
-
 
 let GAMMA = 1.8
 public extension Channel {
-	var brightness: Double {
-		get {
-			return self.luminance ** (1.0 / GAMMA)
-		}
-		set(newBrightness) {
-			
-			let brightness = min(max(newBrightness, 0.0), 1.0)
-			let luminance = brightness ** GAMMA
-			self.luminance = luminance
-		}
-	}
+    var brightness: Double {
+        get {
+            return self.luminance ** (1.0 / GAMMA)
+        }
+        set(newBrightness) {
+
+            let brightness = min(max(newBrightness, 0.0), 1.0)
+            let luminance = brightness ** GAMMA
+            self.luminance = luminance
+        }
+    }
 }
-
-
-
-
-
-
-
-
-
-

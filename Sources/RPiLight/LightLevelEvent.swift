@@ -27,28 +27,22 @@ import Dispatch
 import Foundation
 import PWM
 
-//extension Array where Element:Event {
-//    func toLightEventSchedule() -> [LightEvent] {
-//
-//    }
-//}
+typealias ChannelValues = [String: ChannelValue]
+typealias ChannelLightRanges = [String: LightRange]
 
-typealias ChannelLightRanges = [String:LightRange]
 struct LightRange {
-    var origin : Double
-    var delta : Double
-    
-    var end : Double {
-        get {
-            return self.origin + self.delta
-        }
+    var origin: Double
+    var delta: Double
+
+    var end: Double {
+        return self.origin + self.delta
     }
-    
+
     init(origin: Double, delta: Double) {
         self.origin = origin
         self.delta = delta
     }
-    
+
     init(origin: Double, end: Double) {
         self.init(origin: origin, delta: end - origin)
     }
@@ -56,117 +50,110 @@ struct LightRange {
 
 extension Event {
     func lightRangesToEvent(event: Event) -> ChannelLightRanges {
-        let eventLookup = event.channelValues.reduce([String: ChannelValue]()) {
-            (dict, value) -> [String : ChannelValue] in
+        let eventLookup = event.channelValues.reduce(ChannelValues()) { (dict, value) -> ChannelValues in
             var dict = dict
             dict[value.token] = value
             return dict
         }
-        
+
         var lightRanges: ChannelLightRanges = [:]
         for channelValue in self.channelValues {
             let token = channelValue.token
             guard let eventChannelValue = eventLookup[token] else { continue }
             lightRanges[token] = LightRange(origin: channelValue.brightness, end: eventChannelValue.brightness)
         }
-        
+
         return lightRanges
     }
 }
 
-class LightLevelChangeEvent : LightEvent {
+class LightLevelChangeEvent: LightEvent {
     let time: DateComponents
     let endTime: DateComponents
     let behavior: LightLevelChangeBehavior
-    
+
     static func createFromSchedule(schedule: [Event]) -> [LightEvent] {
         var lightEvents: [LightEvent] = []
         for (index, event) in schedule.enumerated() {
             let nextIndex = (index + 1) % schedule.count
             let nextEvent = schedule[nextIndex]
             let lightRanges = event.lightRangesToEvent(event: nextEvent)
-            let lightEvent = LightLevelChangeEvent(startTime: event.time, endTime: nextEvent.time, lightRanges: lightRanges)
+            let lightEvent = LightLevelChangeEvent(startTime: event.time,
+                                                     endTime: nextEvent.time,
+                                                 lightRanges: lightRanges)
             lightEvents.append(lightEvent)
         }
         return lightEvents
     }
-    
+
     init(startTime: DateComponents, endTime: DateComponents, lightRanges: ChannelLightRanges) {
         self.time = startTime
         self.endTime = endTime
         self.behavior = LightLevelChangeBehavior(lightRanges: lightRanges)
     }
-    
-    func OnEvent(now: Date, controller: LightController) {
+
+    func onEvent(now: Date, controller: LightController) {
         self.behavior.reset()
-        
+
         let behaviorStart = self.time.calcNextDate(after: now, direction: .backward)
         let behaviorEnd = self.endTime.calcNextDate(after: now, direction: .forward)
-        
+
         print("LightLevelChangedEvent: { \(behaviorStart) -> \(behaviorEnd)")
         controller.setCurrentBehavior(behavior: self.behavior, startDate: behaviorStart, endDate: behaviorEnd)
     }
-    
-    
+
 }
 
-
-class LightLevelChangeBehavior : LightBehavior {
+class LightLevelChangeBehavior: LightBehavior {
     var startDate: Date
     var endDate: Date
-    
-    var interval: DispatchTimeInterval {
-        get {
-            return .milliseconds(20)
-        }
-    }
-    
+
     private let lightRanges: ChannelLightRanges
-    
+
     init(lightRanges: ChannelLightRanges) {
         self.lightRanges = lightRanges
         self.startDate = Date.distantPast
         self.endDate = Date.distantPast
     }
-    
+
     func complete() {
         // TODO
     }
-    
+
     func join() {
         // TODO
     }
-    
+
     func reset() {
         self.startDate = Date.distantPast
         self.endDate = Date.distantPast
     }
 
     func calcUpdateInterval(withChannels channels: [String: Channel]) -> DispatchTimeInterval {
-    	let timeDelta = self.endDate.timeIntervalSince(self.startDate)
-		let brightnessDelta = self.lightRanges.map({ return $1.delta }).max()!
+        let timeDelta = self.endDate.timeIntervalSince(self.startDate)
+        let brightnessDelta = self.lightRanges.map({ return $1.delta }).max()!
 
-		let targetInterval = timeDelta * 1000.0 / (brightnessDelta * 4096)
+        let targetInterval = timeDelta * 1000.0 / (brightnessDelta * 4096)
 
-		let brightnessMin = channels.map({ return $1.brightness }).min()!
-		let curveConst = 0.4
-		let brightnessFactor = ((1.0 + curveConst) * brightnessMin) / (curveConst + brightnessMin)
+        let brightnessMin = channels.map({ return $1.brightness }).min()!
+        let curveConst = 0.4
+        let brightnessFactor = ((1.0 + curveConst) * brightnessMin) / (curveConst + brightnessMin)
 
-		let minInterval = 10.0 // Milliseconds
-		let finalInterval = minInterval + (brightnessFactor * (targetInterval - minInterval))
-		return DispatchTimeInterval.milliseconds(Int(finalInterval))
-	}
-    
-    func getLightLevelsForDate(now: Date, channels: [String : Channel]) -> ChannelOutputs {
+        let minInterval = 10.0 // Milliseconds
+        let finalInterval = minInterval + (brightnessFactor * (targetInterval - minInterval))
+        return DispatchTimeInterval.milliseconds(Int(finalInterval))
+    }
+
+    func getLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs {
         let timeSpent = now.timeIntervalSince(self.startDate)
         let factor = min(timeSpent / self.timeDelta, 1.0)
-        
+
         var channelOutputs: ChannelOutputs = [:]
         for (token, lightRange) in self.lightRanges {
             let brightness = min(lightRange.origin + (factor * lightRange.delta), lightRange.end)
             channelOutputs[token] = brightness
         }
-        
+
         return channelOutputs
     }
 }
