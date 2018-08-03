@@ -46,7 +46,7 @@ extension DateComponents {
             if targetDate > date { copyOfSelf.day = -1 }
         }
 
-        return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: true)
+        return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
     }
 
     func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date {
