@@ -21,7 +21,7 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.)
-*/
+ */
 
 import Foundation
 
@@ -52,10 +52,10 @@ extension DateComponents {
     func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date {
         #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
             return Calendar.current.nextDate(after: date,
-                                          matching: self,
-                                    matchingPolicy: .nextTime,
-                                repeatedTimePolicy: .first,
-                                         direction: direction)!
+                                             matching: self,
+                                             matchingPolicy: .nextTime,
+                                             repeatedTimePolicy: .first,
+                                             direction: direction)!
         #elseif os(Linux)
             return self.calcNextDateCustom(after: date, direction: direction)!
         #else

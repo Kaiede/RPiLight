@@ -21,7 +21,7 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.)
-*/
+ */
 
 //
 // Simulated PWM Module
@@ -34,7 +34,7 @@ class SimulatedPWM: Module, CustomStringConvertible {
     private(set) lazy var availableChannels: [String] = {
         [unowned self] in
         return self.calculateAvailableChannels()
-    }()
+        }()
 
     func calculateAvailableChannels() -> [String] {
         var channels: [String] = []

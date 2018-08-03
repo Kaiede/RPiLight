@@ -21,14 +21,14 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.)
-*/
+ */
 
 //
 // ModuleType
 //
 // Wrapper around the different module types. Provides access to the different
 // modes in a safe way.
-// 
+//
 
 public enum ModuleType: String {
     case simulated
@@ -100,7 +100,7 @@ public extension Module where Self : CustomStringConvertible {
 //
 // Channel Protocol
 //
-// Protocol for interacting with a single PWM channel. 
+// Protocol for interacting with a single PWM channel.
 // Includes convenience handlers for interacting with gamma correction
 //
 

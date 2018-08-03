@@ -1,19 +1,19 @@
 /*
  RPiLight
- 
+
  Copyright (c) 2018 Adam Thayer
  Licensed under the MIT license, as follows:
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,7 +21,7 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.)
-*/
+ */
 
 import Dispatch
 import Foundation
@@ -95,10 +95,10 @@ class LightController {
         }
 
         self.queue = DispatchQueue(label: "rpilight.controller",
-                                     qos: .userInitiated,
-                              attributes: [],
-                    autoreleaseFrequency: .inherit,
-                                  target: nil)
+                                   qos: .userInitiated,
+                                   attributes: [],
+                                   autoreleaseFrequency: .inherit,
+                                   target: nil)
         self.schedule = []
         self.scheduleIndex = -1
         self.currentBehavior = nil
@@ -158,8 +158,8 @@ class LightController {
         let startDate = behavior.startDate
         let updateInterval = behavior.calcUpdateInterval(withChannels: self.channels)
         self.behaviorTimer.scheduleRepeating(wallDeadline: DispatchWallTime(date: startDate),
-                                                interval: updateInterval,
-                                                leeway: .milliseconds(1))
+                                             interval: updateInterval,
+                                             leeway: .milliseconds(1))
         self.behaviorTimer.resume()
         self.isBehaviorSuspended = false
 
@@ -205,8 +205,8 @@ class LightController {
 
     private func calcPreviousEventIndex(now: Date) -> Int {
         let (maxIndex, _) = self.schedule.map({ $0.time.calcNextDate(after: now, direction: .backward) })
-                                         .enumerated()
-                                         .max(by: { $0.element < $1.element })!
+            .enumerated()
+            .max(by: { $0.element < $1.element })!
         return maxIndex
     }
 }
