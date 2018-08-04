@@ -54,7 +54,7 @@ guard let configuration = Configuration(withPath: configUrl) else {
 
 Log.debug {
     let formatter = DateFormatter()
-    formatter.dateFormat = "d MMM yyyy HH:mm:ss Z"
+    formatter.dateFormat = "d MMM HH:mm:ss Z"
     formatter.calendar = Calendar.current
     formatter.timeZone = TimeZone.current
     let now = Date()

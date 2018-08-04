@@ -92,6 +92,8 @@ struct Event {
     static private let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.calendar = Calendar.current
         return dateFormatter
     }()
 

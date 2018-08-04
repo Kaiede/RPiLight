@@ -69,6 +69,14 @@ extension Event {
 }
 
 class LightLevelChangeEvent: LightEvent {
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss Z"
+        formatter.calendar = Calendar.current
+        formatter.timeZone = TimeZone.current
+        return formatter
+    }()
+    
     let time: DateComponents
     let endTime: DateComponents
     let behavior: LightLevelChangeBehavior
@@ -99,7 +107,7 @@ class LightLevelChangeEvent: LightEvent {
         let behaviorStart = self.time.calcNextDate(after: now, direction: .backward)
         let behaviorEnd = self.endTime.calcNextDate(after: now, direction: .forward)
 
-        Log.info("LightLevelChangedEvent: { \(behaviorStart) -> \(behaviorEnd)")
+        Log.info("LightLevelChangedEvent: { \(LightLevelChangeEvent.dateFormatter.string(from: behaviorStart)) -> \(LightLevelChangeEvent.dateFormatter.string(from: behaviorEnd)) }")
         controller.setCurrentBehavior(behavior: self.behavior, startDate: behaviorStart, endDate: behaviorEnd)
     }
 

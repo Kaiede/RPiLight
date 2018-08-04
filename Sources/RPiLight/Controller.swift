@@ -75,6 +75,14 @@ extension DispatchWallTime {
 }
 
 class LightController {
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss Z"
+        formatter.calendar = Calendar.current
+        formatter.timeZone = TimeZone.current
+        return formatter
+    }()
+    
     private let channels: [String: Channel]
 
     private let queue: DispatchQueue
@@ -180,7 +188,7 @@ class LightController {
         let nextEvent = self.schedule[self.scheduleIndex]
         let nextDate = nextEvent.time.calcNextDate(after: now)
 
-        Log.info("Scheduling Next Event @ \(nextDate)")
+        Log.info("Scheduling Next Event @ \(LightController.dateFormatter.string(from: nextDate))")
         self.eventTimer.scheduleOneshot(wallDeadline: DispatchWallTime(date: nextDate), leeway: .seconds(0))
     }
 
