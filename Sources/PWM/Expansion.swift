@@ -23,6 +23,7 @@
  SOFTWARE.)
  */
 
+import Logging
 import PCA9685
 
 //
@@ -96,6 +97,7 @@ class ExpansionPWMChannel: Channel {
 
     func onLuminanceChanged() {
         let steps = UInt16(self.luminance * 4095)
+        Log.debug("[\(self.token)] PWM Width \(steps)/4095")
         self.controller.setChannel(self.channel, onStep: 0, offStep: steps)
     }
 }
