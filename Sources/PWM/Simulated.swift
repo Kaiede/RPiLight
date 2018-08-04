@@ -39,8 +39,8 @@ class SimulatedPWM: Module, CustomStringConvertible {
     func calculateAvailableChannels() -> [String] {
         var channels: [String] = []
 
-        for i in 0..<self.channelCount {
-            channels.append(String(format: "SIM%02d", i))
+        for index in 0..<self.channelCount {
+            channels.append(String(format: "SIM%02d", index))
         }
 
         return channels

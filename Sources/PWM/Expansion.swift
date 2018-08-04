@@ -42,8 +42,8 @@ class ExpansionPWM: Module, CustomStringConvertible {
 
     func calculateAvailableChannels() -> [String: UInt8] {
         var channels: [String: UInt8] = [:]
-        for i in 0..<self.channelCount {
-            channels[String(format: "PWM%02d", i)] = UInt8(i)
+        for index in 0..<self.channelCount {
+            channels[String(format: "PWM%02d", index)] = UInt8(index)
         }
 
         return channels

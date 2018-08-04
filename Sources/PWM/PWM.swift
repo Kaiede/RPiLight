@@ -91,7 +91,7 @@ public extension Module {
     }
 }
 
-public extension Module where Self : CustomStringConvertible {
+public extension Module where Self: CustomStringConvertible {
     var description: String {
         return "\(self.availableChannels)"
     }
