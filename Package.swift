@@ -18,5 +18,6 @@ let package = Package(
     ],
     dependencies: [
         .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", majorVersion: 1),
+        .Package(url: "https://github.com/Kaiede/Moderator.git", majorVersion:0),
     ]
 )

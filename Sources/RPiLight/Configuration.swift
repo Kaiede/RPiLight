@@ -33,10 +33,9 @@ struct Configuration {
     let hardware: Hardware
     let schedule: [Event]
 
-    init?(withPath path: String) {
-        let configUrl = FileManager.default.currentDirectoryUrl.appendingPathComponent(path)
-        Log.debug(configUrl.absoluteString)
-        guard let configData = try? Data(contentsOf: configUrl, options: []) else { return nil }
+    init?(withPath path: URL) {
+        Log.debug(path.absoluteString)
+        guard let configData = try? Data(contentsOf: path, options: []) else { return nil }
         let jsonAny = try? JSONSerialization.jsonObject(with: configData, options: [])
         guard let json = jsonAny as? JsonDict else { return nil }
 

@@ -24,11 +24,31 @@
  */
 
 import Dispatch
-import Logging
 import Foundation
+import Logging
+import Moderator
 import PWM
 
-guard let configuration = Configuration(withPath: "config/testConfig.json") else {
+var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
+let verbose = moderator.add(.option("v","verbose", description: "Provide Additional Logging"))
+let configFile = moderator.add(Argument<String>
+                    .singleArgument(name: "config file", description: "Configuration file to load")
+                    .default("testConfig.json"))
+
+do {
+    try moderator.parse()
+} catch {
+    print(error)
+    exit(-1)
+}
+
+if verbose.value {
+    Log.setLoggingLevel(.debug)
+}
+
+let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
+let configUrl = configDir.appendingPathComponent(configFile.value)
+guard let configuration = Configuration(withPath: configUrl) else {
     fatalError()
 }
 
