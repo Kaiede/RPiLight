@@ -43,42 +43,50 @@ public enum LogLevel: Int, Comparable {
 public typealias LogClosure = () -> Void
 
 public struct Log {
+    public private(set) static var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss.SSS"
+        formatter.calendar = Calendar.current
+        formatter.timeZone = TimeZone.current
+        return formatter
+    }()
+    
     public static func debug(_ item: Any, file: String = #file, line: Int = #line) {
         Log.log(item, level: .debug, file: file, line: line)
-    }
-    
-    public static func debug(_ closure: LogClosure) {
-        Log.performClosure(closure, level: .debug)
     }
     
     public static func info(_ item: Any, file: String = #file, line: Int = #line) {
         Log.log(item, level: .info, file: file, line: line)
     }
     
-    public static func info(_ closure: LogClosure) {
-        Log.performClosure(closure, level: .info)
-    }
-    
     public static func warn(_ item: Any, file: String = #file, line: Int = #line) {
         Log.log(item, level: .warn, file: file, line: line)
     }
-    
-    public static func warn(_ closure: LogClosure) {
-        Log.performClosure(closure, level: .warn)
-    }
-    
+
     public static func error(_ item: Any, file: String = #file, line: Int = #line) {
         Log.log(item, level: .error, file: file, line: line)
     }
+
+    public static func withDebug(_ closure: LogClosure) {
+        Log.performClosure(closure, level: .debug)
+    }
     
-    public static func error(_ closure: LogClosure) {
+    public static func withInfo(_ closure: LogClosure) {
+        Log.performClosure(closure, level: .info)
+    }
+    
+    public static func withWarn(_ closure: LogClosure) {
+        Log.performClosure(closure, level: .warn)
+    }
+    
+    public static func withError(_ closure: LogClosure) {
         Log.performClosure(closure, level: .error)
     }
     
     public static func setLoggingLevel(_ level: LogLevel) {
         Log.logLevel = level
     }
-    
+
     private static var logLevel : LogLevel = .info
     private static func shouldLog(_ level: LogLevel) -> Bool {
         return level >= Log.logLevel
@@ -93,11 +101,12 @@ public struct Log {
     private static func log(_ item: Any, level: LogLevel, file: String, line: Int) {
         guard level >= Log.logLevel else { return }
         
-        if level == .debug {
+        let nowString = Log.dateFormatter.string(from: Date())
+        if Log.logLevel == .debug {
             let shortFileName = URL(fileURLWithPath: file).lastPathComponent
-            print("[\(level)][\(shortFileName):\(line)]", item, separator: " ")
+            print("[\(level)][\(nowString)][\(shortFileName):\(line)]", item, separator: " ")
         } else {
-            print("[\(level)]", item, separator: " ")
+            print("[\(level)][\(nowString)]", item, separator: " ")
         }
     }
 }

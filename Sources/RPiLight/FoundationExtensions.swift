@@ -31,6 +31,16 @@ extension FileManager {
     }
 }
 
+extension Calendar {
+    func intervalBetweenDateComponents(_ components: DateComponents, since olderComponents: DateComponents) -> TimeInterval? {
+        let startOfDay = self.startOfDay(for: Date())
+        guard let olderDate = self.date(byAdding: olderComponents, to: startOfDay) else { return nil }
+        guard let date = components.calcNextDate(after: olderDate) else { return nil }
+        
+        return date.timeIntervalSince(olderDate)
+    }
+}
+
 extension DateComponents {
     // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
     // but may not be very relevant for any other package.
@@ -49,15 +59,15 @@ extension DateComponents {
         return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
     }
 
-    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date {
+    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
         #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
             return Calendar.current.nextDate(after: date,
                                              matching: self,
                                              matchingPolicy: .nextTime,
                                              repeatedTimePolicy: .first,
-                                             direction: direction)!
+                                             direction: direction)
         #elseif os(Linux)
-            return self.calcNextDateCustom(after: date, direction: direction)!
+            return self.calcNextDateCustom(after: date, direction: direction)
         #else
             fatalError("No Implementation Available for this OS")
         #endif

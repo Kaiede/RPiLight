@@ -31,7 +31,7 @@ import PWM
 typealias ChannelValues = [String: ChannelValue]
 typealias ChannelLightRanges = [String: LightRange]
 
-struct LightRange {
+struct LightRange: CustomStringConvertible {
     var origin: Double
     var delta: Double
 
@@ -46,6 +46,16 @@ struct LightRange {
 
     init(origin: Double, end: Double) {
         self.init(origin: origin, delta: end - origin)
+    }
+    
+    public func bound(_ value: Double) -> Double {
+        let highBound = max(self.origin, self.end)
+        let lowBound = min(self.origin, self.end)
+        return max(lowBound, min(highBound, value))
+    }
+    
+    public var description: String {
+        return "(\(self.origin), ∆\(self.delta))"
     }
 }
 
@@ -104,8 +114,8 @@ class LightLevelChangeEvent: LightEvent {
     func onEvent(now: Date, controller: LightController) {
         self.behavior.reset()
 
-        let behaviorStart = self.time.calcNextDate(after: now, direction: .backward)
-        let behaviorEnd = self.endTime.calcNextDate(after: now, direction: .forward)
+        let behaviorStart = self.time.calcNextDate(after: now, direction: .backward)!
+        let behaviorEnd = self.endTime.calcNextDate(after: now, direction: .forward)!
 
         Log.info("LightLevelChangedEvent: { \(LightLevelChangeEvent.dateFormatter.string(from: behaviorStart)) -> \(LightLevelChangeEvent.dateFormatter.string(from: behaviorEnd)) }")
         controller.setCurrentBehavior(behavior: self.behavior, startDate: behaviorStart, endDate: behaviorEnd)
@@ -114,8 +124,11 @@ class LightLevelChangeEvent: LightEvent {
 }
 
 class LightLevelChangeBehavior: LightBehavior {
+    static private let epsilon: Double = 0.00001
+    
     var startDate: Date
     var endDate: Date
+    var dispatchGroup: DispatchGroup
 
     private let lightRanges: ChannelLightRanges
 
@@ -123,14 +136,19 @@ class LightLevelChangeBehavior: LightBehavior {
         self.lightRanges = lightRanges
         self.startDate = Date.distantPast
         self.endDate = Date.distantPast
+        self.dispatchGroup = DispatchGroup()
     }
 
-    func complete() {
-        // TODO
+    func enter() {
+        dispatchGroup.enter()
+    }
+    
+    func leave() {
+        dispatchGroup.leave()
     }
 
-    func join() {
-        // TODO
+    func wait() {
+        self.dispatchGroup.wait()
     }
 
     func reset() {
@@ -138,32 +156,38 @@ class LightLevelChangeBehavior: LightBehavior {
         self.endDate = Date.distantPast
     }
 
-    func calcUpdateInterval(withChannels channels: [String: Channel]) -> Double {
+    var shouldSleep: Bool {
+        let brightnessDelta = self.lightRanges.map({ return abs($1.delta) }).max()!
+        return brightnessDelta < LightLevelChangeBehavior.epsilon
+    }
+    
+    func calcUpdateInterval(for now: Date?, withChannels channels: [String: Channel]) -> Double {
         let timeDelta = self.endDate.timeIntervalSince(self.startDate)
         let brightnessDelta = self.lightRanges.map({ return abs($1.delta) }).max()!
 
         if brightnessDelta == 0.0 {
-            return timeDelta * 1000.0
+            return self.endDate.timeIntervalSince(now ?? self.startDate)
         }
         
-        let targetInterval = timeDelta * 1000.0 / (brightnessDelta * 4096)
+        let minInterval = 0.010 // Milliseconds
+        let targetInterval = max(minInterval, min(timeDelta, timeDelta / (brightnessDelta * 4096)))
+        return targetInterval
+        
+        //let luminanceMin = channels.map({ return $1.luminance }).min()!
+        //let curveConst = 0.4
+        //let luminanceFactor = ((1.0 + curveConst) * luminanceMin) / (curveConst + luminanceMin)
 
-        let brightnessMin = channels.map({ return $1.brightness }).min()!
-        let curveConst = 0.4
-        let brightnessFactor = ((1.0 + curveConst) * brightnessMin) / (curveConst + brightnessMin)
-
-        let minInterval = 10.0 // Milliseconds
-        let finalInterval = minInterval + (brightnessFactor * (targetInterval - minInterval))
-        return finalInterval
+        //let finalInterval = minInterval + (luminanceFactor * (targetInterval - minInterval))
+        //return finalInterval
     }
 
     func getLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs {
-        let timeSpent = now.timeIntervalSince(self.startDate)
-        let factor = min(timeSpent / self.timeDelta, 1.0)
+        let timeSpent = max(0.0, now.timeIntervalSince(self.startDate))
+        let factor = min(1.0, timeSpent / self.timeDelta)
 
         var channelOutputs: ChannelOutputs = [:]
         for (token, lightRange) in self.lightRanges {
-            let brightness = min(lightRange.origin + (factor * lightRange.delta), lightRange.end)
+            let brightness = lightRange.bound(lightRange.origin + (factor * lightRange.delta))
             channelOutputs[token] = brightness
         }
 

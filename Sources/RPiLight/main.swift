@@ -31,6 +31,7 @@ import PWM
 
 var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
 let verbose = moderator.add(.option("v","verbose", description: "Provide Additional Logging"))
+let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
 let configFile = moderator.add(Argument<String>
                     .singleArgument(name: "config file", description: "Configuration file to load")
                     .default("testConfig.json"))
@@ -52,15 +53,15 @@ guard let configuration = Configuration(withPath: configUrl) else {
     fatalError()
 }
 
-Log.debug {
+Log.withDebug {
     let formatter = DateFormatter()
     formatter.dateFormat = "d MMM HH:mm:ss Z"
     formatter.calendar = Calendar.current
     formatter.timeZone = TimeZone.current
     let now = Date()
     for event in configuration.schedule {
-        let prevDate = event.time.calcNextDate(after: now, direction: .backward)
-        let nextDate = event.time.calcNextDate(after: now, direction: .forward)
+        let prevDate = event.time.calcNextDate(after: now, direction: .backward)!
+        let nextDate = event.time.calcNextDate(after: now, direction: .forward)!
         Log.debug("\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
     }
 }
@@ -74,6 +75,11 @@ let activeChannels = module.availableChannels.map {
 
 var controller = LightController(channels: activeChannels)
 
-controller.applySchedule(schedule: configuration.schedule)
-
-dispatchMain()
+if previewMode.value {
+    let previewer = Previewer(usingController: controller)
+    previewer.runSchedule(configuration.schedule)
+} else {
+    // Ruin the Schedule Normally
+    controller.applySchedule(schedule: configuration.schedule)
+    dispatchMain()
+}

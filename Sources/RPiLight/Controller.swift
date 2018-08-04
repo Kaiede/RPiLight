@@ -46,12 +46,15 @@ protocol LightBehavior {
     var startDate: Date { get set }
     var endDate: Date { get set }
 
-    func complete()
-    func join()
+    var shouldSleep: Bool { get }
+    
+    func enter()
+    func leave()
+    func wait()
 
     func reset()
 
-    func calcUpdateInterval(withChannels channels: [String: Channel]) -> Double
+    func calcUpdateInterval(for now: Date?, withChannels channels: [String: Channel]) -> Double
 
     func getLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs
 }
@@ -69,7 +72,9 @@ extension LightBehavior {
 
 extension DispatchWallTime {
     init(date: Date) {
-        let spec = timespec(tv_sec: Int(date.timeIntervalSince1970), tv_nsec: 0)
+        let NSEC_IN_SEC: UInt64 = 1_000_000_000
+        let interval = date.timeIntervalSince1970
+        let spec = timespec(tv_sec: Int(interval), tv_nsec: Int(UInt64(interval * Double(NSEC_IN_SEC)) % NSEC_IN_SEC))
         self.init(timespec: spec)
     }
 }
@@ -89,6 +94,7 @@ class LightController {
     private let eventTimer: DispatchSourceTimer
     private let behaviorTimer: DispatchSourceTimer
     private var isBehaviorSuspended: Bool
+    private var isBehaviorOneShot: Bool
 
     private var schedule: [LightEvent]
     private var scheduleIndex: Int
@@ -116,6 +122,7 @@ class LightController {
         self.eventTimer.resume()
         self.behaviorTimer = DispatchSource.makeTimerSource(flags: [], queue: self.queue)
         self.isBehaviorSuspended = true
+        self.isBehaviorOneShot = false
 
         self.eventTimer.setEventHandler {
             [weak self] in
@@ -139,19 +146,24 @@ class LightController {
     }
 
     func setCurrentBehavior(behavior: LightBehavior, startDate: Date, endDate: Date) {
+        behavior.enter()
+        
         self.queue.async {
+            Log.info("Starting New Behavior")
             var localBehavior = behavior
             localBehavior.reset()
             localBehavior.prepareForRunning(startDate: startDate, endDate: endDate)
+            self.currentBehavior?.leave()
             self.currentBehavior = localBehavior
 
-            self.rescheduleBehaviorHandler(withBehavior: localBehavior)
+            self.scheduleNextBehaviorUpdate(withBehavior: localBehavior)
         }
     }
 
     func clearCurrentBehavior() {
         self.queue.async {
-            self.currentBehavior?.complete()
+            Log.info("Ending Current Behavior")
+            self.currentBehavior?.leave()
             self.currentBehavior = nil
 
             self.behaviorTimer.suspend()
@@ -159,22 +171,36 @@ class LightController {
         }
     }
 
-    private func rescheduleBehaviorHandler(withBehavior behavior: LightBehavior) {
+    private func calculateRestart(withBehavior behavior: LightBehavior, now: Date) -> (Date, TimeInterval?) {
+        if behavior.shouldSleep {
+            return (behavior.endDate, nil)
+        } else if now < behavior.startDate {
+            return (behavior.startDate, nil)
+        } else {
+            return (now, behavior.calcUpdateInterval(for: now, withChannels: self.channels))
+        }
+    }
+    
+    private func scheduleNextBehaviorUpdate(withBehavior behavior: LightBehavior, now: Date = Date()) {
         if !self.isBehaviorSuspended {
             self.behaviorTimer.suspend()
         }
-
-        let startDate = behavior.startDate
-        let updateInterval = Int(behavior.calcUpdateInterval(withChannels: self.channels))
-        self.behaviorTimer.scheduleRepeating(wallDeadline: DispatchWallTime(date: startDate),
-                                             interval: .milliseconds(Int(updateInterval)),
-                                             leeway: .milliseconds(1))
+        
+        let (restartDate, updateIntervalMaybe) = self.calculateRestart(withBehavior: behavior, now: now)
+        if let updateInterval = updateIntervalMaybe {
+            let updateIntervalMs = Int(updateInterval * 1000.0)
+            self.behaviorTimer.scheduleRepeating(wallDeadline: DispatchWallTime(date: restartDate), interval: .milliseconds(updateIntervalMs))
+            self.isBehaviorOneShot = false
+            Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(updateIntervalMs) ms")
+        } else {
+            self.behaviorTimer.scheduleOneshot(wallDeadline: DispatchWallTime(date: restartDate))
+            self.isBehaviorOneShot = true
+            Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate))")
+        }
+        
         self.behaviorTimer.resume()
         self.isBehaviorSuspended = false
-
         self.lastBehaviorRefresh = Date()
-        
-        Log.debug("New Behavior Update Interval: \(updateInterval)")
     }
 
     private func handleNextEvent() {
@@ -186,16 +212,15 @@ class LightController {
         // Move to the next event
         self.scheduleIndex = (self.scheduleIndex + 1) % self.schedule.count
         let nextEvent = self.schedule[self.scheduleIndex]
-        let nextDate = nextEvent.time.calcNextDate(after: now)
+        let nextDate = nextEvent.time.calcNextDate(after: now)!
 
         Log.info("Scheduling Next Event @ \(LightController.dateFormatter.string(from: nextDate))")
         self.eventTimer.scheduleOneshot(wallDeadline: DispatchWallTime(date: nextDate), leeway: .seconds(0))
     }
 
     private func handleBehavior() {
-        if let currentBehavior = self.currentBehavior {
-            let now = Date()
-
+        let now = Date()
+        if let currentBehavior = self.currentBehavior, currentBehavior.startDate <= now {
             let lightLevels = currentBehavior.getLightLevelsForDate(now: now, channels: self.channels)
             for (token, brightness) in lightLevels {
                 guard var channel = self.channels[token] else { continue }
@@ -203,19 +228,17 @@ class LightController {
                 channel.brightness = brightness
             }
 
-            // Update our interval about once a second
-            if let lastBehaviorRefresh = self.lastBehaviorRefresh, now.timeIntervalSince(lastBehaviorRefresh) > 1.0 {
-                self.rescheduleBehaviorHandler(withBehavior: currentBehavior)
-            }
-
+            
             if currentBehavior.endDate <= now {
                 self.clearCurrentBehavior()
+            } else if self.isBehaviorOneShot {
+                self.scheduleNextBehaviorUpdate(withBehavior: currentBehavior, now: now)
             }
         }
     }
 
     private func calcPreviousEventIndex(now: Date) -> Int {
-        let (maxIndex, _) = self.schedule.map({ $0.time.calcNextDate(after: now, direction: .backward) })
+        let (maxIndex, _) = self.schedule.map({ $0.time.calcNextDate(after: now, direction: .backward)! })
             .enumerated()
             .max(by: { $0.element < $1.element })!
         return maxIndex
