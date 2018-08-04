@@ -24,6 +24,7 @@
  */
 
 import Dispatch
+import Logging
 import Foundation
 import PWM
 
@@ -31,19 +32,21 @@ guard let configuration = Configuration(withPath: "config/testConfig.json") else
     fatalError()
 }
 
-let formatter = DateFormatter()
-formatter.dateFormat = "d MMM yyyy HH:mm:ss Z"
-formatter.calendar = Calendar.current
-formatter.timeZone = TimeZone.current
-let now = Date()
-for event in configuration.schedule {
-    let prevDate = event.time.calcNextDate(after: now, direction: .backward)
-    let nextDate = event.time.calcNextDate(after: now, direction: .forward)
-    print("\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+Log.debug {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "d MMM yyyy HH:mm:ss Z"
+    formatter.calendar = Calendar.current
+    formatter.timeZone = TimeZone.current
+    let now = Date()
+    for event in configuration.schedule {
+        let prevDate = event.time.calcNextDate(after: now, direction: .backward)
+        let nextDate = event.time.calcNextDate(after: now, direction: .forward)
+        Log.debug("\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+    }
 }
 
 let module = try! configuration.hardware.createModule()
-print(module)
+Log.debug(module)
 
 let activeChannels = module.availableChannels.map {
     return try! module.createChannel(with: $0)

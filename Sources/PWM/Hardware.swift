@@ -23,6 +23,7 @@
  SOFTWARE.)
  */
 
+import Logging
 import SwiftyGPIO
 
 class HardwarePWM: Module, CustomStringConvertible {
@@ -92,7 +93,7 @@ class HardwarePWMChannel: Channel {
     }
 
     func onLuminanceChanged() {
-        print("\(self.token): Luminance Now \(self.luminance)")
+        Log.debug("\(self.token): Luminance Now \(self.luminance)")
         let maxValue = 100.0
         output.startPWM(period: self.period, duty: Float(self.luminance * maxValue))
     }

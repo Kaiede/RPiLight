@@ -25,6 +25,7 @@
 
 import Dispatch
 import Foundation
+import Logging
 import PWM
 
 typealias ChannelValues = [String: ChannelValue]
@@ -98,7 +99,7 @@ class LightLevelChangeEvent: LightEvent {
         let behaviorStart = self.time.calcNextDate(after: now, direction: .backward)
         let behaviorEnd = self.endTime.calcNextDate(after: now, direction: .forward)
 
-        print("LightLevelChangedEvent: { \(behaviorStart) -> \(behaviorEnd)")
+        Log.info("LightLevelChangedEvent: { \(behaviorStart) -> \(behaviorEnd)")
         controller.setCurrentBehavior(behavior: self.behavior, startDate: behaviorStart, endDate: behaviorEnd)
     }
 
@@ -129,7 +130,7 @@ class LightLevelChangeBehavior: LightBehavior {
         self.endDate = Date.distantPast
     }
 
-    func calcUpdateInterval(withChannels channels: [String: Channel]) -> DispatchTimeInterval {
+    func calcUpdateInterval(withChannels channels: [String: Channel]) -> Double {
         let timeDelta = self.endDate.timeIntervalSince(self.startDate)
         let brightnessDelta = self.lightRanges.map({ return $1.delta }).max()!
 
@@ -141,7 +142,7 @@ class LightLevelChangeBehavior: LightBehavior {
 
         let minInterval = 10.0 // Milliseconds
         let finalInterval = minInterval + (brightnessFactor * (targetInterval - minInterval))
-        return DispatchTimeInterval.milliseconds(Int(finalInterval))
+        return finalInterval
     }
 
     func getLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs {

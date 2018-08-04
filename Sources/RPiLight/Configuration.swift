@@ -24,6 +24,7 @@
  */
 
 import Foundation
+import Logging
 import PWM
 
 typealias JsonDict = [String: Any]
@@ -34,7 +35,7 @@ struct Configuration {
 
     init?(withPath path: String) {
         let configUrl = FileManager.default.currentDirectoryUrl.appendingPathComponent(path)
-        print(configUrl)
+        Log.debug(configUrl.absoluteString)
         guard let configData = try? Data(contentsOf: configUrl, options: []) else { return nil }
         let jsonAny = try? JSONSerialization.jsonObject(with: configData, options: [])
         guard let json = jsonAny as? JsonDict else { return nil }

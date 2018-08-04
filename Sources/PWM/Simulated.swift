@@ -23,6 +23,8 @@
  SOFTWARE.)
  */
 
+import Logging
+
 //
 // Simulated PWM Module
 //
@@ -82,7 +84,7 @@ class SimulatedPWMChannel: Channel {
     }
 
     func onLuminanceChanged() {
-        print("\(self.token): Luminance Now \(self.luminance * 100)")
+        Log.debug("\(self.token): Luminance Now \(self.luminance * 100)")
     }
 
 }

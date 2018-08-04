@@ -7,13 +7,14 @@ let package = Package(
     targets: [
     	Target(
     		name: "RPiLight",
-    		dependencies: ["PWM"]
+    		dependencies: ["PWM", "Logging"]
     	),
     	Target(
             name: "PWM",
-            dependencies: ["PCA9685"]
+            dependencies: ["PCA9685", "Logging"]
         ),
-        Target(name: "PCA9685")
+        Target(name: "PCA9685"),
+	Target(name: "Logging")
     ],
     dependencies: [
         .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", majorVersion: 1),

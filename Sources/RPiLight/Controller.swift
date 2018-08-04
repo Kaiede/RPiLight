@@ -25,6 +25,7 @@
 
 import Dispatch
 import Foundation
+import Logging
 import PWM
 
 #if os(Linux)
@@ -50,7 +51,7 @@ protocol LightBehavior {
 
     func reset()
 
-    func calcUpdateInterval(withChannels channels: [String: Channel]) -> DispatchTimeInterval
+    func calcUpdateInterval(withChannels channels: [String: Channel]) -> Double
 
     func getLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs
 }
@@ -156,14 +157,16 @@ class LightController {
         }
 
         let startDate = behavior.startDate
-        let updateInterval = behavior.calcUpdateInterval(withChannels: self.channels)
+        let updateInterval = Int(behavior.calcUpdateInterval(withChannels: self.channels))
         self.behaviorTimer.scheduleRepeating(wallDeadline: DispatchWallTime(date: startDate),
-                                             interval: updateInterval,
+                                             interval: .milliseconds(Int(updateInterval)),
                                              leeway: .milliseconds(1))
         self.behaviorTimer.resume()
         self.isBehaviorSuspended = false
 
         self.lastBehaviorRefresh = Date()
+        
+        Log.debug("New Behavior Update Interval: \(updateInterval)")
     }
 
     private func handleNextEvent() {
@@ -177,7 +180,7 @@ class LightController {
         let nextEvent = self.schedule[self.scheduleIndex]
         let nextDate = nextEvent.time.calcNextDate(after: now)
 
-        print("Scheduling Next Event @ \(nextDate)")
+        Log.info("Scheduling Next Event @ \(nextDate)")
         self.eventTimer.scheduleOneshot(wallDeadline: DispatchWallTime(date: nextDate), leeway: .seconds(0))
     }
 
