@@ -132,8 +132,12 @@ class LightLevelChangeBehavior: LightBehavior {
 
     func calcUpdateInterval(withChannels channels: [String: Channel]) -> Double {
         let timeDelta = self.endDate.timeIntervalSince(self.startDate)
-        let brightnessDelta = self.lightRanges.map({ return $1.delta }).max()!
+        let brightnessDelta = self.lightRanges.map({ return abs($1.delta) }).max()!
 
+        if brightnessDelta == 0.0 {
+            return timeDelta * 1000.0
+        }
+        
         let targetInterval = timeDelta * 1000.0 / (brightnessDelta * 4096)
 
         let brightnessMin = channels.map({ return $1.brightness }).min()!
