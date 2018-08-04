@@ -23,6 +23,8 @@
  SOFTWARE.)
  */
 
+import Foundation
+
 public enum LogLevel: Int, Comparable {
     case debug
     case info
@@ -91,6 +93,11 @@ public struct Log {
     private static func log(_ item: Any, level: LogLevel, file: String, line: Int) {
         guard level >= Log.logLevel else { return }
         
-        print(level, "\(file):\(line)", item, separator: " ")
+        if level == .debug {
+            let shortFileName = URL(fileURLWithPath: file).lastPathComponent
+            print("[\(level)][\(shortFileName):\(line)]", item, separator: " ")
+        } else {
+            print("[\(level)]", item, separator: " ")
+        }
     }
 }
