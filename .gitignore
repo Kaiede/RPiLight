@@ -1,5 +1,16 @@
 # PiLight Specific Ignores
 /config
+/swift_binaries.tgz
+
+##### SWIFT BUILD
+.DS_Store
+/.build
+/Packages
+/*.xcodeproj
+/Package.resolved
+/Package.pins
+
+##### PYTHON
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
