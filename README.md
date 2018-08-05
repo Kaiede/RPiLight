@@ -36,85 +36,74 @@ Additionally, [these instructions](https://hackernoon.com/raspberry-pi-headless-
 
 ### Installing RPiLight
 
-Installing Prerequisties:
-```
-sudo apt-get install python-pip pigpio
-sudo pip install adafruit-pca9685 pigpio
-```
-
-It is also recommended to install git:
+First, we will need to make sure git is installed.
 ```
 sudo apt-get install git
 ```
 
-If you are using the built-in PWM channels, you now need to kick off pigpiod and enable it to launch on boot:
-```
-sudo systemctl enable pigpiod.service
-sudo systemctl start pigpiod.service
-```
-
-Now, it's time to get RPiLight installed. It's recommended to clone it from GitHub to make updates easier. When using git, you can simply use `git pull` to update to the latest version.
+Then, we can
 ```
 cd ~
 git clone https://github.com/Kaiede/RPiLight.git
+cd RPiLight
+./install.sh full
 ```
 
-### Configuring RPiLight Hardware
+The `./install.sh full` command only needs to be run the first time an install is done, or during major updates, as it installs things that RPiLight requires using apt-get, and grabs the version of Swift needed to build. When making changes
+
+When updating, you can use:
+```
+./install.sh update
+```
+
+This command pulls the latest source from GitHub, builds it, and installs it. 
+
+## Configuring RPiLight
 
 There are example configuration files in the [example](examples) folder. These files are JSON-formatted. Let's go ahead and break down one of those examples:
 
+### Hardware
+
 ```
-{
-	"pwmMode": "adafruit",
+"hardware" : {
+	"pwmMode": "pca9685",
 	"freq": 960,
 	"channels": 8
 }
 ```
 
-The `pwmMode` parameter tells RPiLight what PWM controller to use. It can be `simulated`, `pigpio`, or `adafruit`. `simulated` is used for testing, and doesn't produce any output. `pigpio` Uses the two internal PWM channels of the Raspberry Pi. `adafruit` uses the PCA9685 expansion over I2C on the default address.
+The `pwmMode` parameter tells RPiLight what PWM controller to use. It can be `simulated`, `hardware`, or `pca9685`. `simulated` is used for testing, and doesn't produce any output. `hardware` Uses the two internal PWM channels of the Raspberry Pi. `pca9685` uses the PCA9685 expansion over I2C on the default address, like the Adafruit PWM board.
 
 The `freq` parameter tells RPiLight what PWM frequency to use, in Hz. It must be a multiple of `480`: `480`, `960`, `1440`, `1920`, `2400`, or `2880`. For `adafruit`, the maximum value this can be is `1440`. Before picking a value, check to see what your LED drivers support. Meanwell LDD drivers can only go so high (1 KHz), and so RPiLight should not use a value over `960` when driving Meanwell LDDs. This value should not be used with `simulated`, as it has no meaning.
 
-The `channels` parameter tells RPiLight how many channels to use. This can be `1-2` for `pigpio`, and `1-16` for `simulated` and `adafruit`. This will always count up from the first channel, So if you pass in `4` to the `adafruit` controller, then you will get control over channels 0-3. 
+The `channels` parameter tells RPiLight how many channels to use. This can be `1-2` for `hardware`, and `1-16` for `simulated` and `pca9685`. This will always count up from the first channel, So if you pass in `4` to the `pca9685` controller, then you will get control over channels 0-3. 
 
-Once you have the configuration file set. Make a directory in the RPiLight folder called `config`, and place it in there. You can also copy an example to the `config/` directory and modify it to suit your needs.
-
-### Configuring RPiLight Schedule
-
-There are example schedule files in the [example](examples) folder. These files are JSON-formatted. Let's go ahead and break down one of those examples:
+### Schedule
 
 ```
-{
-	"channels" : [
-		{ "token": "AF-PWM00", "name" : "Twinstar 600E" }
-	],
+"schedule" : [
+	{
+		"time" : "08:00:00",
+		"channels" : [
+			{ "token": "PWM00", "brightness": 0.0 }
+		]
+	},
+	{
+		"time" : "08:30:00",
+		"channels" : [
+			{ "token": "PWM00", "brightness": 0.25 }
+		]
+	},
+	{
+		"time" : "12:00:00",
+		"channels" : [
+			{ "token": "PWM00", "brightness": 0.25 }
+		]
+	},
 
-	"schedule" : [
-		{
-			"time" : "08:00:00",
-			"channels" : [
-				{ "token": "AF-PWM00", "brightness": 0.0 }
-			]
-		},
-		{
-			"time" : "08:30:00",
-			"channels" : [
-				{ "token": "AF-PWM00", "brightness": 0.25 }
-			]
-		},
-		{
-			"time" : "12:00:00",
-			"channels" : [
-				{ "token": "AF-PWM00", "brightness": 0.25 }
-			]
-		},
-
-		<etc>
-	]
-}
+	<etc>
+]
 ```
-
-The `channels` array at the top is currently not used. In the future it will be used to map a channel token to a friendly name for logging and display.
 
 The `schedule` array is where the work really happens. It is an array of events used to control the lights. Inside each event, we have two children:
 
@@ -124,9 +113,9 @@ This internal `channels` array contains items with a `token` and a `brightness` 
 
 Example Channel Tokens:
 ```
-AF-PWM00 - AF-PWM15 : Adafruit Channels 0-15
-PWM0-GPIO18 		: pigpio PWM channel 0, on GPIO18
-PWM1-GPIO19 		: pigpio PWM channel 1, on GPIO19
+PWM00 - PWM15 		: Adafruit PCA9685 Channels 0-15
+PWM0-GPIO18 		: Raspberry Pi PWM channel 0, on GPIO18
+PWM1-GPIO19 		: Raspberry Pi PWM channel 1, on GPIO19
 SIM00 - SIM15		: Simulated Channels 0-15
 ```
 
@@ -134,29 +123,20 @@ In this example, the lights will be off at 8:00 am. Starting at 8:00 am, it will
 
 ### Testing Your Hardware / Schedule
 
-`test.py` was meant to test hardware configurations with simple ramps:
-
+The `--preview` option was meant to test hardware configurations with simple ramps:
 ```
-python test.py <testConfig.json>
-```
-
-You can use the `preview.py` script to test your schedule:
-
-```
-python preview.py <testConfig.json> <testSchedule.json>
+cd /opt/rpilight
+RPiLight --preview <config.json>
 ```
 
-In both cases, they look in the `config/` directory for you. You don't need a full path to the file, just the name of the file. By default, they use `testConfig.json` and `testSchedule.json` if no arguments are provided. 
+This file is expected to be in the `./config/` directory, and by default it will look for `./config/config.json`. For now, it is required to be root to copy the file to the service's config directory: `sudo cp <myfile> /opt/rpilight/config/config.json`. 
+
+You should first make sure the service is stopped before running previews to avoid getting weird results. See "Starting the Daemon" below.
 
 ### Starting the Daemon
 
-The `daemon.py` script will run indefinitely, looping the schedule each day. It uses `config.json` and `schedule.json`, keeping the files separate from testing and previewing. 
-
-Setting up the service to boot automatically takes a couple of steps. This will configure the service to start automatically at boot, and start it immediately:
-
+The install script will do most of the work, so you should only need to start it using `systemctl`.
 ```
-sudo cp rpilight.service /lib/systemd/system
-sudo systemctl enable rpilight.service
 sudo systemctl start rpilight.service
 ```
 

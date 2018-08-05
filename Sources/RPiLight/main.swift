@@ -34,7 +34,7 @@ let verbose = moderator.add(.option("v","verbose", description: "Provide Additio
 let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
 let configFile = moderator.add(Argument<String>
                     .singleArgument(name: "config file", description: "Configuration file to load")
-                    .default("testConfig.json"))
+                    .default("config.json"))
 
 do {
     try moderator.parse()
