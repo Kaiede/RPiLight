@@ -113,8 +113,8 @@ class LightLevelChangeEvent: LightEvent {
 
     func onEvent(now: Date, controller: LightController) {
         self.behavior.reset()
-
-        let behaviorStart = self.time.calcNextDate(after: now, direction: .backward)!
+        
+        let behaviorStart = self.time.calcNextDate(after: Calendar.current.startOfDay(for: now), direction: .forward)!
         let behaviorEnd = self.endTime.calcNextDate(after: now, direction: .forward)!
 
         Log.info("LightLevelChangedEvent: { \(LightLevelChangeEvent.dateFormatter.string(from: behaviorStart)) -> \(LightLevelChangeEvent.dateFormatter.string(from: behaviorEnd)) }")
