@@ -161,8 +161,13 @@ class LightController {
         }
     }
 
-    func clearCurrentBehavior() {
+    func clearCurrentBehavior(behavior: LightBehavior) {
         self.queue.async {
+            guard self.isCurrentBehavior(behavior) else {
+                Log.debug("Skipped clearing behavior. It was changed since the clear was queued.")
+                return
+            }
+            
             Log.info("Ending Current Behavior")
             self.currentBehavior?.leave()
             self.currentBehavior = nil
@@ -231,13 +236,20 @@ class LightController {
 
             
             if currentBehavior.endDate <= now {
-                self.clearCurrentBehavior()
+                self.clearCurrentBehavior(behavior: currentBehavior)
             } else if self.isBehaviorOneShot {
                 self.scheduleNextBehaviorUpdate(withBehavior: currentBehavior, now: now)
             }
         }
     }
 
+    private func isCurrentBehavior(_ behavior: LightBehavior) -> Bool {
+        guard let currentBehavior = self.currentBehavior else { return false }
+        
+        return currentBehavior.startDate == behavior.startDate &&
+                currentBehavior.endDate == behavior.endDate
+    }
+    
     private func calcPreviousEventIndex(now: Date) -> Int {
         let (maxIndex, _) = self.schedule.map({ $0.time.calcNextDate(after: now, direction: .backward)! })
             .enumerated()
