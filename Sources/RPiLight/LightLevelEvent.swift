@@ -131,6 +131,10 @@ class LightLevelChangeBehavior: LightBehavior {
     var dispatchGroup: DispatchGroup
 
     private let lightRanges: ChannelLightRanges
+    
+    public var description: String {
+        return "LightLevelChange { \(Log.dateFormatter.string(from: startDate)) -> \(Log.dateFormatter.string(from: endDate)) }"
+    }
 
     init(lightRanges: ChannelLightRanges) {
         self.lightRanges = lightRanges

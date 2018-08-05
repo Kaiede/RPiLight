@@ -34,7 +34,6 @@ struct Configuration {
     let schedule: [Event]
 
     init?(withPath path: URL) {
-        Log.debug(path.absoluteString)
         guard let configData = try? Data(contentsOf: path, options: []) else { return nil }
         let jsonAny = try? JSONSerialization.jsonObject(with: configData, options: [])
         guard let json = jsonAny as? JsonDict else { return nil }

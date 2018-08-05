@@ -42,7 +42,7 @@ protocol LightEvent {
 
 typealias ChannelOutputs = [String: Double]
 
-protocol LightBehavior {
+protocol LightBehavior: CustomStringConvertible {
     var startDate: Date { get set }
     var endDate: Date { get set }
 
@@ -59,7 +59,7 @@ protocol LightBehavior {
     func getLightLevelsForDate(now: Date, channels: [String: Channel]) -> ChannelOutputs
 }
 
-extension LightBehavior {
+extension LightBehavior  {
     var timeDelta: TimeInterval {
         return self.endDate.timeIntervalSince(self.startDate)
     }
@@ -149,10 +149,11 @@ class LightController {
         behavior.enter()
         
         self.queue.async {
-            Log.info("Starting New Behavior")
             var localBehavior = behavior
             localBehavior.reset()
             localBehavior.prepareForRunning(startDate: startDate, endDate: endDate)
+            Log.info("Starting New Behavior: \(localBehavior)")
+
             self.currentBehavior?.leave()
             self.currentBehavior = localBehavior
 

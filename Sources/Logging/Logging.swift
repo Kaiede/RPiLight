@@ -23,6 +23,12 @@
  SOFTWARE.)
  */
 
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
+
 import Foundation
 
 public enum LogLevel: Int, Comparable {
@@ -43,6 +49,9 @@ public enum LogLevel: Int, Comparable {
 public typealias LogClosure = () -> Void
 
 public struct Log {
+    private static var stdOut: StdoutOutputStream = StdoutOutputStream()
+    private static var stdErr: StderrOutputStream = StderrOutputStream()
+    
     public private(set) static var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss.SSS"
@@ -104,9 +113,17 @@ public struct Log {
         let nowString = Log.dateFormatter.string(from: Date())
         if Log.logLevel == .debug {
             let shortFileName = URL(fileURLWithPath: file).lastPathComponent
-            print("[\(level)][\(nowString)][\(shortFileName):\(line)]", item, separator: " ")
+            print("[\(level)][\(nowString)][\(shortFileName):\(line)]", item, separator: " ", terminator: "\n", to: &Log.stdErr)
         } else {
-            print("[\(level)][\(nowString)]", item, separator: " ")
+            print("[\(level)][\(nowString)]", item, separator: " ", terminator: "\n", to: &Log.stdErr)
         }
     }
+}
+
+fileprivate struct StderrOutputStream: TextOutputStream {
+    public mutating func write(_ string: String) { fputs(string, stderr) }
+}
+
+fileprivate struct StdoutOutputStream: TextOutputStream {
+    public mutating func write(_ string: String) { fputs(string, stdout) }
 }

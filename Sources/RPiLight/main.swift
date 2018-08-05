@@ -49,8 +49,9 @@ if verbose.value {
 
 let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
 let configUrl = configDir.appendingPathComponent(configFile.value)
+Log.debug("Opening Configuration: \(configUrl.absoluteString)")
 guard let configuration = Configuration(withPath: configUrl) else {
-    fatalError()
+    fatalError("Unable to load configuration at \(configUrl.absoluteString)")
 }
 
 Log.withDebug {
