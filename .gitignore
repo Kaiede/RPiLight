@@ -1,5 +1,6 @@
 # PiLight Specific Ignores
 /config
+/swift_binaries.tgz
 
 ##### SWIFT BUILD
 .DS_Store
@@ -7,6 +8,7 @@
 /Packages
 /*.xcodeproj
 /Package.resolved
+/Package.pins
 
 ##### PYTHON
 
