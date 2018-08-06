@@ -61,26 +61,29 @@ struct Configuration {
 
 struct Hardware {
     let type: ModuleType
-    let channelCount: UInt
-    let frequency: UInt
+    let channelCount: Int
+    let frequency: Int
+    let gamma: Double
 
     init?(json: JsonDict) {
         guard let pwmMode = json["pwmMode"] as? String else { return nil }
         guard let moduleType = ModuleType(rawValue: pwmMode) else { return nil }
-        let frequency = UInt(json["freq"] as? Int ?? 480)
-        let channelCount = UInt(json["channels"] as? Int ?? 1)
+        let frequency = json["freq"] as? Int ?? 480
+        let channelCount = json["channels"] as? Int ?? 1
+        let gamma = json[""] as? Double ?? 1.8
 
-        self.init(type: moduleType, channelCount: channelCount, frequency: frequency)
+        self.init(type: moduleType, channelCount: channelCount, frequency: frequency, gamma: gamma)
     }
 
-    init(type: ModuleType, channelCount: UInt, frequency: UInt) {
+    init(type: ModuleType, channelCount: Int, frequency: Int, gamma: Double) {
         self.type = type
         self.channelCount = channelCount
         self.frequency = frequency
+        self.gamma = gamma
     }
 
     func createModule() throws -> Module {
-        return try self.type.createModule(channelCount: Int(self.channelCount), frequency: Int(self.frequency))
+        return try self.type.createModule(channelCount: Int(self.channelCount), frequency: Int(self.frequency), gamma: gamma)
     }
 }
 
