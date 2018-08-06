@@ -156,8 +156,13 @@ class LightController {
 
             self.currentBehavior?.leave()
             self.currentBehavior = localBehavior
-
             self.scheduleNextBehaviorUpdate(withBehavior: localBehavior)
+            
+            // Single forced update. Useful for reboots/etc.
+            self.queue.async {
+                Log.debug("Performing Forced Update")
+                self.handleBehavior()
+            }
         }
     }
 
@@ -228,8 +233,11 @@ class LightController {
         let now = Date()
         if let currentBehavior = self.currentBehavior, currentBehavior.startDate <= now {
             let lightLevels = currentBehavior.getLightLevelsForDate(now: now, channels: self.channels)
-            for (token, brightness) in lightLevels {
-                guard var channel = self.channels[token] else { continue }
+            for (token, brightness) in lightLevels {                
+                guard var channel = self.channels[token] else {
+                    Log.error("Channel \(token) Not Found")
+                    continue
+                }
 
                 channel.brightness = brightness
             }
