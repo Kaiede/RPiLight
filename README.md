@@ -114,8 +114,8 @@ This internal `channels` array contains items with a `token` and a `brightness` 
 Example Channel Tokens:
 ```
 PWM00 - PWM15 		: Adafruit PCA9685 Channels 0-15
-PWM0-GPIO18 		: Raspberry Pi PWM channel 0, on GPIO18
-PWM1-GPIO19 		: Raspberry Pi PWM channel 1, on GPIO19
+PWM0-IO18 			: Raspberry Pi PWM channel 0, on GPIO18
+PWM1-IO19 			: Raspberry Pi PWM channel 1, on GPIO19
 SIM00 - SIM15		: Simulated Channels 0-15
 ```
 
