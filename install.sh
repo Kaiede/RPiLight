@@ -36,7 +36,7 @@ function install_swift() {
 
 	echo "Installing Swift 3.1.1 into /usr..."
 	pushd / > /dev/null
-	#sudo tar -xvf $SWIFT_TARBALL
+	sudo tar -xvf $SWIFT_TARBALL
 	popd > /dev/null
 }
 
