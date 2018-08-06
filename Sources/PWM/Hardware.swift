@@ -69,8 +69,10 @@ class HardwarePWM: Module, CustomStringConvertible {
             throw ChannelInitError.invalidToken
         }
 
-        let NANOSECONDS = 1000000
-        return HardwarePWMChannel(token: token, output: output, period: NANOSECONDS / self.frequency)
+        let NANOSECONDS = 1_000_000_000
+        let period = NANOSECONDS / self.frequency
+        Log.debug("Channel \(token) created with period of \(period) ns")
+        return HardwarePWMChannel(token: token, output: output, period: period)
     }
 }
 
@@ -93,8 +95,10 @@ class HardwarePWMChannel: Channel {
     }
 
     func onLuminanceChanged() {
-        Log.debug("\(self.token): Luminance Now \(self.luminance)")
         let maxValue = 100.0
-        output.startPWM(period: self.period, duty: Float(self.luminance * maxValue))
+        let targetLuminance = Float(self.luminance * maxValue)
+        Log.debug("\(self.token): Luminance Now \(targetLuminance)")
+        
+        output.startPWM(period: self.period, duty: targetLuminance)
     }
 }
