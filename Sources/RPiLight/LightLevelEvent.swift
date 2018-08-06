@@ -60,7 +60,7 @@ struct LightRange: CustomStringConvertible {
 }
 
 extension Event {
-    func lightRangesToEvent(event: Event) -> ChannelLightRanges {
+    func lightRangesToEvent(event: Event, channels: [String: Channel]) -> ChannelLightRanges {
         let eventLookup = event.channelValues.reduce(ChannelValues()) { (dict, value) -> ChannelValues in
             var dict = dict
             dict[value.token] = value
@@ -70,8 +70,10 @@ extension Event {
         var lightRanges: ChannelLightRanges = [:]
         for channelValue in self.channelValues {
             let token = channelValue.token
+            guard let channel = channels[token] else { continue }
             guard let eventChannelValue = eventLookup[token] else { continue }
-            lightRanges[token] = LightRange(origin: channelValue.brightness, end: eventChannelValue.brightness)
+            lightRanges[token] = LightRange(origin: channelValue.setting.asBrightness(withGamma: channel.gamma),
+                                            end: eventChannelValue.setting.asBrightness(withGamma: channel.gamma))
         }
 
         return lightRanges
@@ -91,12 +93,12 @@ class LightLevelChangeEvent: LightEvent {
     let endTime: DateComponents
     let behavior: LightLevelChangeBehavior
 
-    static func createFromSchedule(schedule: [Event]) -> [LightEvent] {
+    static func createFromSchedule(schedule: [Event], channels: [String: Channel]) -> [LightEvent] {
         var lightEvents: [LightEvent] = []
         for (index, event) in schedule.enumerated() {
             let nextIndex = (index + 1) % schedule.count
             let nextEvent = schedule[nextIndex]
-            let lightRanges = event.lightRangesToEvent(event: nextEvent)
+            let lightRanges = event.lightRangesToEvent(event: nextEvent, channels: channels)
             let lightEvent = LightLevelChangeEvent(startTime: event.time,
                                                    endTime: nextEvent.time,
                                                    lightRanges: lightRanges)

@@ -81,8 +81,8 @@ class HardwarePWM: Module, CustomStringConvertible {
 class HardwarePWMChannel: Channel {
     let token: String
     let gamma: Double
-    var intensity: Double {
-        didSet { self.onIntensityChanged() }
+    var setting: ChannelSetting {
+        didSet { self.onSettingChanged() }
     }
 
     let period: Int         // nanoseconds
@@ -91,16 +91,16 @@ class HardwarePWMChannel: Channel {
     init(token: String, gamma: Double, output: PWMOutput, period: Int) {
         self.token = token
         self.gamma = gamma
+        self.setting = .intensity(0.0)
         self.period = period
-        self.intensity = 0.0
         self.output = output
 
         self.output.initPWM()
     }
 
-    func onIntensityChanged() {
+    func onSettingChanged() {
         let maxValue = 100.0
-        let targetIntensity = Float(self.intensity * maxValue)
+        let targetIntensity = Float(self.setting.asIntensity(withGamma: self.gamma) * maxValue)
         Log.debug("\(self.token): Intensity Now \(targetIntensity)")
         
         output.startPWM(period: self.period, duty: targetIntensity)

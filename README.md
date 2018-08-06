@@ -68,7 +68,8 @@ There are example configuration files in the [example](examples) folder. These f
 "hardware" : {
 	"pwmMode": "pca9685",
 	"freq": 960,
-	"channels": 8
+	"channels": 8,
+    "gamma": 1.8
 }
 ```
 
@@ -77,6 +78,8 @@ The `pwmMode` parameter tells RPiLight what PWM controller to use. It can be `si
 The `freq` parameter tells RPiLight what PWM frequency to use, in Hz. It must be a multiple of `480`: `480`, `960`, `1440`, `1920`, `2400`, or `2880`. For `adafruit`, the maximum value this can be is `1440`. Before picking a value, check to see what your LED drivers support. Meanwell LDD drivers can only go so high (1 KHz), and so RPiLight should not use a value over `960` when driving Meanwell LDDs. This value should not be used with `simulated`, as it has no meaning.
 
 The `channels` parameter tells RPiLight how many channels to use. This can be `1-2` for `hardware`, and `1-16` for `simulated` and `pca9685`. This will always count up from the first channel, So if you pass in `4` to the `pca9685` controller, then you will get control over channels 0-3. 
+
+`gamma` controls how brightness is converted into light intensity. The default is `1.8`
 
 ### Schedule
 
@@ -109,7 +112,9 @@ The `schedule` array is where the work really happens. It is an array of events 
 
 `time` is a 24-hour time of the event, in hours, minutes, and seconds. So 8:15 pm would be 20:15:00. This time is in the local timezone set on the Raspberry Pi. 
 
-This internal `channels` array contains items with a `token` and a `brightness` value. The `token` is short-hand for the channel name, and depends on what PWM controller you are using. Examples are below. The `brightness` is a floating point value between `0` and `1.0`, with `1.0` being fully on, and `0` being off. 
+This internal `channels` array contains items with a `token` and a `brightness` or `intensity` value. The `token` is short-hand for the channel name, and depends on what PWM controller you are using. Examples are below. The `brightness` or `intensity` is a floating point value between `0` and `1.0`, with `1.0` being fully on, and `0` being off. Which you use depends on what the goal is. If the light is at 50%, using `brightness` will *look* like 50% brightness. Using `intensity` will give you 50% of the lumen/PAR output of the channel. If setting the level for plants, It is recommended to use `intensity`, but if setting the level for aesthetics, it is recommended to use `brightness`. To avoid confusion, it is best to create a schedule using one or the other, but not both. 
+
+In both cases, changes in the light level will be calculated as brightness to make the shift appear natural to the eye.
 
 Example Channel Tokens:
 ```

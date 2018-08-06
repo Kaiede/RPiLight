@@ -108,22 +108,31 @@ public enum ChannelInitError: Error {
     case invalidToken
 }
 
+public enum ChannelSetting {
+    case brightness(Double)
+    case intensity(Double)
+
+    public func asBrightness(withGamma gamma: Double) -> Double {
+        switch self {
+        case .brightness(let brightness):
+            return brightness
+        case .intensity(let intensity):
+            return intensity ** (1.0 / gamma)
+        }
+    }
+    
+    public func asIntensity(withGamma gamma: Double) -> Double {
+        switch self {
+        case .brightness(let brightness):
+            return brightness ** gamma
+        case .intensity(let intensity):
+            return intensity
+        }
+    }
+}
+
 public protocol Channel {
     var token: String { get }
     var gamma: Double { get }
-    var intensity: Double { get set }
-}
-
-public extension Channel {
-    var brightness: Double {
-        get {
-            return self.intensity ** (1.0 / self.gamma)
-        }
-        set(newBrightness) {
-
-            let brightness = min(max(newBrightness, 0.0), 1.0)
-            let intensity = brightness ** self.gamma
-            self.intensity = intensity
-        }
-    }
+    var setting: ChannelSetting { get set }
 }

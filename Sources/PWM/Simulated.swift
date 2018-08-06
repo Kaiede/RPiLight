@@ -76,18 +76,18 @@ class SimulatedPWM: Module, CustomStringConvertible {
 class SimulatedPWMChannel: Channel {
     let token: String
     let gamma: Double
-    var intensity: Double {
-        didSet { self.onIntensityChanged() }
+    var setting: ChannelSetting {
+        didSet { self.onSettingChanged() }
     }
 
     init(token: String, gamma: Double) {
         self.token = token
         self.gamma = gamma
-        self.intensity = 0.0
+        self.setting = .intensity(0.0)
     }
 
-    func onIntensityChanged() {
-        Log.debug("\(self.token): Intensity Now \(self.intensity * 100)")
+    func onSettingChanged() {
+        Log.debug("\(self.token): Intensity Now \(self.setting.asIntensity(withGamma: self.gamma) * 100)")
     }
 
 }
