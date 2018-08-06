@@ -78,8 +78,8 @@ class HardwarePWM: Module, CustomStringConvertible {
 
 class HardwarePWMChannel: Channel {
     let token: String
-    var luminance: Double {
-        didSet { self.onLuminanceChanged() }
+    var intensity: Double {
+        didSet { self.onIntensityChanged() }
     }
 
     let period: Int         // nanoseconds
@@ -88,17 +88,17 @@ class HardwarePWMChannel: Channel {
     init(token: String, output: PWMOutput, period: Int) {
         self.token = token
         self.period = period
-        self.luminance = 0.0
+        self.intensity = 0.0
         self.output = output
 
         self.output.initPWM()
     }
 
-    func onLuminanceChanged() {
+    func onIntensityChanged() {
         let maxValue = 100.0
-        let targetLuminance = Float(self.luminance * maxValue)
-        Log.debug("\(self.token): Luminance Now \(targetLuminance)")
+        let targetIntensity = Float(self.intensity * maxValue)
+        Log.debug("\(self.token): Intensity Now \(targetIntensity)")
         
-        output.startPWM(period: self.period, duty: targetLuminance)
+        output.startPWM(period: self.period, duty: targetIntensity)
     }
 }

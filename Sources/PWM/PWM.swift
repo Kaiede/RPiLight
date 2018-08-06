@@ -110,20 +110,20 @@ public enum ChannelInitError: Error {
 
 public protocol Channel {
     var token: String { get }
-    var luminance: Double { get set }
+    var intensity: Double { get set }
 }
 
 let GAMMA = 1.8
 public extension Channel {
     var brightness: Double {
         get {
-            return self.luminance ** (1.0 / GAMMA)
+            return self.intensity ** (1.0 / GAMMA)
         }
         set(newBrightness) {
 
             let brightness = min(max(newBrightness, 0.0), 1.0)
-            let luminance = brightness ** GAMMA
-            self.luminance = luminance
+            let intensity = brightness ** GAMMA
+            self.intensity = intensity
         }
     }
 }

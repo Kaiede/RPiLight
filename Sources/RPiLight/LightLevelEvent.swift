@@ -177,11 +177,11 @@ class LightLevelChangeBehavior: LightBehavior {
         let targetInterval = max(minInterval, min(timeDelta, timeDelta / (brightnessDelta * 4096)))
         return targetInterval
         
-        //let luminanceMin = channels.map({ return $1.luminance }).min()!
+        //let minIntensity = channels.map({ return $1.intensity }).min()!
         //let curveConst = 0.4
-        //let luminanceFactor = ((1.0 + curveConst) * luminanceMin) / (curveConst + luminanceMin)
+        //let intensityFactor = ((1.0 + curveConst) * minIntensity) / (curveConst + minIntensity)
 
-        //let finalInterval = minInterval + (luminanceFactor * (targetInterval - minInterval))
+        //let finalInterval = minInterval + (intensityFactor * (targetInterval - minInterval))
         //return finalInterval
     }
 

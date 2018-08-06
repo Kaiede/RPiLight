@@ -81,8 +81,8 @@ class ExpansionPWM: Module, CustomStringConvertible {
 
 class ExpansionPWMChannel: Channel {
     let token: String
-    var luminance: Double {
-        didSet { self.onLuminanceChanged() }
+    var intensity: Double {
+        didSet { self.onIntensityChanged() }
     }
 
     private let controller: PCA9685
@@ -90,13 +90,14 @@ class ExpansionPWMChannel: Channel {
 
     init(token: String, channel: UInt8, controller: PCA9685) {
         self.token = token
-        self.luminance = 0.0
+        self.intensity = 0.0
         self.channel = channel
         self.controller = controller
     }
 
-    func onLuminanceChanged() {
-        let steps = UInt16(self.luminance * 4095)
+    func onIntensityChanged() {
+        let maxIntensity: Double = 4095
+        let steps = UInt16(self.intensity * maxIntensity)
         Log.debug("[\(self.token)] PWM Width \(steps)/4095")
         self.controller.setChannel(self.channel, onStep: 0, offStep: steps)
     }
