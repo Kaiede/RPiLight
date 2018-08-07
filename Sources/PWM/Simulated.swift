@@ -30,9 +30,9 @@ import Logging
 //
 
 class SimulatedPWM: Module, CustomStringConvertible {
-    private(set) var isDisposed: Bool = false
-
+    private let gamma: Double
     private let channelCount: Int
+    
     private(set) lazy var availableChannels: [String] = {
         [unowned self] in
         return self.calculateAvailableChannels()
@@ -48,7 +48,7 @@ class SimulatedPWM: Module, CustomStringConvertible {
         return channels
     }
 
-    init(channelCount: Int, frequency: Int) throws {
+    init(channelCount: Int, frequency: Int, gamma: Double) throws {
         guard channelCount > 0 && channelCount <= 16 else {
             throw ModuleInitError.invalidChannelCount(min: 1, max: 16, actual: channelCount)
         }
@@ -57,6 +57,7 @@ class SimulatedPWM: Module, CustomStringConvertible {
         }
 
         self.channelCount = channelCount
+        self.gamma = gamma
     }
 
     func createChannel(with token: String) throws -> Channel {
@@ -64,7 +65,7 @@ class SimulatedPWM: Module, CustomStringConvertible {
             throw ChannelInitError.invalidToken
         }
 
-        return SimulatedPWMChannel(token: token)
+        return SimulatedPWMChannel(token: token, gamma: self.gamma)
     }
 }
 
@@ -74,17 +75,19 @@ class SimulatedPWM: Module, CustomStringConvertible {
 
 class SimulatedPWMChannel: Channel {
     let token: String
-    var luminance: Double {
-        didSet { self.onLuminanceChanged() }
+    let gamma: Double
+    var setting: ChannelSetting {
+        didSet { self.onSettingChanged() }
     }
 
-    init(token: String) {
+    init(token: String, gamma: Double) {
         self.token = token
-        self.luminance = 0.0
+        self.gamma = gamma
+        self.setting = .intensity(0.0)
     }
 
-    func onLuminanceChanged() {
-        Log.debug("\(self.token): Luminance Now \(self.luminance * 100)")
+    func onSettingChanged() {
+        Log.debug("\(self.token): Intensity Now \(self.setting.asIntensity(withGamma: self.gamma) * 100)")
     }
 
 }

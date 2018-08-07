@@ -88,7 +88,7 @@ class LightController {
         return formatter
     }()
     
-    private let channels: [String: Channel]
+    public let channels: [String: Channel]
 
     private let queue: DispatchQueue
     private let eventTimer: DispatchSourceTimer
@@ -137,7 +137,7 @@ class LightController {
 
     func applySchedule(schedule: [Event]) {
         self.queue.async {
-            self.schedule = LightLevelChangeEvent.createFromSchedule(schedule: schedule)
+            self.schedule = LightLevelChangeEvent.createFromSchedule(schedule: schedule, channels: self.channels)
 
             // Figure out which event
             self.scheduleIndex = self.calcPreviousEventIndex(now: Date())
@@ -239,7 +239,7 @@ class LightController {
                     continue
                 }
 
-                channel.brightness = brightness
+                channel.setting = .brightness(brightness)
             }
 
             

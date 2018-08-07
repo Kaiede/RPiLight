@@ -56,7 +56,7 @@ class Previewer {
         for (index, event) in schedule.enumerated() {
             let nextIndex = (index + 1) % schedule.count
             let nextEvent = schedule[nextIndex]
-            let lightRanges = event.lightRangesToEvent(event: nextEvent)
+            let lightRanges = event.lightRangesToEvent(event: nextEvent, channels: self.controller.channels)
             let rampBehavior = LightLevelChangeBehavior(lightRanges: lightRanges)
 
             Log.debug(lightRanges)

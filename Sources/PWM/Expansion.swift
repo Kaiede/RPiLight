@@ -31,6 +31,8 @@ import PCA9685
 //
 
 class ExpansionPWM: Module, CustomStringConvertible {
+    private let gamma: Double
+
     private(set) lazy var availableChannels: [String] = {
         [unowned self] in
         return Array(self.availableChannelMap.keys)
@@ -53,7 +55,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
     private let channelCount: Int
     private let controller: PCA9685
 
-    init(channelCount: Int, frequency: Int) throws {
+    init(channelCount: Int, frequency: Int, gamma: Double) throws {
         guard channelCount > 0 && channelCount <= 16 else {
             throw ModuleInitError.invalidChannelCount(min: 1, max: 16, actual: channelCount)
         }
@@ -62,6 +64,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
         }
 
         self.channelCount = channelCount
+        self.gamma = gamma
         self.controller = PCA9685()
         self.controller.frequency = UInt(frequency)
     }
@@ -71,7 +74,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
             throw ChannelInitError.invalidToken
         }
 
-        return ExpansionPWMChannel(token: token, channel: channel, controller: self.controller)
+        return ExpansionPWMChannel(token: token, gamma: self.gamma, channel: channel, controller: self.controller)
     }
 }
 
@@ -81,22 +84,25 @@ class ExpansionPWM: Module, CustomStringConvertible {
 
 class ExpansionPWMChannel: Channel {
     let token: String
-    var luminance: Double {
-        didSet { self.onLuminanceChanged() }
+    let gamma: Double
+    var setting: ChannelSetting {
+        didSet { self.onSettingChanged() }
     }
 
     private let controller: PCA9685
     private let channel: UInt8
 
-    init(token: String, channel: UInt8, controller: PCA9685) {
+    init(token: String, gamma: Double, channel: UInt8, controller: PCA9685) {
         self.token = token
-        self.luminance = 0.0
+        self.gamma = gamma
+        self.setting = .intensity(0.0)
         self.channel = channel
         self.controller = controller
     }
 
-    func onLuminanceChanged() {
-        let steps = UInt16(self.luminance * 4095)
+    func onSettingChanged() {
+        let maxIntensity: Double = 4095
+        let steps = UInt16(self.setting.asIntensity(withGamma: self.gamma) * maxIntensity)
         Log.debug("[\(self.token)] PWM Width \(steps)/4095")
         self.controller.setChannel(self.channel, onStep: 0, offStep: steps)
     }

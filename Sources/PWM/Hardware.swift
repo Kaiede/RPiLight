@@ -27,7 +27,8 @@ import Logging
 import SwiftyGPIO
 
 class HardwarePWM: Module, CustomStringConvertible {
-    private(set) var isDisposed: Bool = false
+    private let gamma: Double
+
     private(set) lazy var availableChannels: [String] = {
         [unowned self] in
         return Array(self.availableChannelMap.keys)
@@ -49,7 +50,7 @@ class HardwarePWM: Module, CustomStringConvertible {
 
     let frequency: Int
 
-    init(channelCount: Int, frequency: Int) throws {
+    init(channelCount: Int, frequency: Int, gamma: Double) throws {
         guard let pwms = SwiftyGPIO.hardwarePWMs(for: .RaspberryPiPlusZero) else {
             throw ModuleInitError.noHardwareAccess
         }
@@ -62,6 +63,7 @@ class HardwarePWM: Module, CustomStringConvertible {
 
         self.pwms = pwms
         self.frequency = frequency
+        self.gamma = gamma
     }
 
     func createChannel(with token: String) throws -> Channel {
@@ -72,33 +74,35 @@ class HardwarePWM: Module, CustomStringConvertible {
         let NANOSECONDS = 1_000_000_000
         let period = NANOSECONDS / self.frequency
         Log.debug("Channel \(token) created with period of \(period) ns")
-        return HardwarePWMChannel(token: token, output: output, period: period)
+        return HardwarePWMChannel(token: token, gamma: self.gamma, output: output, period: period)
     }
 }
 
 class HardwarePWMChannel: Channel {
     let token: String
-    var luminance: Double {
-        didSet { self.onLuminanceChanged() }
+    let gamma: Double
+    var setting: ChannelSetting {
+        didSet { self.onSettingChanged() }
     }
 
     let period: Int         // nanoseconds
     let output: PWMOutput
 
-    init(token: String, output: PWMOutput, period: Int) {
+    init(token: String, gamma: Double, output: PWMOutput, period: Int) {
         self.token = token
+        self.gamma = gamma
+        self.setting = .intensity(0.0)
         self.period = period
-        self.luminance = 0.0
         self.output = output
 
         self.output.initPWM()
     }
 
-    func onLuminanceChanged() {
+    func onSettingChanged() {
         let maxValue = 100.0
-        let targetLuminance = Float(self.luminance * maxValue)
-        Log.debug("\(self.token): Luminance Now \(targetLuminance)")
+        let targetIntensity = Float(self.setting.asIntensity(withGamma: self.gamma) * maxValue)
+        Log.debug("\(self.token): Intensity Now \(targetIntensity)")
         
-        output.startPWM(period: self.period, duty: targetLuminance)
+        output.startPWM(period: self.period, duty: targetIntensity)
     }
 }

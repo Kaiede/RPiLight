@@ -35,14 +35,14 @@ public enum ModuleType: String {
     case hardware
     case pca9685
 
-    public func createModule(channelCount: Int, frequency: Int) throws -> Module {
+    public func createModule(channelCount: Int, frequency: Int, gamma: Double) throws -> Module {
         switch self {
         case .simulated:
-            return try SimulatedPWM(channelCount: channelCount, frequency: frequency)
+            return try SimulatedPWM(channelCount: channelCount, frequency: frequency, gamma: gamma)
         case .hardware:
-            return try HardwarePWM(channelCount: channelCount, frequency: frequency)
+            return try HardwarePWM(channelCount: channelCount, frequency: frequency, gamma: gamma)
         case .pca9685:
-            return try ExpansionPWM(channelCount: channelCount, frequency: frequency)
+            return try ExpansionPWM(channelCount: channelCount, frequency: frequency, gamma: gamma)
         }
     }
 }
@@ -108,22 +108,31 @@ public enum ChannelInitError: Error {
     case invalidToken
 }
 
-public protocol Channel {
-    var token: String { get }
-    var luminance: Double { get set }
-}
+public enum ChannelSetting {
+    case brightness(Double)
+    case intensity(Double)
 
-let GAMMA = 1.8
-public extension Channel {
-    var brightness: Double {
-        get {
-            return self.luminance ** (1.0 / GAMMA)
-        }
-        set(newBrightness) {
-
-            let brightness = min(max(newBrightness, 0.0), 1.0)
-            let luminance = brightness ** GAMMA
-            self.luminance = luminance
+    public func asBrightness(withGamma gamma: Double) -> Double {
+        switch self {
+        case .brightness(let brightness):
+            return brightness
+        case .intensity(let intensity):
+            return intensity ** (1.0 / gamma)
         }
     }
+    
+    public func asIntensity(withGamma gamma: Double) -> Double {
+        switch self {
+        case .brightness(let brightness):
+            return brightness ** gamma
+        case .intensity(let intensity):
+            return intensity
+        }
+    }
+}
+
+public protocol Channel {
+    var token: String { get }
+    var gamma: Double { get }
+    var setting: ChannelSetting { get set }
 }

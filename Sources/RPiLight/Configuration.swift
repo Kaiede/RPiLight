@@ -49,7 +49,7 @@ struct Configuration {
         var scheduleArray: [Event] = []
         if let jsonSchedule = json["schedule"] as? [JsonDict] {
             for jsonEvent in jsonSchedule {
-                guard let event = Event(json: jsonEvent) else { return nil }
+                guard let event = Event(json: jsonEvent, hardware: hardware) else { return nil }
                 scheduleArray.append(event)
             }
         }
@@ -61,26 +61,29 @@ struct Configuration {
 
 struct Hardware {
     let type: ModuleType
-    let channelCount: UInt
-    let frequency: UInt
+    let channelCount: Int
+    let frequency: Int
+    let gamma: Double
 
     init?(json: JsonDict) {
         guard let pwmMode = json["pwmMode"] as? String else { return nil }
         guard let moduleType = ModuleType(rawValue: pwmMode) else { return nil }
-        let frequency = UInt(json["freq"] as? Int ?? 480)
-        let channelCount = UInt(json["channels"] as? Int ?? 1)
+        let frequency = json["freq"] as? Int ?? 480
+        let channelCount = json["channels"] as? Int ?? 1
+        let gamma = json[""] as? Double ?? 1.8
 
-        self.init(type: moduleType, channelCount: channelCount, frequency: frequency)
+        self.init(type: moduleType, channelCount: channelCount, frequency: frequency, gamma: gamma)
     }
 
-    init(type: ModuleType, channelCount: UInt, frequency: UInt) {
+    init(type: ModuleType, channelCount: Int, frequency: Int, gamma: Double) {
         self.type = type
         self.channelCount = channelCount
         self.frequency = frequency
+        self.gamma = gamma
     }
 
     func createModule() throws -> Module {
-        return try self.type.createModule(channelCount: Int(self.channelCount), frequency: Int(self.frequency))
+        return try self.type.createModule(channelCount: Int(self.channelCount), frequency: Int(self.frequency), gamma: gamma)
     }
 }
 
@@ -96,7 +99,7 @@ struct Event {
         return dateFormatter
     }()
 
-    init?(json: JsonDict) {
+    init?(json: JsonDict, hardware: Hardware) {
         guard let timeString = json["time"] as? String else { return nil }
         guard let channelArray = json["channels"] as? [JsonDict] else { return nil }
 
@@ -105,7 +108,7 @@ struct Event {
         let splitTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
         var channelValueArray: [ChannelValue] = []
         for jsonChannelValue in channelArray {
-            guard let channelValue = ChannelValue(json: jsonChannelValue) else { return nil }
+            guard let channelValue = ChannelValue(json: jsonChannelValue, hardware: hardware) else { return nil }
             channelValueArray.append(channelValue)
         }
 
@@ -118,19 +121,24 @@ struct Event {
     }
 }
 
+
 struct ChannelValue {
     let token: String
-    let brightness: Double
+    let setting: ChannelSetting
 
-    init?(json: JsonDict) {
+    init?(json: JsonDict, hardware: Hardware) {
         guard let token = json["token"] as? String else { return nil }
-        guard let brightness = json["brightness"] as? Double else { return nil }
-
-        self.init(token: token, brightness: brightness)
+        if let intensity = json["intensity"] as? Double {
+            self.init(token: token, setting: .intensity(intensity))
+        } else if let brightness = json["brightness"] as? Double {
+            self.init(token: token, setting: .brightness(brightness))
+        } else {
+            return nil
+        }
     }
 
-    init(token: String, brightness: Double) {
+    init(token: String, setting: ChannelSetting) {
         self.token = token
-        self.brightness = brightness
+        self.setting = setting
     }
 }
