@@ -85,6 +85,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
 class ExpansionPWMChannel: Channel {
     let token: String
     let gamma: Double
+    var minIntensity: Double
     var setting: ChannelSetting {
         didSet { self.onSettingChanged() }
     }
@@ -95,14 +96,22 @@ class ExpansionPWMChannel: Channel {
     init(token: String, gamma: Double, channel: UInt8, controller: PCA9685) {
         self.token = token
         self.gamma = gamma
+        self.minIntensity = 0.0
         self.setting = .intensity(0.0)
         self.channel = channel
         self.controller = controller
     }
 
     func onSettingChanged() {
+        var intensity = self.setting.asIntensity(withGamma: self.gamma)
+        if intensity < IntensityPrecision {
+            intensity = 0.0
+        } else {
+            intensity = self.minIntensity + (intensity * (1.0 - self.minIntensity))
+        }
+        
         let maxIntensity: Double = 4095
-        let steps = UInt16(self.setting.asIntensity(withGamma: self.gamma) * maxIntensity)
+        let steps = UInt16(intensity * maxIntensity)
         Log.debug("[\(self.token)] PWM Width \(steps)/4095")
         self.controller.setChannel(self.channel, onStep: 0, offStep: steps)
     }

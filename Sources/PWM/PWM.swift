@@ -104,6 +104,8 @@ public extension Module where Self: CustomStringConvertible {
 // Includes convenience handlers for interacting with gamma correction
 //
 
+
+
 public enum ChannelInitError: Error {
     case invalidToken
 }
@@ -131,8 +133,11 @@ public enum ChannelSetting {
     }
 }
 
+let IntensityPrecision: Double = 0.0001
+
 public protocol Channel {
     var token: String { get }
     var gamma: Double { get }
+    var minIntensity: Double { get set }
     var setting: ChannelSetting { get set }
 }

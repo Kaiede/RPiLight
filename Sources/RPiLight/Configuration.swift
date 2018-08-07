@@ -37,6 +37,7 @@ enum ConfigurationError: Error {
 
 struct Configuration {
     let hardware: Hardware
+    let channels: [ChannelInfo]
     let schedule: [Event]
 
     init(withPath path: URL) throws {
@@ -51,16 +52,25 @@ struct Configuration {
         guard let hardwareConfig = json["hardware"] as? JsonDict else { throw ConfigurationError.nodeMissing("hardware", message: "Configuration must include a hardware entry") }
         let hardware = try Hardware(json: hardwareConfig)
 
+        var channelArray: [ChannelInfo] = []
+        if let jsonChannels = json["channels"] as? [JsonDict] {
+            for jsonChannel in jsonChannels {
+                let channel = try ChannelInfo(json: jsonChannel)
+                channelArray.append(channel)
+            }
+        }
+        
         // TODO: Currently Optional. Shouldn't Be Going Forward
         var scheduleArray: [Event] = []
         if let jsonSchedule = json["schedule"] as? [JsonDict] {
             for jsonEvent in jsonSchedule {
-                let event = try Event(json: jsonEvent, hardware: hardware)
+                let event = try Event(json: jsonEvent)
                 scheduleArray.append(event)
             }
         }
 
         self.hardware = hardware
+        self.channels = channelArray
         self.schedule = scheduleArray
     }
 }
@@ -93,6 +103,23 @@ struct Hardware {
     }
 }
 
+struct ChannelInfo {
+    let token: String
+    let minIntensity: Double
+    
+    init(json: JsonDict) throws {
+        guard let token = json["token"] as? String else { throw ConfigurationError.nodeMissing("token", message: "All channels in configuration must have a token") }
+        let minIntensity = json["minIntensity"] as? Double ?? 0.0
+        
+        self.init(token: token, minIntensity: minIntensity)
+    }
+    
+    init(token: String, minIntensity: Double) {
+        self.token = token
+        self.minIntensity = minIntensity
+    }
+}
+
 struct Event {
     let time: DateComponents
     let channelValues: [ChannelValue]
@@ -105,7 +132,7 @@ struct Event {
         return dateFormatter
     }()
 
-    init(json: JsonDict, hardware: Hardware) throws {
+    init(json: JsonDict) throws {
         guard let timeString = json["time"] as? String else { throw ConfigurationError.nodeMissing("time", message: "Events must have a time") }
         guard let channelArray = json["channels"] as? [JsonDict] else { throw ConfigurationError.nodeMissing("channelArray", message: "Events in schedule must have a channels array") }
 
@@ -114,7 +141,7 @@ struct Event {
         let splitTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
         var channelValueArray: [ChannelValue] = []
         for jsonChannelValue in channelArray {
-            let channelValue = try ChannelValue(json: jsonChannelValue, hardware: hardware)
+            let channelValue = try ChannelValue(json: jsonChannelValue)
             channelValueArray.append(channelValue)
         }
 
@@ -132,7 +159,7 @@ struct ChannelValue {
     let token: String
     let setting: ChannelSetting
 
-    init(json: JsonDict, hardware: Hardware) throws {
+    init(json: JsonDict) throws {
         guard let token = json["token"] as? String else { throw ConfigurationError.nodeMissing("token", message: "All channels in schedule events must have a token") }
         if let intensity = json["intensity"] as? Double {
             self.init(token: token, setting: .intensity(intensity))

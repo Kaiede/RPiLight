@@ -29,6 +29,9 @@ import Logging
 import Moderator
 import PWM
 
+//
+// MARK: Process Arguments
+//
 var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
 let verbose = moderator.add(.option("v","verbose", description: "Provide Additional Logging"))
 let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
@@ -47,7 +50,9 @@ if verbose.value {
     Log.setLoggingLevel(.debug)
 }
 
-
+//
+// MARK: Load Configuration
+//
 func loadConfiguration() -> Configuration {
     let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
     let configUrl = configDir.appendingPathComponent(configFile.value)
@@ -87,10 +92,34 @@ Log.withDebug {
 let module = try! configuration.hardware.createModule()
 Log.debug(module)
 
+//
+// MARK: Process Channels
+//
 let activeChannels = module.availableChannels.map {
     return try! module.createChannel(with: $0)
 }
 
+let activeChannelDict = activeChannels.reduce([String: Channel]()) { (dict, channel) -> [String: Channel] in
+    var dict = dict
+    dict[channel.token] = channel
+    return dict
+}
+
+//
+// MARK: Configure Channels
+//
+for channelInfo in configuration.channels {
+    guard var channel = activeChannelDict[channelInfo.token] else {
+        fatalError("Attempted to configure unknown channel '\(channelInfo.token)")
+    }
+    
+    Log.info("\(channelInfo.token) Minimum Intensity: \(channelInfo.minIntensity)")
+    channel.minIntensity = channelInfo.minIntensity
+}
+
+//
+// MARK: Initialize Light Controller and Run
+//
 var controller = LightController(channels: activeChannels)
 
 if previewMode.value {
