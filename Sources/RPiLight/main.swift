@@ -47,12 +47,29 @@ if verbose.value {
     Log.setLoggingLevel(.debug)
 }
 
-let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
-let configUrl = configDir.appendingPathComponent(configFile.value)
-Log.debug("Opening Configuration: \(configUrl.absoluteString)")
-guard let configuration = Configuration(withPath: configUrl) else {
-    fatalError("Unable to load configuration at \(configUrl.absoluteString)")
+
+func loadConfiguration() -> Configuration {
+    let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
+    let configUrl = configDir.appendingPathComponent(configFile.value)
+    Log.debug("Opening Configuration: \(configUrl.absoluteString)")
+
+    do {
+        let configuration = try Configuration(withPath: configUrl)
+        
+        return configuration
+    } catch ConfigurationError.fileNotFound {
+        fatalError("Unable to open configuration file: \(configUrl.absoluteString)")
+    } catch ConfigurationError.nodeMissing(let node, message: let message) {
+        let errorString = "'\(node)' was expected, but not found or invalid:\n\(message)"
+        fatalError(errorString)
+    } catch ConfigurationError.invalidValue(let value, value: let invalidValue) {
+        fatalError("Unexpected value for '\(value)': \(invalidValue)")
+    } catch {
+        fatalError()
+    }
 }
+
+let configuration = loadConfiguration()
 
 Log.withDebug {
     let formatter = DateFormatter()
