@@ -72,8 +72,13 @@ extension Event {
             let token = channelValue.token
             guard let channel = channels[token] else { continue }
             guard let eventChannelValue = eventLookup[token] else { continue }
-            lightRanges[token] = LightRange(origin: channelValue.setting.asBrightness(withGamma: channel.gamma),
-                                            end: eventChannelValue.setting.asBrightness(withGamma: channel.gamma))
+            
+            let minIntensity: ChannelSetting = .intensity(channel.minIntensity)
+            let originSetting = ChannelSetting.max(channelValue.setting, minIntensity, withGamma: channel.gamma)
+            let endSetting = ChannelSetting.max(eventChannelValue.setting, minIntensity, withGamma: channel.gamma)
+            
+            lightRanges[token] = LightRange(origin: originSetting.asBrightness(withGamma: channel.gamma),
+                                            end: endSetting.asBrightness(withGamma: channel.gamma))
         }
 
         return lightRanges

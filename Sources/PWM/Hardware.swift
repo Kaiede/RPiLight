@@ -102,10 +102,8 @@ class HardwarePWMChannel: Channel {
 
     func onSettingChanged() {
         var intensity = self.setting.asIntensity(withGamma: self.gamma)
-        if intensity < IntensityPrecision {
+        if intensity < self.minIntensity.nextUp {
             intensity = 0.0
-        } else {
-            intensity = self.minIntensity + (intensity * (1.0 - self.minIntensity))
         }
         
         let maxValue = 100.0

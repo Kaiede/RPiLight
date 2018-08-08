@@ -114,6 +114,15 @@ public enum ChannelSetting {
     case brightness(Double)
     case intensity(Double)
 
+    public static func max(_ lhs: ChannelSetting, _ rhs: ChannelSetting, withGamma gamma: Double) -> ChannelSetting {
+        switch lhs {
+        case .brightness(let brightness):
+            return .brightness(Swift.max(brightness, rhs.asBrightness(withGamma: gamma)))
+        case .intensity(let intensity):
+            return .intensity(Swift.max(intensity, rhs.asIntensity(withGamma: gamma)))
+        }
+    }
+    
     public func asBrightness(withGamma gamma: Double) -> Double {
         switch self {
         case .brightness(let brightness):
@@ -132,8 +141,6 @@ public enum ChannelSetting {
         }
     }
 }
-
-let IntensityPrecision: Double = 0.0001
 
 public protocol Channel {
     var token: String { get }
