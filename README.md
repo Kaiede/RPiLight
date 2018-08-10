@@ -84,6 +84,22 @@ The `channels` parameter tells RPiLight how many channels to use. This can be `1
 
 `gamma` controls how brightness is converted into light intensity. The default is `1.8`
 
+### Per Channel Tweaks
+
+```
+"channels" : [
+	{ "token": "PWM0-IO18", "minIntensity": 0.0025 }
+],
+```
+
+For each channel you want to tweak, you add 
+
+The `token` is short-hand for the channel name, and depends on what PWM controller you are using. Examples are below, in the "Schedule" section.
+
+Currently, the only option available here is `minIntensity`. This sets a cut-off for the channel. If the intensity drops below this value for that channel, it will turn it off instead. A specific example is that Twinstar ES lights tend to start showing problems at around 0.2% intensity, where some of the LEDs shut off, but not others. By setting the `minIntensity` to 0.25%, the entire light will go off or come on at the same time.
+
+Minimum intensity is also taken into account when turning the lights off or on during your schedule. It will adjust things for you so that the cutoff is reached as close to the point in time where you wanted the lights to turn off or come on as possible.
+
 ### Schedule
 
 ```
