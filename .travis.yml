@@ -1,0 +1,24 @@
+env:
+  global:
+    - SWIFT_BRANCH=swift-3.1.1-release
+    - SWIFT_VERSION=swift-3.1.1-RELEASE
+matrix:
+  include:
+    - os: linux
+      language: generic
+      dist: trusty
+      sudo: required
+      install:
+        - mkdir swift
+        - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
+        - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
+      script:
+        - swift package reset
+        - swift build
+    - os: osx
+      osx_image: xcode9.4
+      language: swift
+      sudo: required
+      script:
+        - swift package reset
+        - swift build
