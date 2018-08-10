@@ -160,9 +160,9 @@ sudo systemctl stop rpilight.service
 
 ## Built With
 
-* [Python](https://www.python.org)
-* [pigpio](http://abyz.me.uk/rpi/pigpio/) - Hardware PWM Support
-* [Adafruit-PCA9685](https://github.com/adafruit/Adafruit_Python_PCA9685) - Expansion PWM Support
+* SwiftyGPIO - Patched with improved GPIO PWM behavior.
+* Moderator - Modified to build for Swift 3 & 4.
+* [Adafruit-PCA9685](https://github.com/adafruit/Adafruit_Python_PCA9685) - Inspiration for PCA9685 implementation.
 
 ## Contributing
 
