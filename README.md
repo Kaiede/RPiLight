@@ -1,5 +1,7 @@
 # RPiLight
 
+[![Build Status](https://travis-ci.org/Kaiede/RPiLight.svg?branch=master)](https://travis-ci.org/Kaiede/RPiLight)
+
 An Aquarium Light Controller for the Raspberry Pi
 
 ## Getting Started
