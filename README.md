@@ -66,12 +66,15 @@ There are example configuration files in the [example](examples) folder. These f
 
 ```
 "hardware" : {
+	"board": "pizero",
 	"pwmMode": "pca9685",
 	"freq": 960,
-	"channels": 8,
-    "gamma": 1.8
+    "channels": 8,
+	"gamma": 1.8
 }
 ```
+
+`board` is required to tell what hardware board you have, so that the `pwmMode` will work correctly. Valid options are: `pi1`, `pi2`, `pi3` or `pizero`. Unfortunately, it is not currently possible for RPiLight to auto-detect what board you are using.
 
 The `pwmMode` parameter tells RPiLight what PWM controller to use. It can be `simulated`, `hardware`, or `pca9685`. `simulated` is used for testing, and doesn't produce any output. `hardware` Uses the two internal PWM channels of the Raspberry Pi. `pca9685` uses the PCA9685 expansion over I2C on the default address, like the Adafruit PWM board.
 
