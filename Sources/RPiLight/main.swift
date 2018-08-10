@@ -75,33 +75,63 @@ func loadConfiguration() -> Configuration {
 }
 
 let configuration = loadConfiguration()
+Log.info("Configured Board: \(configuration.hardware.board.rawValue)")
+Log.info("Configured PWM Module: \(configuration.hardware.type.rawValue)")
+Log.info("Configured PWM Frequency: \(configuration.hardware.frequency) Hz")
+Log.info("Configured Gamma: \(configuration.hardware.gamma)")
 
 Log.withDebug {
+    Log.debug("Configured Schedule Details for Today:")
     let formatter = DateFormatter()
-    formatter.dateFormat = "d MMM HH:mm:ss Z"
+    formatter.dateFormat = "dd MMM HH:mm:ss Z"
     formatter.calendar = Calendar.current
     formatter.timeZone = TimeZone.current
     let now = Date()
     for event in configuration.schedule {
         let prevDate = event.time.calcNextDate(after: now, direction: .backward)!
         let nextDate = event.time.calcNextDate(after: now, direction: .forward)!
-        Log.debug("\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+        Log.debug("\t\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
     }
 }
 
-Log.info("Configured Board: \(configuration.hardware.board.rawValue)")
-Log.info("Configured PWM Module: \(configuration.hardware.type.rawValue)")
-Log.info("Configured PWM Frequency: \(configuration.hardware.frequency) Hz")
-Log.info("Configured Gamma: \(configuration.hardware.gamma)")
+//
+// MARK: Create Module
+//
+var moduleMaybe: Module?
+do {
+    moduleMaybe = try configuration.hardware.createModule()
+} catch ModuleInitError.noHardwareAccess {
+    Log.error("Unable to Access Hardware")
+    exit(-1)
+} catch ModuleInitError.invalidBoardType(let board){
+    Log.error("PWM Module Doesn't Support Board: \(board)")
+    exit(-1)
+} catch ModuleInitError.invalidChannelCount(let min, let max, let actual) {
+    Log.error("Channel Count \(actual) must be between \(min) and \(max)")
+    exit(-1)
+} catch ModuleInitError.invalidFrequency(let min, let max, let actual) {
+    Log.error("PWM Module expects frequency \(actual) to be between \(min) and \(max)")
+    exit(-1)
+} catch {
+    Log.error(error)
+    exit(-1)
+}
 
-let module = try! configuration.hardware.createModule()
-Log.debug(module)
+guard let module = moduleMaybe else {
+    Log.error("Unexpected erorr, expected Hardware Module to be created, but it wasn't, and no error was reported")
+    exit(-1)
+}
 
 //
 // MARK: Process Channels
 //
-let activeChannels = module.availableChannels.map {
-    return try! module.createChannel(with: $0)
+let activeChannels = module.availableChannels.map { (token : String) -> Channel in
+    do {
+        return try module.createChannel(with: token)
+    } catch {
+        Log.error("Unable to create channel \(token)")
+        exit(-1)
+    }
 }
 
 let activeChannelDict = activeChannels.reduce([String: Channel]()) { (dict, channel) -> [String: Channel] in
