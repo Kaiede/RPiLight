@@ -6,6 +6,7 @@ sudo: required
 dist: trusty
 osx_image: xcode9.4
 install:
+  - apt-get install python-swiftclient
   - eval "$(curl -sL https://swiftenv.fuller.li/install.sh)"
 script:
   - swift build
