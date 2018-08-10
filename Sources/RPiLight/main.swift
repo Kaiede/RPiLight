@@ -89,6 +89,11 @@ Log.withDebug {
     }
 }
 
+Log.info("Configured Board: \(configuration.hardware.board.rawValue)")
+Log.info("Configured PWM Module: \(configuration.hardware.type.rawValue)")
+Log.info("Configured PWM Frequency: \(configuration.hardware.frequency) Hz")
+Log.info("Configured Gamma: \(configuration.hardware.gamma)")
+
 let module = try! configuration.hardware.createModule()
 Log.debug(module)
 
