@@ -69,7 +69,7 @@ There are example configuration files in the [example](examples) folder. These f
 	"board": "pizero",
 	"pwmMode": "pca9685",
 	"freq": 960,
-    "channels": 8,
+	"channels": 8,
 	"gamma": 1.8
 }
 ```
