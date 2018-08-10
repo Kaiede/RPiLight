@@ -23,8 +23,30 @@
  SOFTWARE.)
  */
 
+#if os(Linux)
+    import Glibc
+#else
+    import Darwin
+#endif
+
 import Foundation
 
+//
+// Accessors to strings
+//
+extension utsname {
+    var machineString: String {
+        var machine = self.machine
+        return withUnsafeBytes(of: &machine) { (rawPtr) -> String in
+            let ptr = rawPtr.baseAddress!.assumingMemoryBound(to: CChar.self)
+            return String(cString: ptr)
+        }
+    }
+}
+
+//
+// Shorthand for pow() function
+//
 infix operator ** : MultiplicationPrecedence
 
 func ** (num: Double, power: Double) -> Double {
