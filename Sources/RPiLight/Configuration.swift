@@ -26,6 +26,7 @@
 import Foundation
 import Logging
 import PWM
+import SwiftyGPIO
 
 typealias JsonDict = [String: Any]
 
@@ -77,6 +78,7 @@ struct Configuration {
 
 struct Hardware {
     let type: ModuleType
+    let board: BoardType
     let channelCount: Int
     let frequency: Int
     let gamma: Double
@@ -84,22 +86,28 @@ struct Hardware {
     init(json: JsonDict) throws {
         guard let pwmMode = json["pwmMode"] as? String else { throw ConfigurationError.nodeMissing("pwmMode", message: "Hardware must have a pwmMode") }
         guard let moduleType = ModuleType(rawValue: pwmMode) else { throw ConfigurationError.invalidValue("pwmMode", value: pwmMode) }
+
+        guard let board = json["board"] as? String else { throw ConfigurationError.nodeMissing("board", message: "Hardware must have a board defined") }
+        guard let boardType = BoardType(rawValue: board) else { throw ConfigurationError.invalidValue("board", value: board) }
+
+        
         let frequency = json["freq"] as? Int ?? 480
         let channelCount = json["channels"] as? Int ?? 1
         let gamma = json[""] as? Double ?? 1.8
 
-        self.init(type: moduleType, channelCount: channelCount, frequency: frequency, gamma: gamma)
+        self.init(type: moduleType, board: boardType, channelCount: channelCount, frequency: frequency, gamma: gamma)
     }
 
-    init(type: ModuleType, channelCount: Int, frequency: Int, gamma: Double) {
+    init(type: ModuleType, board: BoardType, channelCount: Int, frequency: Int, gamma: Double) {
         self.type = type
+        self.board = board
         self.channelCount = channelCount
         self.frequency = frequency
         self.gamma = gamma
     }
 
     func createModule() throws -> Module {
-        return try self.type.createModule(channelCount: Int(self.channelCount), frequency: Int(self.frequency), gamma: gamma)
+        return try self.type.createModule(board: self.board, channelCount: Int(self.channelCount), frequency: Int(self.frequency), gamma: gamma)
     }
 }
 

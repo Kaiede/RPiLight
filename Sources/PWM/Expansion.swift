@@ -25,6 +25,7 @@
 
 import Logging
 import PCA9685
+import SwiftyGPIO
 
 //
 // Expansion PWM Module (PCA 9685)
@@ -55,7 +56,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
     private let channelCount: Int
     private let controller: PCA9685
 
-    init(channelCount: Int, frequency: Int, gamma: Double) throws {
+    init(board: SupportedBoard, channelCount: Int, frequency: Int, gamma: Double) throws {
         guard channelCount > 0 && channelCount <= 16 else {
             throw ModuleInitError.invalidChannelCount(min: 1, max: 16, actual: channelCount)
         }
@@ -65,7 +66,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
 
         self.channelCount = channelCount
         self.gamma = gamma
-        self.controller = PCA9685()
+        self.controller = PCA9685(supportedBoard: board)
         self.controller.frequency = UInt(frequency)
     }
 

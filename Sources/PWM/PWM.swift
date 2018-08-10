@@ -23,6 +23,47 @@
  SOFTWARE.)
  */
 
+import SwiftyGPIO
+
+//
+// BoardType
+//
+// Wrapper around SwiftyGPIO's boards
+//
+public enum BoardType: String {
+    case raspberryPi = "Raspberry Pi / Zero"
+    case raspberryPi2 = "Raspberry Pi 2"
+    case raspberryPi3 = "Raspberry Pi 3"
+}
+
+extension BoardType {
+    internal func toSupportedBoard() -> SupportedBoard {
+        switch self {
+        case .raspberryPi:
+            return .RaspberryPiPlusZero
+        case .raspberryPi2:
+            return .RaspberryPi2
+        case .raspberryPi3:
+            return .RaspberryPi3
+        }
+    }
+}
+
+extension BoardType: RawRepresentable {
+    public typealias RawValue = String
+    
+    public init?(rawValue: RawValue) {
+        let lowercaseString = rawValue.lowercased()
+        switch lowercaseString {
+        case "pizero": self = .raspberryPi
+        case "pi1": self = .raspberryPi
+        case "pi2": self = .raspberryPi2
+        case "pi3": self = .raspberryPi3
+        default: return nil
+        }
+    }
+}
+
 //
 // ModuleType
 //
@@ -31,18 +72,18 @@
 //
 
 public enum ModuleType: String {
-    case simulated
-    case hardware
-    case pca9685
+    case simulated = "Simulated Output"
+    case hardware = "Hardware GPIO"
+    case pca9685 = "PCA9685 Bonnet"
 
-    public func createModule(channelCount: Int, frequency: Int, gamma: Double) throws -> Module {
+    public func createModule(board: BoardType, channelCount: Int, frequency: Int, gamma: Double) throws -> Module {
         switch self {
         case .simulated:
             return try SimulatedPWM(channelCount: channelCount, frequency: frequency, gamma: gamma)
         case .hardware:
-            return try HardwarePWM(channelCount: channelCount, frequency: frequency, gamma: gamma)
+            return try HardwarePWM(board: board.toSupportedBoard(), channelCount: channelCount, frequency: frequency, gamma: gamma)
         case .pca9685:
-            return try ExpansionPWM(channelCount: channelCount, frequency: frequency, gamma: gamma)
+            return try ExpansionPWM(board: board.toSupportedBoard(), channelCount: channelCount, frequency: frequency, gamma: gamma)
         }
     }
 }
@@ -103,8 +144,6 @@ public extension Module where Self: CustomStringConvertible {
 // Protocol for interacting with a single PWM channel.
 // Includes convenience handlers for interacting with gamma correction
 //
-
-
 
 public enum ChannelInitError: Error {
     case invalidToken

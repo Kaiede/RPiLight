@@ -50,8 +50,8 @@ class HardwarePWM: Module, CustomStringConvertible {
 
     let frequency: Int
 
-    init(channelCount: Int, frequency: Int, gamma: Double) throws {
-        guard let pwms = SwiftyGPIO.hardwarePWMs(for: .RaspberryPiPlusZero) else {
+    init(board: SupportedBoard, channelCount: Int, frequency: Int, gamma: Double) throws {
+        guard let pwms = SwiftyGPIO.hardwarePWMs(for: board) else {
             throw ModuleInitError.noHardwareAccess
         }
         guard channelCount > 0 && channelCount <= pwms.count else {

@@ -1,6 +1,7 @@
 {
 	"hardware" :{
-		"pwmMode": "pca9685",
+        "board": "PiZero",
+        "pwmMode": "pca9685",
 		"freq": 480,
 		"channels": 2
 	},

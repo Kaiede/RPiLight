@@ -1,9 +1,18 @@
 {
 	"hardware" :{
+        "board": "PiZero",
 		"pwmMode": "simulated",
 		"channels": 1
 	},
 
+    "channels" : [
+        {
+            "token": "SIM00",
+            "gamma": 1.8,
+            "minIntensity": 0.0025
+        },
+    ],
+    
 	"schedule" : [
 		{
 			"time" : "08:00:00",

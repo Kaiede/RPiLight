@@ -113,11 +113,11 @@ public class PCA9685 {
     private let address: Address
     private let i2c: I2CInterface
 
-    public init(address: Address = .pca9685) {
+    public init(supportedBoard: SupportedBoard, address: Address = .pca9685) {
         self.frequency = 0
         self.address = address
 
-        let i2cs = SwiftyGPIO.hardwareI2Cs(for: .RaspberryPiPlusZero)!
+        let i2cs = SwiftyGPIO.hardwareI2Cs(for: supportedBoard)!
         self.i2c = i2cs[1]
 
         guard self.i2c.isReachable(self.address.rawValue) else {
