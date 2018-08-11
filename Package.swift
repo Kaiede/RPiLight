@@ -14,10 +14,11 @@ let package = Package(
             dependencies: ["PCA9685", "Logging"]
         ),
         Target(name: "PCA9685"),
-	Target(name: "Logging")
+        Target(name: "Logging")
     ],
     dependencies: [
         .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", majorVersion: 1),
-        .Package(url: "https://github.com/Kaiede/Moderator.git", majorVersion:0),
-    ]
+        .Package(url: "https://github.com/Kaiede/Moderator.git", majorVersion: 0),
+    ],
+    swiftLanguageVersions: [3, 4]
 )
