@@ -4,7 +4,6 @@ import PackageDescription
 
 let package = Package(
     name: "RPiLight",
-    swiftLanguageVersions: [3, 4],
     targets: [
     	Target(
     		name: "RPiLight",
@@ -20,5 +19,6 @@ let package = Package(
     dependencies: [
         .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", majorVersion: 1),
         .Package(url: "https://github.com/Kaiede/Moderator.git", majorVersion: 0),
-    ]
+    ],
+    swiftLanguageVersions: [3, 4]
 )
