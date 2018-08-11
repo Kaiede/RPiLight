@@ -3,13 +3,14 @@ matrix:
   allow_failures:
     - os: linux
       env: SWIFT_BRANCH=swift-4.1.2-release
+      
   include:
-    - os: linux
+    - name: "Linux Swift 3.1.1"
+      os: linux
       language: generic
       dist: trusty
       sudo: required
       env:
-        - DESCRIPTION="Ubuntu Swift 3.1.1"
         - SWIFT_BRANCH=swift-3.1.1-release
         - SWIFT_VERSION=swift-3.1.1-RELEASE
       install:
@@ -17,12 +18,12 @@ matrix:
         - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
         - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
 
-    - os: linux
+    - name: "Linux Swift 4.1.2"
+      os: linux
       language: generic
       dist: trusty
       sudo: required
       env:
-        - DESCRIPTION="Ubuntu Swift 4.1.2"
         - SWIFT_BRANCH=swift-4.1.2-release
         - SWIFT_VERSION=swift-4.1.2-RELEASE
       install:
@@ -30,17 +31,16 @@ matrix:
         - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
         - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
 
+    - name: "Mac Xcode 9"
+      os: osx
+      osx_image: xcode9.4
+      language: swift
+      sudo: required
+
     - os: osx
       osx_image: xcode9.4
       language: swift
       sudo: required
-    
-
-    
-    
-    
-    
-
 
 script:
   - swift package reset
