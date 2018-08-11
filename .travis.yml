@@ -1,5 +1,8 @@
 
 matrix:
+  allow_failures:
+    - os: linux
+      env: SWIFT_BRANCH=swift-4.1.2-release
   include:
     - os: linux
       language: generic
@@ -32,9 +35,7 @@ matrix:
       language: swift
       sudo: required
     
-    allow_failures:
-      - os: linux
-        env: SWIFT_BRANCH=swift-4.1.2-release
+
     
     
     
