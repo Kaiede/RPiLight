@@ -23,6 +23,12 @@
  SOFTWARE.)
  */
 
+#if os(Linux)
+    import Glibc
+#else
+    import Darwin
+#endif
+
 import SwiftyGPIO
 
 //
@@ -31,20 +37,33 @@ import SwiftyGPIO
 // Wrapper around SwiftyGPIO's boards
 //
 public enum BoardType: String {
-    case raspberryPi = "Raspberry Pi / Zero"
-    case raspberryPi2 = "Raspberry Pi 2"
-    case raspberryPi3 = "Raspberry Pi 3"
+    case desktop = "Desktop Linux / Mac (x86)"
+    case raspberryPiV6 = "Raspberry Pi / Zero (ARMv6)"
+    case raspberryPiV7 = "Raspberry Pi 2 / 3 (ARMv7)"
+}
+
+extension BoardType {
+    public static func bestGuess() -> BoardType? {
+        var systemInfo = utsname()
+        guard 0 == uname(&systemInfo) else { return nil }
+
+        let machineType = systemInfo.machineString.lowercased()
+        switch machineType {
+        case "armv6l": return .raspberryPiV6
+        case "armv7l": return .raspberryPiV7
+        case "x86": return .desktop
+        case "x86_64": return .desktop
+        default: return nil
+		}
+    }
 }
 
 extension BoardType {
     internal func toSupportedBoard() -> SupportedBoard {
         switch self {
-        case .raspberryPi:
-            return .RaspberryPiPlusZero
-        case .raspberryPi2:
-            return .RaspberryPi2
-        case .raspberryPi3:
-            return .RaspberryPi3
+        case .desktop: return .RaspberryPiPlusZero
+        case .raspberryPiV6: return .RaspberryPiPlusZero
+        case .raspberryPiV7: return .RaspberryPi2
         }
     }
 }
@@ -55,10 +74,11 @@ extension BoardType: RawRepresentable {
     public init?(rawValue: RawValue) {
         let lowercaseString = rawValue.lowercased()
         switch lowercaseString {
-        case "pizero": self = .raspberryPi
-        case "pi1": self = .raspberryPi
-        case "pi2": self = .raspberryPi2
-        case "pi3": self = .raspberryPi3
+        case "desktop": self = .desktop
+        case "pizero": self = .raspberryPiV6
+        case "pi1": self = .raspberryPiV6
+        case "pi2": self = .raspberryPiV7
+        case "pi3": self = .raspberryPiV7
         default: return nil
         }
     }
@@ -81,9 +101,9 @@ public enum ModuleType: String {
         case .simulated:
             return try SimulatedPWM(channelCount: channelCount, frequency: frequency, gamma: gamma)
         case .hardware:
-            return try HardwarePWM(board: board.toSupportedBoard(), channelCount: channelCount, frequency: frequency, gamma: gamma)
+            return try HardwarePWM(board: board, channelCount: channelCount, frequency: frequency, gamma: gamma)
         case .pca9685:
-            return try ExpansionPWM(board: board.toSupportedBoard(), channelCount: channelCount, frequency: frequency, gamma: gamma)
+            return try ExpansionPWM(board: board, channelCount: channelCount, frequency: frequency, gamma: gamma)
         }
     }
 }
@@ -110,6 +130,7 @@ extension ModuleType: RawRepresentable {
 
 public enum ModuleInitError: Error {
     case noHardwareAccess
+    case invalidBoardType(actual: String)
     case invalidChannelCount(min: Int, max: Int, actual: Int)
     case invalidFrequency(min: Int, max: Int, actual: Int)
 }

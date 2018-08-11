@@ -56,7 +56,10 @@ class ExpansionPWM: Module, CustomStringConvertible {
     private let channelCount: Int
     private let controller: PCA9685
 
-    init(board: SupportedBoard, channelCount: Int, frequency: Int, gamma: Double) throws {
+    init(board: BoardType, channelCount: Int, frequency: Int, gamma: Double) throws {
+        guard board != .desktop else {
+            throw ModuleInitError.invalidBoardType(actual: board.rawValue)
+        }
         guard channelCount > 0 && channelCount <= 16 else {
             throw ModuleInitError.invalidChannelCount(min: 1, max: 16, actual: channelCount)
         }
@@ -66,7 +69,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
 
         self.channelCount = channelCount
         self.gamma = gamma
-        self.controller = PCA9685(supportedBoard: board)
+        self.controller = PCA9685(supportedBoard: board.toSupportedBoard())
         self.controller.frequency = UInt(frequency)
     }
 

@@ -83,13 +83,12 @@ struct Hardware {
     let frequency: Int
     let gamma: Double
 
+
     init(json: JsonDict) throws {
         guard let pwmMode = json["pwmMode"] as? String else { throw ConfigurationError.nodeMissing("pwmMode", message: "Hardware must have a pwmMode") }
         guard let moduleType = ModuleType(rawValue: pwmMode) else { throw ConfigurationError.invalidValue("pwmMode", value: pwmMode) }
 
-        guard let board = json["board"] as? String else { throw ConfigurationError.nodeMissing("board", message: "Hardware must have a board defined") }
-        guard let boardType = BoardType(rawValue: board) else { throw ConfigurationError.invalidValue("board", value: board) }
-
+        let boardType = try Hardware.getBoardType(json: json)
         
         let frequency = json["freq"] as? Int ?? 480
         let channelCount = json["channels"] as? Int ?? 1
@@ -108,6 +107,21 @@ struct Hardware {
 
     func createModule() throws -> Module {
         return try self.type.createModule(board: self.board, channelCount: Int(self.channelCount), frequency: Int(self.frequency), gamma: gamma)
+    }
+
+    private static func getBoardType(json: JsonDict) throws -> BoardType {
+        if let bestGuessBoard = BoardType.bestGuess() {
+            return bestGuessBoard
+        }
+
+        guard let board = json["board"] as? String else {
+            throw ConfigurationError.nodeMissing("board",
+                      message: "We tried to guess the hardware board and failed, it should be specified in 'hardware'")
+        }
+        guard let boardType = BoardType(rawValue: board) else {
+            throw ConfigurationError.invalidValue("board", value: board)
+        }
+        return boardType
     }
 }
 

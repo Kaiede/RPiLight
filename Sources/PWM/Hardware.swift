@@ -50,8 +50,11 @@ class HardwarePWM: Module, CustomStringConvertible {
 
     let frequency: Int
 
-    init(board: SupportedBoard, channelCount: Int, frequency: Int, gamma: Double) throws {
-        guard let pwms = SwiftyGPIO.hardwarePWMs(for: board) else {
+    init(board: BoardType, channelCount: Int, frequency: Int, gamma: Double) throws {
+        guard board != .desktop else {
+            throw ModuleInitError.invalidBoardType(actual: board.rawValue)
+        }
+        guard let pwms = SwiftyGPIO.hardwarePWMs(for: board.toSupportedBoard()) else {
             throw ModuleInitError.noHardwareAccess
         }
         guard channelCount > 0 && channelCount <= pwms.count else {
