@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# 
+#
 #
 
 #
@@ -12,6 +12,10 @@ function install_swift_prereqs() {
 
 	sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100
 	sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 100
+
+#	Needed for the Swift 4.1.2 Binaries
+# 	curl -O http://launchpadlibrarian.net/234848656/libicu55_55.1-7_armhf.deb
+#	sudo dpkg -i libicu55_55.1-7_armhf.deb
 }
 
 #
@@ -21,6 +25,7 @@ function install_swift() {
 	PROCESSOR=$(uname -m)
 	SWIFT_TARBALL=$(realpath swift_binaries.tgz)
 
+	COMPONENT_NUM=2
 	if [ -f "$SWIFT_TARBALL" ]; then
 		echo "Swift Tarball Found: $SWIFT_TARBALL"
 	elif [ "$PROCESSOR" == "armv6l" ]; then
@@ -29,15 +34,46 @@ function install_swift() {
 	elif [ "$PROCESSOR" == "armv7l" ]; then
 		echo "Downloading Swift 3.1.1 for ARMv7"
 		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/z7uihfx2bcbuurw/swift-3.1.1-RPi23-RaspbianStretchAug17.tgz?dl=1
-	else 
+
+#		Experimental 4.1.2 Support
+#		echo "Downloading Swift 4.1.2 for ARMv7
+#		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/7fje6x1l8p519mx/swift-4.1.2-RPi23-RaspbianStretch_b3.tgz?dl=1
+#		NUM_COMPONENTS=1
+	else
 		echo "Unknown Processor. RPiLight may not work."
 		exit 1
 	fi
 
-	echo "Installing Swift 3.1.1 into /usr..."
-	pushd / > /dev/null
-	sudo tar -xvf $SWIFT_TARBALL
+	echo "Installing Swift into /opt/swift/..."
+	if [ ! -d "/opt/swift" ]; then
+		sudo mkdir -p /opt/swift
+	fi
+	pushd /opt/swift > /dev/null
+	sudo tar -xvf $SWIFT_TARBALL --strip-components=$COMPONENT_NUM
 	popd > /dev/null
+}
+
+#
+# Configure PATH if Needed
+#
+function check_path() {
+	PROFILE_PATH=$(realpath ~/.bash_profile)
+	source $PROFILE_PATH
+
+	if [[ ":$PATH:" == *":/opt/swift/bin:"* && -f $PROFILE_PATH ]]; then
+		echo "Path Already Configured..."
+		return
+	fi
+
+	echo "Configuring .bash_profile..."
+	touch $PROFILE_PATH
+	echo "#" >> $PROFILE_PATH
+	echo "# Swift Binaries" >> $PROFILE_PATH
+	echo "#" >> $PROFILE_PATH
+	echo "export PATH=\$PATH:/opt/swift/bin" >> $PROFILE_PATH
+	source $PROFILE_PATH
+
+	export PATH
 }
 
 #
@@ -107,6 +143,8 @@ fi
 echo "RPiLight Directory: $SCRIPT_DIR"
 echo "Install Mode: $INSTALL_MODE"
 pushd "$SCRIPT_DIR" > /dev/null
+
+check_path
 
 if [ "$INSTALL_MODE" == "full" ]; then
 	install_swift_prereqs
