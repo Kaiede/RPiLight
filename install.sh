@@ -40,11 +40,14 @@ function install_swift() {
 		echo "Downloading Swift 3.1.1 for ARMv6"
 		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/r7a97yh1h7hc059/swift-3.1.1-Rpi1armv6-RaspbianStretchAug17_dispatchfix.tgz?dl=1
 	elif [ "$PROCESSOR" == "armv7l" ]; then
-		SWIFT_TARBALL=$SWIFT4_TARBALL
-		COMPONENT_NUM=1
-		echo "Downloading Swift 4.1.2 for ARMv7"
-		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/7fje6x1l8p519mx/swift-4.1.2-RPi23-RaspbianStretch_b3.tgz?dl=1
-		export COMPONENT_NUM=1
+		SWIFT_TARBALL=$SWIFT3_TARBALL
+		COMPONENT_NUM=2
+		echo "Downloading Swift 3.1.1 for ARMv7"
+		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/z7uihfx2bcbuurw/swift-3.1.1-RPi23-RaspbianStretchAug17.tgz?dl=1
+#		SWIFT_TARBALL=$SWIFT4_TARBALL
+#		COMPONENT_NUM=1
+#		echo "Downloading Swift 4.1.2 for ARMv7"
+#		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/7fje6x1l8p519mx/swift-4.1.2-RPi23-RaspbianStretch_b3.tgz?dl=1
 	else
 		echo "Unknown Processor. RPiLight may not work."
 		exit 1
