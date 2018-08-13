@@ -17,7 +17,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 This project is tested on a Raspberry Pi Zero W, using Raspbian Stretch Lite. It is recommended that you either solder on a 40-pin header, or buy the Zero WH that includes a pre-soldered header. 
 
-RPiLight supports the 2 built-in PWM channels, but if you need more, it is compatible with the PCA9685 PWM controller. It is recommended that you get an existing board like the [Adafruit 16-Channel PWM Bonnet](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md)
+RPiLight supports the 2 built-in PWM channels, but if you need more, it is compatible with the PCA9685 PWM controller. It is recommended that you get an existing board like the [Adafruit 16-Channel PWM Bonnet](https://www.adafruit.com/product/3416)
 
 When it comes to driving your lights, there are a couple different options. Some Meanwell LDD drivers like the LDD-H work fine with 3.3V PWM input, and can be used directly. Other Meanwells like the LDD-L need a 5V output. 
 
@@ -39,7 +39,7 @@ Start by [getting Rasbian Lite](https://www.raspberrypi.org/downloads/raspbian/)
 
 Additionally, [these instructions](https://hackernoon.com/raspberry-pi-headless-install-462ccabd75d0) are also useful for setting up a headless Raspberry Pi.
 
-> WARNING: The Raspberry Pi's Wireless is not bullet-proof. It is recommended to also [turn off wireless power management](https://tosbourn.com/stop-wireless-turning-off-raspberry-pi/) once it is setup and booted.
+> WARNING: The Raspberry Pi's Wireless is not bullet-proof. Raspbian Stretch is better than earlier versions, but it tends to have major problems with misconfigured networks that Windows or macOS doesn't have. If you are having problems with host down or similar errors, I recommend checking your network configuration. IPv6 configured incorrectly, wrong wireless channels, etc.
 
 ### Installing RPiLight
 
