@@ -200,11 +200,11 @@ class LightController {
         let (restartDate, updateIntervalMaybe) = self.calculateRestart(withBehavior: behavior, now: now)
         if let updateInterval = updateIntervalMaybe {
             let updateIntervalMs = Int(updateInterval * 1000.0)
-            self.behaviorTimer.scheduleRepeating(wallDeadline: DispatchWallTime(date: restartDate), interval: .milliseconds(updateIntervalMs))
+            self.behaviorTimer.schedulePrecise(forDate: restartDate, everyMilliseconds: updateIntervalMs)
             self.isBehaviorOneShot = false
             Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(updateIntervalMs) ms")
         } else {
-            self.behaviorTimer.scheduleOneshot(wallDeadline: DispatchWallTime(date: restartDate))
+            self.behaviorTimer.schedulePrecise(forDate: restartDate)
             self.isBehaviorOneShot = true
             Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate))")
         }
@@ -226,7 +226,7 @@ class LightController {
         let nextDate = nextEvent.time.calcNextDate(after: now)!
 
         Log.info("Scheduling Next Event @ \(LightController.dateFormatter.string(from: nextDate))")
-        self.eventTimer.scheduleOneshot(wallDeadline: DispatchWallTime(date: nextDate), leeway: .seconds(0))
+        self.eventTimer.schedulePrecise(forDate: nextDate)
     }
 
     private func handleBehavior() {
