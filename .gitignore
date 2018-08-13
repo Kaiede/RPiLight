@@ -1,6 +1,6 @@
 # PiLight Specific Ignores
 /config
-/swift_binaries.tgz
+/swift*binaries.tgz
 
 ##### SWIFT BUILD
 .DS_Store

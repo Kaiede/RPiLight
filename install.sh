@@ -23,22 +23,28 @@ function install_swift_prereqs() {
 #
 function install_swift() {
 	PROCESSOR=$(uname -m)
-	SWIFT_TARBALL=$(realpath swift_binaries.tgz)
+	SWIFT3_TARBALL=$(realpath swift3_binaries.tgz)
+	SWIFT4_TARBALL=$(realpath swift4_binaries.tgz)
 
-	COMPONENT_NUM=2
-	if [ -f "$SWIFT_TARBALL" ]; then
-		echo "Swift Tarball Found: $SWIFT_TARBALL"
+	if [ -f "$SWIFT4_TARBALL" ]; then
+		SWIFT_TARBALL=$SWIFT4_TARBALL
+		COMPONENT_NUM=1
+		echo "Swift 4 Tarball Found: $SWIFT_TARBALL"
+	elif [ -f "$SWIFT3_TARBALL" ]; then
+		SWIFT_TARBALL=$SWIFT3_TARBALL
+		COMPONENT_NUM=2
+		echo "Swift 3 Tarball Found: $SWIFT_TARBALL"
 	elif [ "$PROCESSOR" == "armv6l" ]; then
+		SWIFT_TARBALL=$SWIFT3_TARBALL
+		COMPONENT_NUM=2
 		echo "Downloading Swift 3.1.1 for ARMv6"
 		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/r7a97yh1h7hc059/swift-3.1.1-Rpi1armv6-RaspbianStretchAug17_dispatchfix.tgz?dl=1
 	elif [ "$PROCESSOR" == "armv7l" ]; then
-		echo "Downloading Swift 3.1.1 for ARMv7"
-		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/z7uihfx2bcbuurw/swift-3.1.1-RPi23-RaspbianStretchAug17.tgz?dl=1
-
-#		Experimental 4.1.2 Support
-#		echo "Downloading Swift 4.1.2 for ARMv7
-#		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/7fje6x1l8p519mx/swift-4.1.2-RPi23-RaspbianStretch_b3.tgz?dl=1
-#		NUM_COMPONENTS=1
+		SWIFT_TARBALL=$SWIFT4_TARBALL
+		COMPONENT_NUM=1
+		echo "Downloading Swift 4.1.2 for ARMv7"
+		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/7fje6x1l8p519mx/swift-4.1.2-RPi23-RaspbianStretch_b3.tgz?dl=1
+		export COMPONENT_NUM=1
 	else
 		echo "Unknown Processor. RPiLight may not work."
 		exit 1
