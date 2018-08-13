@@ -34,6 +34,7 @@ let package = Package(
         Target(name: "Logging")
     ],
     dependencies: [
+        .Package(url: "https://github.com/Kaiede/Ephemeris.git", from: "0.1.1"),
         .Package(url: "https://github.com/kareman/Moderator.git", from: "0.5.0"),
         .Package(url: "https://github.com/Kaiede/PCA9685.git", from: "1.0.0"),
         .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", from: "1.0.9")

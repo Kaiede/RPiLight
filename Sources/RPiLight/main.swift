@@ -84,6 +84,13 @@ func loadConfiguration() -> Configuration {
 
 let configuration = loadConfiguration()
 
+import Ephemeris
+Log.withDebug {
+    let j2000Date = Calendar.current.startOfDay(for: Date()).toJ2000Date() + 1.0
+    let illumination = Moon.fastIllumination(forDate: j2000Date)
+    Log.debug("Tonight's Lunar Illumination: \(illumination.fraction * 100.0)")
+}
+
 //
 // MARK: Create Module
 //
