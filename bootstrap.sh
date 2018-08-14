@@ -62,7 +62,7 @@ function install_swift() {
 		sudo mkdir -p /opt/swift
 	fi
 	pushd /opt/swift > /dev/null
-	pv "$SWIFT_TARBALL" | sudo tar -zxf - --strip-components=$COMPONENT_NUM 
+	pv "$SWIFT_TARBALL" | sudo tar -zx --strip-components=$COMPONENT_NUM 
 	popd > /dev/null
 }
 
