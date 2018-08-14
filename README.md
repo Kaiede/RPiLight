@@ -173,7 +173,7 @@ sudo systemctl stop rpilight.service
 
 * SwiftyGPIO - Patched with improved GPIO PWM behavior.
 * Moderator - Modified to build for Swift 3 & 4.
-* [Adafruit-PCA9685](https://github.com/adafruit/Adafruit_Python_PCA9685) - Inspiration for PCA9685 implementation.
+* [PCA9685](https://github.com/Kaiede/PCA9685) - Swift Library for PCA9685 PWM Module.
 
 ## Contributing
 
