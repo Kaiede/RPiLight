@@ -32,6 +32,10 @@ function install_dependencies() {
                     swig \
                     systemtap-sdt-dev \
                     uuid-dev	
+
+
+	sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100
+	sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 100
 }
 
 #
@@ -58,7 +62,7 @@ function install_swift() {
 		sudo mkdir -p /opt/swift
 	fi
 	pushd /opt/swift > /dev/null
-	sudo pv "$SWIFT_TARBALL" | tar -zxf -
+	sudo pv "$SWIFT_TARBALL" | tar -zxf --strip-components=$COMPONENT_NUM -
 	popd > /dev/null
 }
 
