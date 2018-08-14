@@ -43,31 +43,19 @@ Additionally, [these instructions](https://hackernoon.com/raspberry-pi-headless-
 
 ### Installing RPiLight
 
-First, we will need to make sure git is installed.
+RPiLight includes a bootstrapping script that can install Swift and its dependencies, build, and install RPiLight for the first time.
 ```
-sudo apt-get install git
-```
-
-Then, we can
-```
-cd ~
-git clone https://github.com/Kaiede/RPiLight.git
-cd RPiLight
-./install.sh full
+source <(curl -s https://raw.githubusercontent.com/Kaiede/RPiLight/master/bootstrap.sh)
 ```
 
-The `./install.sh full` command only needs to be run the first time an install is done, or during major updates, as it installs things that RPiLight requires using apt-get, and grabs the version of Swift needed to build. When making changes
-
-When updating, you can use:
+Once bootstrapped, it is possible to get the latest source and update using `install.sh`:
 ```
 ./install.sh update
 ```
 
-This command pulls the latest source from GitHub, builds it, and installs it. 
-
 ## Configuring RPiLight
 
-There are example configuration files in the [example](examples) folder. These files are JSON-formatted. Let's go ahead and break down one of those examples:
+There are example configuration files in the [examples](examples) folder. These files are JSON-formatted. Let's go ahead and break down one of those examples:
 
 ### Hardware
 
