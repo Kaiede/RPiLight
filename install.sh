@@ -36,13 +36,11 @@ function install_rpilight() {
 		sudo mkdir -p "$RPILIGHT_DEST/config"
 	fi
 
-	echo "Copying Binaries to $RPILIGHT_DEST"
+	echo "Copying Binary to $RPILIGHT_DEST"
 	sudo cp "$RPILIGHT_BINARY" "$RPILIGHT_DEST"
 
 	echo "Copying Examples to $RPILIGHT_DEST"
-	sudo rm -rf "$RPLIGHT_DEST/examples"
-	sudo mkdir "$RPLIGHT_DEST/examples"
-	sudo cp -r "$RPILIGHT_EXAMPLES" "$RPLIGHT_DEST/examples"
+	sudo rsync --delete -r examples/ /opt/rpilight/examples/
 
 	SERVICE_DEST="/lib/systemd/system"
 	echo "Copying Service Configuration to $SERVICE_DEST" 
