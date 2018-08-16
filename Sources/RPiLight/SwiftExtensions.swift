@@ -23,14 +23,12 @@
  SOFTWARE.)
  */
 
+import Dispatch
 import Foundation
 
-extension FileManager {
-    var currentDirectoryUrl: URL {
-        return URL(fileURLWithPath: self.currentDirectoryPath)
-    }
-}
-
+//
+// MARK: Foundation Extensions
+//
 extension Calendar {
     func intervalBetweenDateComponents(_ components: DateComponents, since olderComponents: DateComponents) -> TimeInterval? {
         let startOfDay = self.startOfDay(for: Date())
@@ -70,6 +68,33 @@ extension DateComponents {
             return self.calcNextDateCustom(after: date, direction: direction)
         #else
             fatalError("No Implementation Available for this OS")
+        #endif
+    }
+}
+
+extension FileManager {
+    var currentDirectoryUrl: URL {
+        return URL(fileURLWithPath: self.currentDirectoryPath)
+    }
+}
+
+//
+// MARK: Dispatch Extensions
+//
+extension DispatchSourceTimer {
+    public func schedulePrecise(forDate date: Date) {
+        #if swift(>=4.0)
+        self.schedule(wallDeadline: DispatchWallTime(date: date), leeway: .milliseconds(1))
+        #else
+        self.scheduleOneshot(wallDeadline: DispatchWallTime(date: date), leeway: .milliseconds(1))
+        #endif
+    }
+
+    public func schedulePrecise(forDate date: Date, everyMilliseconds milliseconds: Int) {
+        #if swift(>=4.0)
+        self.schedule(wallDeadline: DispatchWallTime(date: date), repeating: .milliseconds(milliseconds), leeway: .milliseconds(1))
+        #else
+        self.scheduleRepeating(wallDeadline: DispatchWallTime(date: date), interval: .milliseconds(milliseconds), leeway: .milliseconds(1))
         #endif
     }
 }
