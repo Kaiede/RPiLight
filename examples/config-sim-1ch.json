@@ -1,9 +1,9 @@
 {
-	"hardware" :{
+    "hardware" :{
         "board": "PiZero",
-		"pwmMode": "simulated",
-		"channels": 1
-	},
+        "pwmMode": "simulated",
+        "channels": 1
+    },
 
     "channels" : [
         {
@@ -13,55 +13,55 @@
         },
     ],
     
-	"schedule" : [
-		{
-			"time" : "08:00:00",
-			"channels" : [
-				{ "token": "SIM00", "brightness": 0.0 }
-			]
-		},
-		{
-			"time" : "08:30:00",
-			"channels" : [
-				{ "token": "SIM00", "brightness": 0.25 }
-			]
-		},
-		{
-			"time" : "12:00:00",
-			"channels" : [
-				{ "token": "SIM00", "brightness": 0.25 }
-			]
-		},
-		{
-			"time" : "14:00:00",
-			"channels" : [
-				{ "token": "SIM00", "brightness": 0.50 }
-			]
-		},
-		{
-			"time" : "18:00:00",
-			"channels" : [
-				{ "token": "SIM00", "brightness": 0.50 }
-			]
-		},
-		{
-			"time" : "20:00:00",
-			"channels" : [
-				{ "token": "SIM00", "brightness": 0.10 }
-			]
-		},
-		{
-			"time" : "22:30:00",
-			"channels" : [
-				{ "token": "SIM00", "brightness": 0.10 }
-			]
-		},
-		{
-			"time" : "23:00:00",
-			"channels" : [
-				{ "token": "SIM00", "brightness": 0.0 }
-			]
-		}
-	]
+    "schedule" : [
+        {
+            "time" : "08:00:00",
+            "channels" : [
+                { "token": "SIM00", "brightness": 0.0 }
+            ]
+        },
+        {
+            "time" : "08:30:00",
+            "channels" : [
+                { "token": "SIM00", "brightness": 0.25 }
+            ]
+        },
+        {
+            "time" : "12:00:00",
+            "channels" : [
+                { "token": "SIM00", "brightness": 0.25 }
+            ]
+        },
+        {
+            "time" : "14:00:00",
+            "channels" : [
+                { "token": "SIM00", "brightness": 0.50 }
+            ]
+        },
+        {
+            "time" : "18:00:00",
+            "channels" : [
+                { "token": "SIM00", "brightness": 0.50 }
+            ]
+        },
+        {
+            "time" : "20:00:00",
+            "channels" : [
+                { "token": "SIM00", "brightness": 0.10 }
+            ]
+        },
+        {
+            "time" : "22:30:00",
+            "channels" : [
+                { "token": "SIM00", "brightness": 0.10 }
+            ]
+        },
+        {
+            "time" : "23:00:00",
+            "channels" : [
+                { "token": "SIM00", "brightness": 0.0 }
+            ]
+        }
+    ]
 }
 

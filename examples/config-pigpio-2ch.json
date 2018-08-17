@@ -1,67 +1,67 @@
 {
-	"hardware" :{
+    "hardware" :{
         "board": "PiZero",
-		"pwmMode": "hardware",
-		"freq": 960,
-		"channels": 2
-	},
+        "pwmMode": "hardware",
+        "freq": 960,
+        "channels": 2
+    },
 
-	"schedule" : [
-		{
-			"time" : "08:00:00",
-			"channels" : [
-				{ "token": "PWM0-IO18", "brightness": 0.0 },
-				{ "token": "PWM1-IO19", "brightness": 0.0 }
-			]
-		},
-		{
-			"time" : "08:30:00",
-			"channels" : [
-				{ "token": "PWM0-IO18", "brightness": 0.25 },
-				{ "token": "PWM1-IO19", "brightness": 0.30 }
-			]
-		},
-		{
-			"time" : "12:00:00",
-			"channels" : [
-				{ "token": "PWM0-IO18", "brightness": 0.25 },
-				{ "token": "PWM1-IO19", "brightness": 0.30 }
-			]
-		},
-		{
-			"time" : "14:00:00",
-			"channels" : [
-				{ "token": "PWM0-IO18", "brightness": 0.50 },
-				{ "token": "PWM1-IO19", "brightness": 0.30 }
-			]
-		},
-		{
-			"time" : "18:00:00",
-			"channels" : [
-				{ "token": "PWM0-IO18", "brightness": 0.50 },
-				{ "token": "PWM1-IO19", "brightness": 0.30 }
-			]
-		},
-		{
-			"time" : "20:00:00",
-			"channels" : [
-				{ "token": "PWM0-IO18", "brightness": 0.10 },
-				{ "token": "PWM1-IO19", "brightness": 0.15 }
-			]
-		},
-		{
-			"time" : "22:30:00",
-			"channels" : [
-				{ "token": "PWM0-IO18", "brightness": 0.10 },
-				{ "token": "PWM1-IO19", "brightness": 0.15 }
-			]
-		},
-		{
-			"time" : "23:00:00",
-			"channels" : [
-				{ "token": "PWM0-IO18", "brightness": 0.0 },
-				{ "token": "PWM1-IO19", "brightness": 0.0 }
-			]
-		}
-	]
+    "schedule" : [
+        {
+            "time" : "08:00:00",
+            "channels" : [
+                { "token": "PWM0-IO18", "brightness": 0.0 },
+                { "token": "PWM1-IO19", "brightness": 0.0 }
+            ]
+        },
+        {
+            "time" : "08:30:00",
+            "channels" : [
+                { "token": "PWM0-IO18", "brightness": 0.25 },
+                { "token": "PWM1-IO19", "brightness": 0.30 }
+            ]
+        },
+        {
+            "time" : "12:00:00",
+            "channels" : [
+                { "token": "PWM0-IO18", "brightness": 0.25 },
+                { "token": "PWM1-IO19", "brightness": 0.30 }
+            ]
+        },
+        {
+            "time" : "14:00:00",
+            "channels" : [
+                { "token": "PWM0-IO18", "brightness": 0.50 },
+                { "token": "PWM1-IO19", "brightness": 0.30 }
+            ]
+        },
+        {
+            "time" : "18:00:00",
+            "channels" : [
+                { "token": "PWM0-IO18", "brightness": 0.50 },
+                { "token": "PWM1-IO19", "brightness": 0.30 }
+            ]
+        },
+        {
+            "time" : "20:00:00",
+            "channels" : [
+                { "token": "PWM0-IO18", "brightness": 0.10 },
+                { "token": "PWM1-IO19", "brightness": 0.15 }
+            ]
+        },
+        {
+            "time" : "22:30:00",
+            "channels" : [
+                { "token": "PWM0-IO18", "brightness": 0.10 },
+                { "token": "PWM1-IO19", "brightness": 0.15 }
+            ]
+        },
+        {
+            "time" : "23:00:00",
+            "channels" : [
+                { "token": "PWM0-IO18", "brightness": 0.0 },
+                { "token": "PWM1-IO19", "brightness": 0.0 }
+            ]
+        }
+    ]
 }
