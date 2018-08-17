@@ -2,6 +2,20 @@
 
 import PackageDescription
 
+//
+// Backport of Package(url:from:)
+//
+extension Package.Dependency {
+	public class func Package(url: String, from versionString: String) -> Package.Dependency {
+		guard let version = Version(versionString) else { fatalError() }
+		let nextMajor = Version(version.major + 1, 0, 0)
+		return Package(url: url, versions: version..<nextMajor)
+	}
+}
+
+//
+// Package
+//
 let package = Package(
     name: "RPiLight",
     targets: [
@@ -16,9 +30,9 @@ let package = Package(
         Target(name: "Logging")
     ],
     dependencies: [
-        .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", majorVersion: 1),
-        .Package(url: "https://github.com/Kaiede/Moderator.git", majorVersion: 0),
-        .Package(url: "https://github.com/Kaiede/PCA9685.git", majorVersion:1),
+        .Package(url: "https://github.com/kareman/Moderator.git", from: "0.5.0"),
+        .Package(url: "https://github.com/Kaiede/PCA9685.git", from: "1.0.0"),
+        .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", from: "1.0.9")
     ],
     swiftLanguageVersions: [3, 4]
 )
