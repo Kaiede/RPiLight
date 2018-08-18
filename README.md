@@ -61,11 +61,11 @@ There are example configuration files in the [examples](examples) folder. These 
 
 ```
 "hardware" : {
-	"board": "pizero",
-	"pwmMode": "pca9685",
-	"freq": 960,
-	"channels": 8,
-	"gamma": 1.8
+    "board": "pizero",
+    "pwmMode": "pca9685",
+    "freq": 960,
+    "channels": 8,
+    "gamma": 1.8
 }
 ```
 
@@ -83,7 +83,7 @@ The `channels` parameter tells RPiLight how many channels to use. This can be `1
 
 ```
 "channels" : [
-	{ "token": "PWM0-IO18", "minIntensity": 0.0025 }
+    { "token": "PWM0-IO18", "minIntensity": 0.0025 }
 ],
 ```
 
@@ -99,26 +99,26 @@ Minimum intensity is also taken into account when turning the lights off or on d
 
 ```
 "schedule" : [
-	{
-		"time" : "08:00:00",
-		"channels" : [
-			{ "token": "PWM00", "brightness": 0.0 }
-		]
-	},
-	{
-		"time" : "08:30:00",
-		"channels" : [
-			{ "token": "PWM00", "brightness": 0.25 }
-		]
-	},
-	{
-		"time" : "12:00:00",
-		"channels" : [
-			{ "token": "PWM00", "brightness": 0.25 }
-		]
-	},
+    {
+        "time" : "08:00:00",
+        "channels" : [
+            { "token": "PWM00", "brightness": 0.0 }
+        ]
+    },
+    {
+        "time" : "08:30:00",
+        "channels" : [
+            { "token": "PWM00", "brightness": 0.25 }
+        ]
+    },
+    {
+        "time" : "12:00:00",
+        "channels" : [
+            { "token": "PWM00", "brightness": 0.25 }
+        ]
+    },
 
-	<etc>
+    <etc>
 ]
 ```
 
@@ -132,10 +132,10 @@ In both cases, changes in the light level will be calculated as brightness to ma
 
 Example Channel Tokens:
 ```
-PWM00 - PWM15 		: Adafruit PCA9685 Channels 0-15
-PWM0-IO18 			: Raspberry Pi PWM channel 0, on GPIO18
-PWM1-IO19 			: Raspberry Pi PWM channel 1, on GPIO19
-SIM00 - SIM15		: Simulated Channels 0-15
+PWM00 - PWM15       : Adafruit PCA9685 Channels 0-15
+PWM0-IO18           : Raspberry Pi PWM channel 0, on GPIO18
+PWM1-IO19           : Raspberry Pi PWM channel 1, on GPIO19
+SIM00 - SIM15       : Simulated Channels 0-15
 ```
 
 In this example, the lights will be off at 8:00 am. Starting at 8:00 am, it will ramp up the lights until they are at 25% at 8:30 am. Then they will remain at 25% until 12:00 pm. 
