@@ -49,9 +49,9 @@ public extension DateComponents {
         guard let targetDate = calendar.date(byAdding: copyOfSelf, to: startOfDay) else { return nil }
         switch direction {
         case .forward:
-            if targetDate < date { copyOfSelf.day = 1 }
+            if targetDate <= date { copyOfSelf.day = 1 }
         case .backward:
-            if targetDate > date { copyOfSelf.day = -1 }
+            if targetDate >= date { copyOfSelf.day = -1 }
         }
 
         return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
