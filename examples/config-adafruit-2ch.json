@@ -1,68 +1,32 @@
 {
-    "hardware" :{
-        "board": "PiZero",
+    "hardware": {
         "pwmMode": "pca9685",
         "freq": 480,
         "channels": 2
     },
 
-    "schedule" : [
-        {
-            "time" : "08:00:00",
-            "channels" : [
-                { "token": "PWM00", "brightness": 0.0 },
-                { "token": "PWM01", "brightness": 0.0 }
-            ]
-        },
-        {
-            "time" : "08:30:00",
-            "channels" : [
-                { "token": "PWM00", "brightness": 0.25 },
-                { "token": "PWM01", "brightness": 0.30 }
-            ]
-        },
-        {
-            "time" : "12:00:00",
-            "channels" : [
-                { "token": "PWM00", "brightness": 0.25 },
-                { "token": "PWM01", "brightness": 0.30 }
-            ]
-        },
-        {
-            "time" : "14:00:00",
-            "channels" : [
-                { "token": "PWM00", "brightness": 0.50 },
-                { "token": "PWM01", "brightness": 0.30 }
-            ]
-        },
-        {
-            "time" : "18:00:00",
-            "channels" : [
-                { "token": "PWM00", "brightness": 0.50 },
-                { "token": "PWM01", "brightness": 0.30 }
-            ]
-        },
-        {
-            "time" : "20:00:00",
-            "channels" : [
-                { "token": "PWM00", "brightness": 0.10 },
-                { "token": "PWM01", "brightness": 0.15 }
-            ]
-        },
-        {
-            "time" : "22:30:00",
-            "channels" : [
-                { "token": "PWM00", "brightness": 0.10 },
-                { "token": "PWM01", "brightness": 0.15 }
-            ]
-        },
-        {
-            "time" : "23:00:00",
-            "channels" : [
-                { "token": "PWM00", "brightness": 0.0 },
-                { "token": "PWM01", "brightness": 0.0 }
-            ]
-        }
-    ]
+    "PWM00": {
+        "schedule": [
+            { "time": "08:00:00", "brightness": 0.0 },
+            { "time": "08:30:00", "brightness": 0.25 },
+            { "time": "12:00:00", "brightness": 0.25 },
+            { "time": "14:00:00", "brightness": 0.50 },
+            { "time": "18:00:00", "brightness": 0.50 },
+            { "time": "20:00:00", "brightness": 0.10 },
+            { "time": "22:30:00", "brightness": 0.10 },
+            { "time": "23:00:00", "brightness": 0.0 },
+        ]
+    }
+
+    "PWM01": {
+        "schedule": [
+            { "time": "08:00:00", "brightness": 0.0 },
+            { "time": "08:30:00", "brightness": 0.30 },
+            { "time": "18:00:00", "brightness": 0.30 },
+            { "time": "20:00:00", "brightness": 0.15 },
+            { "time": "22:30:00", "brightness": 0.15 },
+            { "time": "23:00:00", "brightness": 0.0 },
+        ]
+    }
 }
 

@@ -105,7 +105,7 @@ class LayerTests: XCTestCase {
         for (timeString, expectedBrightness) in testExpectations {
             // Start from known point every time
             let startTimeString = MockLayerPoint.dateFormatter.date(from: "00:00:00")!
-            var testLayer = Layer(points: LayerTests.testData, startTime: startTimeString)
+            let testLayer = Layer(points: LayerTests.testData, startTime: startTimeString)
 
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
             let brightness = testLayer.lightLevel(forDate: testDate)

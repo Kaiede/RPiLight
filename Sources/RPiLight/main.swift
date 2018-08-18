@@ -89,10 +89,13 @@ Log.withDebug {
     formatter.calendar = Calendar.current
     formatter.timeZone = TimeZone.current
     let now = Date()
-    for event in configuration.schedule {
-        let prevDate = event.time.calcNextDate(after: now, direction: .backward)!
-        let nextDate = event.time.calcNextDate(after: now, direction: .forward)!
-        Log.debug("\t\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+    for channel in configuration.channels {
+        Log.debug("==== Channel \(channel.token)")
+        for event in channel.schedule {
+            let prevDate = event.time.calcNextDate(after: now, direction: .backward)!
+            let nextDate = event.time.calcNextDate(after: now, direction: .forward)!
+            Log.debug("\t\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+        }
     }
 }
 
@@ -159,6 +162,8 @@ for channelInfo in configuration.channels {
 //
 var controller = LightController(channels: activeChannels)
 
+Log.error("Closed for Renovation")
+/*
 if previewMode.value {
     let previewer = Previewer(usingController: controller)
     previewer.runSchedule(configuration.schedule)
@@ -166,4 +171,4 @@ if previewMode.value {
     // Ruin the Schedule Normally
     controller.applySchedule(schedule: configuration.schedule)
     dispatchMain()
-}
+}*/

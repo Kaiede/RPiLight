@@ -42,7 +42,7 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [:]
 
         do {
-            let _ = try Hardware(json: jsonData)
+            let _ = try HardwareConfig(json: jsonData)
             XCTFail()
         } catch {
             // Pass
@@ -55,7 +55,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testHardware = try Hardware(json: jsonData)
+            let testHardware = try HardwareConfig(json: jsonData)
 
             // Required
             XCTAssertEqual(testHardware.type, .simulated)
@@ -80,7 +80,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testHardware = try Hardware(json: jsonData)
+            let testHardware = try HardwareConfig(json: jsonData)
             XCTAssertEqual(testHardware.board, .raspberryPiV6)
             XCTAssertEqual(testHardware.type, .simulated)
             XCTAssertEqual(testHardware.channelCount, 2)
@@ -91,37 +91,277 @@ class ConfigurationTests: XCTestCase {
         }
     }
 
-    func testEmptyChannelConfig() {
+    func testEmptyChannelEventConfig() {
         let jsonData: JsonDict = [:]
 
         do {
-            let _ = try ChannelInfo(json: jsonData)
+            let _ = try ChannelEventConfig(json: jsonData)
             XCTFail()
         } catch {
             // Pass
         }
     }
 
-    func testChannelConfig() {
+    func testChannelEventNoSetting() {
         let jsonData: JsonDict = [
-            "token": "PWM00",
-            "minIntensity": 0.25
+            "time": "08:00:00"
         ]
 
         do {
-            let testChannel = try ChannelInfo(json: jsonData)
-            XCTAssertEqual(testChannel.token, "PWM00")
-            XCTAssertEqual(testChannel.minIntensity, 0.25)
+            let _ = try ChannelEventConfig(json: jsonData)
+            XCTFail()
+        } catch {
+            // Pass
+        }
+    }
+
+    func testChannelEventConfig() {
+        let jsonDataIntensity: JsonDict = [
+            "time": "08:00:00",
+            "intensity": 0.25
+        ]
+
+        let jsonDataBrightness: JsonDict = [
+            "time": "10:30:00",
+            "brightness": 0.30
+        ]
+
+        do {
+            let testEvent1 = try ChannelEventConfig(json: jsonDataIntensity)
+            let testDate1 = ConfigurationTests.dateFormatter.date(from: "08:00:00")!
+            let expectedComponents1 = Calendar.current.dateComponents([.hour, .minute, .second], from: testDate1)
+            XCTAssertEqual(testEvent1.time, expectedComponents1)
+            XCTAssertEqual(testEvent1.setting.asIntensity(withGamma: 2.0), 0.25)
+
+            let testEvent2 = try ChannelEventConfig(json: jsonDataBrightness)
+            let testDate2 = ConfigurationTests.dateFormatter.date(from: "10:30:00")!
+            let expectedComponents2 = Calendar.current.dateComponents([.hour, .minute, .second], from: testDate2)
+            XCTAssertEqual(testEvent2.time, expectedComponents2)
+            XCTAssertEqual(testEvent2.setting.asBrightness(withGamma: 2.0), 0.30)
         } catch {
             XCTFail()
         }
     }
 
+    func testEmptyChannelConfig() {
+        let jsonData: JsonDict = [:]
+
+        do {
+            let _ = try ChannelConfig(token: "TestToken", json: jsonData)
+            XCTFail()
+        } catch {
+            // Pass
+        }
+    }
+
+    func testChannelConfigNoSchedule() {
+        let jsonData: JsonDict = [
+            "minIntensity": 0.0025
+        ]
+
+        do {
+            let _ = try ChannelConfig(token: "TestToken", json: jsonData)
+            XCTFail()
+        } catch {
+            // Pass
+        }
+    }
+
+    func testMinChannelConfig() {
+        let jsonData: JsonDict = [
+            "schedule": [[
+                "time": "10:30:00",
+                "brightness": 0.30
+            ],[
+                "time": "11:30:00",
+                "brightness": 0.50
+            ]]
+        ]
+
+        do {
+            let testConfig = try ChannelConfig(token: "TestToken", json: jsonData)
+
+            XCTAssertEqual(testConfig.minIntensity, 0.0)
+            XCTAssertEqual(testConfig.schedule.count, 2)
+        } catch {
+            XCTFail()
+        }
+    }
+
+    func testChannelConfig() {
+        let jsonData: JsonDict = [
+            "minIntensity": 0.0025,
+            "schedule": [[
+                "time": "10:30:00",
+                "brightness": 0.30
+            ],[
+                "time": "11:30:00",
+                "brightness": 0.50
+            ]]
+        ]
+
+        do {
+            let testConfig = try ChannelConfig(token: "TestToken", json: jsonData)
+
+            XCTAssertEqual(testConfig.minIntensity, 0.0025)
+            XCTAssertEqual(testConfig.schedule.count, 2)
+        } catch {
+            XCTFail()
+        }
+    }
+
+    func testEmptyConfig() {
+        let jsonData: JsonDict = [:]
+
+        do {
+            let _ = try Configuration(json: jsonData)
+            XCTFail()
+        } catch {
+            // Pass
+        }
+    }
+
+    func testConfigNoHardware() {
+        let jsonData: JsonDict = [
+            "SIM00": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                ],[
+                    "time": "11:30:00",
+                    "brightness": 0.50
+                ]]
+            ],
+            "SIM01": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                ],[
+                    "time": "11:30:00",
+                    "brightness": 0.50
+                ]]
+            ]
+        ]
+
+        do {
+            let _ = try Configuration(json: jsonData)
+            XCTFail()
+        } catch {
+            // Pass
+        }
+    }
+
+    func testConfigNoChannels() {
+        let jsonData: JsonDict = [
+            "hardware": [
+                "pwmMode": "simulated",
+                "channels": 2
+            ]
+        ]
+
+        do {
+            let _ = try Configuration(json: jsonData)
+            XCTFail()
+        } catch {
+            // Pass
+        }
+    }
+
+    func testConfigWrongChannelCount() {
+        let jsonData: JsonDict = [
+            "hardware": [
+                "pwmMode": "simulated",
+                "channels": 2
+            ],
+            "SIM00": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                ],[
+                    "time": "11:30:00",
+                    "brightness": 0.50
+                ]]
+            ]
+        ]
+
+        do {
+            let _ = try Configuration(json: jsonData)
+            XCTFail()
+        } catch {
+            // Pass
+        }
+    }
+
+    func testConfig() {
+        let jsonData: JsonDict = [
+            "hardware": [
+                "pwmMode": "simulated",
+                "channels": 2
+            ],
+            "SIM00": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                ],[
+                    "time": "11:30:00",
+                    "brightness": 0.50
+                ]]
+            ],
+            "SIM01": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                ],[
+                    "time": "11:30:00",
+                    "brightness": 0.50
+                ]]
+            ]
+        ]
+
+        do {
+            let testConfig = try Configuration(json: jsonData)
+
+            XCTAssertEqual(testConfig.channels.count, 2)
+        } catch {
+            XCTFail()
+        }
+    }
+
+    static public let dateFormatter: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.calendar = Calendar.current
+        return dateFormatter
+    }()
+
     static var allTests = [
+        // Hardware Config
         ("testEmptyHardwareConfig", testEmptyHardwareConfig),
         ("testMinHardwareConfig", testMinHardwareConfig),
         ("testHardwareConfig", testHardwareConfig),
+
+        // Channel Events
+        ("testEmptyChannelEventConfig", testEmptyChannelEventConfig),
+        ("testChannelEventNoSetting", testChannelEventNoSetting),
+        ("testChannelEventConfig", testChannelEventConfig),
+
+        // Channel Config
         ("testEmptyChannelConfig", testEmptyChannelConfig),
-        ("testChannelConfig", testChannelConfig)
+        ("testChannelConfigNoSchedule", testChannelConfigNoSchedule),
+        ("testMinChannelConfig", testMinChannelConfig),
+        ("testChannelConfig", testChannelConfig),
+
+        // Configuration
+        ("testEmptyConfig", testEmptyConfig),
+        ("testConfigNoHardware", testConfigNoHardware),
+        ("testConfigNoChannels", testConfigNoChannels),
+        ("testConfigWrongChannelCount", testConfigWrongChannelCount),
+        ("testConfig", testConfig)
     ]
 }
