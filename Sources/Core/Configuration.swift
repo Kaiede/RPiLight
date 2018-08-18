@@ -92,7 +92,7 @@ public struct Hardware {
         
         let frequency = json["freq"] as? Int ?? 480
         let channelCount = json["channels"] as? Int ?? 1
-        let gamma = json[""] as? Double ?? 1.8
+        let gamma = json["gamma"] as? Double ?? 1.8
 
         self.init(type: moduleType, board: boardType, channelCount: channelCount, frequency: frequency, gamma: gamma)
     }
@@ -110,18 +110,19 @@ public struct Hardware {
     }
 
     private static func getBoardType(json: JsonDict) throws -> BoardType {
+        if let board = json["board"] as? String {
+            guard let boardType = BoardType(rawValue: board) else {
+                throw ConfigurationError.invalidValue("board", value: board)
+            }
+            return boardType
+        }
+
         if let bestGuessBoard = BoardType.bestGuess() {
             return bestGuessBoard
         }
 
-        guard let board = json["board"] as? String else {
-            throw ConfigurationError.nodeMissing("board",
-                      message: "We tried to guess the hardware board and failed, it should be specified in 'hardware'")
-        }
-        guard let boardType = BoardType(rawValue: board) else {
-            throw ConfigurationError.invalidValue("board", value: board)
-        }
-        return boardType
+        throw ConfigurationError.nodeMissing("board",
+                  message: "We tried to guess the hardware board and failed, it should be specified in 'hardware'")
     }
 }
 

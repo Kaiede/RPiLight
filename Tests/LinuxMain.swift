@@ -4,5 +4,6 @@ import XCTest
 XCTMain([
     testCase(SwiftExtensionsTests.allTests),
     testCase(ChannelControllerTests.allTests),
+    testCase(ConfigurationTests.allTests),
     testCase(LayerTests.allTests)
 ])
