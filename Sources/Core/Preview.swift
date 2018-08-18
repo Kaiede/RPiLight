@@ -26,14 +26,14 @@
 import Foundation
 import Logging
 
-class Previewer {
+public class Previewer {
     // Compress a 24-hour day into 1 minute of preview
     private static let compressionFactor: Double = 24.0 * 60.0
     private static let oneMinute: Double = 60.0
 
     private let controller: LightController
     
-    init(usingController controller: LightController) {
+    public init(usingController controller: LightController) {
         self.controller = controller
     }
     

@@ -79,7 +79,7 @@ extension DispatchWallTime {
     }
 }
 
-class LightController {
+public class LightController {
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss Z"
@@ -101,7 +101,7 @@ class LightController {
     private var currentBehavior: LightBehavior?
     private var lastBehaviorRefresh: Date?
 
-    init(channels: [Channel]) {
+    public init(channels: [Channel]) {
         // Convert the array into a lookup
         self.channels = channels.reduce([String: Channel]()) { (dict, channel) -> [String: Channel] in
             var dict = dict
@@ -135,7 +135,7 @@ class LightController {
         }
     }
 
-    func applySchedule(schedule: [Event]) {
+    public func applySchedule(schedule: [Event]) {
         self.queue.async {
             self.schedule = LightLevelChangeEvent.createFromSchedule(schedule: schedule, channels: self.channels)
 

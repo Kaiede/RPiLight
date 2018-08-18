@@ -39,7 +39,7 @@ extension Calendar {
     }
 }
 
-extension DateComponents {
+public extension DateComponents {
     // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
     // but may not be very relevant for any other package.
     func calcNextDateCustom(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
@@ -57,7 +57,7 @@ extension DateComponents {
         return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
     }
 
-    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
+    public func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
         #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
             return Calendar.current.nextDate(after: date,
                                              matching: self,
@@ -72,8 +72,8 @@ extension DateComponents {
     }
 }
 
-extension FileManager {
-    var currentDirectoryUrl: URL {
+public extension FileManager {
+    public var currentDirectoryUrl: URL {
         return URL(fileURLWithPath: self.currentDirectoryPath)
     }
 }

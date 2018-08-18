@@ -30,18 +30,18 @@ import SwiftyGPIO
 
 typealias JsonDict = [String: Any]
 
-enum ConfigurationError: Error {
+public enum ConfigurationError: Error {
     case fileNotFound
     case nodeMissing(String, message: String)
     case invalidValue(String, value: String)
 }
 
-struct Configuration {
-    let hardware: Hardware
-    let channels: [ChannelInfo]
-    let schedule: [Event]
+public struct Configuration {
+    public let hardware: Hardware
+    public let channels: [ChannelInfo]
+    public let schedule: [Event]
 
-    init(withPath path: URL) throws {
+    public init(withPath path: URL) throws {
         guard let configData = try? Data(contentsOf: path, options: []) else { throw ConfigurationError.fileNotFound }
         let jsonAny = try? JSONSerialization.jsonObject(with: configData, options: [])
         guard let json = jsonAny as? JsonDict else { throw ConfigurationError.nodeMissing("root", message: "Unable to read configuration, invalid format") }
@@ -76,12 +76,12 @@ struct Configuration {
     }
 }
 
-struct Hardware {
-    let type: ModuleType
-    let board: BoardType
-    let channelCount: Int
-    let frequency: Int
-    let gamma: Double
+public struct Hardware {
+    public let type: ModuleType
+    public let board: BoardType
+    public let channelCount: Int
+    public let frequency: Int
+    public let gamma: Double
 
 
     init(json: JsonDict) throws {
@@ -105,7 +105,7 @@ struct Hardware {
         self.gamma = gamma
     }
 
-    func createModule() throws -> Module {
+    public func createModule() throws -> Module {
         return try self.type.createModule(board: self.board, channelCount: Int(self.channelCount), frequency: Int(self.frequency), gamma: gamma)
     }
 
@@ -125,9 +125,9 @@ struct Hardware {
     }
 }
 
-struct ChannelInfo {
-    let token: String
-    let minIntensity: Double
+public struct ChannelInfo {
+    public let token: String
+    public let minIntensity: Double
     
     init(json: JsonDict) throws {
         guard let token = json["token"] as? String else { throw ConfigurationError.nodeMissing("token", message: "All channels in configuration must have a token") }
@@ -142,9 +142,9 @@ struct ChannelInfo {
     }
 }
 
-struct Event {
-    let time: DateComponents
-    let channelValues: [ChannelValue]
+public struct Event {
+    public let time: DateComponents
+    public let channelValues: [ChannelValue]
 
     static private let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -177,9 +177,9 @@ struct Event {
 }
 
 
-struct ChannelValue {
-    let token: String
-    let setting: ChannelSetting
+public struct ChannelValue {
+    public let token: String
+    public let setting: ChannelSetting
 
     init(json: JsonDict) throws {
         guard let token = json["token"] as? String else { throw ConfigurationError.nodeMissing("token", message: "All channels in schedule events must have a token") }

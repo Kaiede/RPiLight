@@ -21,8 +21,12 @@ let package = Package(
     targets: [
     	Target(
     		name: "RPiLight",
-    		dependencies: ["PWM", "Logging"]
+    		dependencies: ["Core"]
     	),
+	Target(
+		name: "Core",
+		dependencies: ["PWM", "Logging"]
+	),
     	Target(
             name: "PWM",
             dependencies: ["Logging"]
