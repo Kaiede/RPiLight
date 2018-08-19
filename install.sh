@@ -7,8 +7,11 @@
 # Grab Latest Git State
 #
 function update_source() {
-	echo "Fetching Latest Source..."
-	git pull
+        echo "Fetching Latest Source..."
+        git fetch
+        LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+        echo "Updating to $LATEST_TAG..."
+        git checkout $LATEST_TAG
 }
 
 #
