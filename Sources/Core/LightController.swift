@@ -155,14 +155,20 @@ public class LightController: BehaviorController {
     private func refresh() {
         let now = Date()
         self.behavior.refresh(controller: self, forDate: now)
+        
+        if self.isRefreshOneShot {
+            self.scheduleRefresh(forDate: now)
+        }
     }
     
     private func stopInternal() {
         if let oldTimer = self.refreshTimer {
             oldTimer.cancel()
             self.refreshTimer = nil
-            DispatchQueue.main.async {
-                self.stopClosure?(self)
+            DispatchQueue.main.async { [weak self] in
+                if let controller = self {
+                    controller.stopClosure?(controller)
+                }
             }
         }
     }

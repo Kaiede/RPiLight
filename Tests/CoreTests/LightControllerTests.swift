@@ -45,6 +45,28 @@ class MockBehavior: Behavior {
     }
 }
 
+class MockOneShotBehavior: Behavior {
+    var refreshCount: Int = 0
+    var updateCount: Int = 0
+    var stopAfter: Int = 2
+    
+    init() {}
+    
+    func refresh(controller: BehaviorController, forDate date: Date) {
+        self.refreshCount += 1
+    }
+    
+    func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
+        self.updateCount += 1
+        
+        if self.updateCount > self.stopAfter {
+            return .stop
+        }
+        
+        return .oneShot(date.addingTimeInterval(0.01))
+    }
+}
+
 class LightControllerTests: XCTestCase {
     func testChannelEvent() {
         let mockChannel = MockChannel()
@@ -93,10 +115,28 @@ class LightControllerTests: XCTestCase {
         XCTAssertFalse(mockBehavior.shouldStop)
     }
     
+    func testOneShot() {
+        let mockController = MockBehaviorController(channelCount: 4)
+        let mockBehavior = MockOneShotBehavior()
+        let testController = LightController(channelControllers: mockController.channelControllers, behavior: mockBehavior)
+        
+        let expectation = XCTestExpectation(description: "Controller Stops")
+        testController.setStopHandler { (_) in
+            expectation.fulfill()
+        }
+        testController.start()
+        
+        wait(for: [expectation], timeout: 0.25)
+        
+        XCTAssertEqual(mockBehavior.refreshCount, mockBehavior.stopAfter)
+        XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter + 1)
+    }
+    
     static var allTests = [
         ("testChannelEvent", testChannelEvent),
         ("testAutoStop", testAutoStop),
-        ("testForceStop", testForceStop)
+        ("testForceStop", testForceStop),
+        ("testOneShot", testOneShot)
     ]
     
     static public let dateFormatter: DateFormatter = {
