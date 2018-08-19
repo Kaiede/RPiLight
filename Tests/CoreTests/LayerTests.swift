@@ -160,19 +160,19 @@ class LayerTests: XCTestCase {
         for (timeString, expectedRate, expectedStart, expectedEnd) in testExpectations {
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
 
-            var startDate = MockLayerPoint.dateFormatter.date(from: expectedStart)!
-            var endDate = MockLayerPoint.dateFormatter.date(from: expectedEnd)!
+            let startDate = MockLayerPoint.dateFormatter.date(from: expectedStart)!
+            let endDate = MockLayerPoint.dateFormatter.date(from: expectedEnd)!
             let startComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: startDate)
             let endComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: endDate)
-            startDate = startComponents.calcNextDateCustom(after: testDate, direction: .backward)!
-            endDate = endComponents.calcNextDateCustom(after: testDate, direction: .forward)!
+            let startDateCorrected = startComponents.calcNextDateCustom(after: testDate, direction: .backward)!
+            let endDateCorrected = endComponents.calcNextDateCustom(after: testDate, direction: .forward)!
 
             let (layerRate, layerStart, layerEnd) = testLayer.rateOfChange(forDate: testDate)
             let updatesPerSecond = layerRate * 4096.0
-            print("\(startDate) -> \(endDate) [\(layerRate)]")
-            XCTAssertEqual(updatesPerSecond, expectedRate, accuracy: 0.001, "\(startDate) -> \(endDate)")
-            XCTAssertEqual(layerStart, startDate, "\(startDate) -> \(endDate)")
-            XCTAssertEqual(layerEnd, endDate, "\(startDate) -> \(endDate)")
+            print("\(startDateCorrected) -> \(endDateCorrected) [\(layerRate)]")
+            XCTAssertEqual(updatesPerSecond, expectedRate, accuracy: 0.001, "\(startDateCorrected) -> \(endDateCorrected)")
+            XCTAssertEqual(layerStart, startDateCorrected, "\(startDateCorrected) -> \(endDateCorrected)")
+            XCTAssertEqual(layerEnd, endDateCorrected, "\(startDateCorrected) -> \(endDateCorrected)")
         }
     }
 
