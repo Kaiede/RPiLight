@@ -73,13 +73,10 @@ class SwiftExtensionsTests: XCTestCase {
     ]
 
     static private let dateFormatter: DateFormatter = {
-        var calendar = Calendar.current
-        calendar.timeZone = TimeZone(abbreviation: "UTC")!
-        
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HH:mm:ss"
-        dateFormatter.calendar = calendar
-        dateFormatter.timeZone = calendar.timeZone
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")!
+        dateFormatter.calendar = Calendar(identifier: .gregorian)
         return dateFormatter
     }()
 }

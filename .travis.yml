@@ -31,11 +31,6 @@ matrix:
 
     - name: "Mac Xcode 9.4"
       os: osx
-      osx_image: xcode9.2
-      language: generic
-
-    - name: "Mac Xcode 9.4"
-      os: osx
       osx_image: xcode9.4
       language: generic
 
