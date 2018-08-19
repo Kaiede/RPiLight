@@ -59,7 +59,7 @@ class SwiftExtensionsTests: XCTestCase {
                                                               repeatedTimePolicy: .first,
                                                               direction: searchDirection)!
 
-            XCTAssertEqual(calculatedDate, calculatedDateMac)
+            XCTAssertEqual(calculatedDate, calculatedDateMac, "\(startDate) -> \(targetTime) [\(searchDirection)]")
             #endif
         }
     }
