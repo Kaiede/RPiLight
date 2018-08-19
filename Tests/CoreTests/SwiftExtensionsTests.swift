@@ -51,6 +51,8 @@ class SwiftExtensionsTests: XCTestCase {
                 XCTAssertGreaterThan(calculatedDate, startDate)
             }
 
+            print(calculatedDate)
+            
             // Apple-only: Compare against real implementation
             #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
             let calculatedDateMac = Calendar.current.nextDate(after: startDate,
@@ -59,6 +61,7 @@ class SwiftExtensionsTests: XCTestCase {
                                                               repeatedTimePolicy: .first,
                                                               direction: searchDirection)!
 
+            print("\(startDate) -> \(targetTime) [\(searchDirection)]")
             XCTAssertEqual(calculatedDate, calculatedDateMac, "\(startDate) -> \(targetTime) [\(searchDirection)]")
             #endif
         }
@@ -69,10 +72,13 @@ class SwiftExtensionsTests: XCTestCase {
     ]
 
     static private let dateFormatter: DateFormatter = {
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone(abbreviation: "UTC")!
+        
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HH:mm:ss"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")!
-        dateFormatter.calendar = Calendar.current
+        dateFormatter.calendar = calendar
+        dateFormatter.timeZone = calendar.timeZone
         return dateFormatter
     }()
 }
