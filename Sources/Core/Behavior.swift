@@ -39,6 +39,8 @@ public enum LightBehaviorUpdate {
 }
 
 public protocol BehaviorChannel {
+    var rootController: BehaviorController? { get set }
+    
     func update(forDate date: Date)
 }
 

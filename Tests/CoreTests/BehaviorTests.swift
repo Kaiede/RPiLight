@@ -43,6 +43,7 @@ class MockBehaviorController: BehaviorController {
 }
 
 class MockBehaviorChannel: BehaviorChannel {
+    var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
     
     func update(forDate date: Date) {

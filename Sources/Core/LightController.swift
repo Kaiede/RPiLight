@@ -90,6 +90,11 @@ public class LightController: BehaviorController {
         
         // Copy the channel controllers
         self.channelControllers = channelControllers
+        
+        // Attach the channel controllers to self
+        for var channelController in self.channelControllers.values {
+            channelController.rootController = self
+        }
     }
     
     public convenience init(channels: [Channel],

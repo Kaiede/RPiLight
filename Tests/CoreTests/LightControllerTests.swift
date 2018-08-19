@@ -84,6 +84,21 @@ class LightControllerTests: XCTestCase {
         XCTAssertEqual(testEvent.brightness, pow(0.5, (1/mockChannel.gamma)))
     }
     
+    func testChannelBinding() {
+        let mockController = MockBehaviorController(channelCount: 4)
+        let channelControllers = mockController.channelControllers
+        
+        for controller in channelControllers.values {
+            XCTAssertNil(controller.rootController)
+        }
+
+        let testController = LightController(channelControllers: channelControllers, behavior: MockBehavior())
+        
+        for controller in testController.channelControllers.values {
+            XCTAssertNotNil(controller.rootController)
+        }
+    }
+    
     func testAutoStop() {
         let mockController = MockBehaviorController(channelCount: 4)
         let testController = LightController(channelControllers: mockController.channelControllers, behavior: MockBehavior())
@@ -134,6 +149,7 @@ class LightControllerTests: XCTestCase {
     
     static var allTests = [
         ("testChannelEvent", testChannelEvent),
+        ("testChannelBinding", testChannelBinding),
         ("testAutoStop", testAutoStop),
         ("testForceStop", testForceStop),
         ("testOneShot", testOneShot)

@@ -36,9 +36,11 @@ class MockChannel: Channel {
 }
 
 class MockLayer: ChannelLayer {
+    var activeIndex: Int = 0
     var lightLevel: Double = 0.0
 
     func lightLevel(forDate now: Date) -> Double {
+        self.activeIndex += 1
         return self.lightLevel
     }
 }
@@ -89,13 +91,35 @@ class ChannelControllerTests: XCTestCase {
 
             let channelSetting = testChannel.setting.asBrightness(withGamma: testChannel.gamma)
             XCTAssertEqual(channelSetting, testValue)
-
         }
+    }
+    
+    func testChannelInvalidate() {
+        let mockController = MockBehaviorController(channelCount: 4)
+        let mockChannel = MockChannel()
+        let testController = ChannelController(channel: mockChannel)
+
+        testController.rootController = mockController
+        
+        // Case 1: Setting Layer
+        XCTAssertFalse(mockController.didInvalidate)
+        let testLayer = MockLayer()
+        testController.setBase(layer: testLayer)
+        XCTAssertTrue(mockController.didInvalidate)
+        
+        mockController.didInvalidate = false
+        
+        // Case 2: Changing Active Index on Layer (Mock triggers this on update)
+        XCTAssertFalse(mockController.didInvalidate)
+        testController.update(forDate: Date())
+        XCTAssertTrue(mockController.didInvalidate)
     }
 
     static var allTests = [
+        ("testSettingBaseLayer", testSettingBaseLayer),
         ("testUpdateNoLayer", testUpdateNoLayer),
-        ("testChannelUpdate", testChannelUpdate)
+        ("testChannelUpdate", testChannelUpdate),
+        ("testChannelInvalidate", testChannelInvalidate)
     ]
 }
 

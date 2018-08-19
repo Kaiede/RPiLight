@@ -29,14 +29,18 @@ import Logging
 import PWM
 
 protocol ChannelLayer {
+    var activeIndex: Int { get }
+    
     func lightLevel(forDate now: Date) -> Double
 }
 
 public class ChannelController: BehaviorChannel {
+    public var rootController: BehaviorController?
     var channel: Channel
     var layers: [ChannelLayer]
 
     init(channel: Channel) {
+        self.rootController = nil
         self.channel = channel
         self.layers = []
     }
@@ -47,6 +51,8 @@ public class ChannelController: BehaviorChannel {
         } else {
             self.layers[0] = layer
         }
+        
+        self.rootController?.invalidateRefreshTimer()
     }
 
     public func update(forDate date: Date) {
@@ -54,13 +60,20 @@ public class ChannelController: BehaviorChannel {
             self.channel.setting = .intensity(0.0)
             return
         }
-
-        var channelBrightness = 1.0
+        
+        var shouldInvalidate: Bool = false
+        var channelBrightness: Double = 1.0
         for layer in self.layers {
+            let oldIndex = layer.activeIndex
             let layerBrightness = layer.lightLevel(forDate: date)
             channelBrightness *= layerBrightness
+            
+            shouldInvalidate = shouldInvalidate || (oldIndex != layer.activeIndex)
         }
 
         self.channel.setting = .brightness(channelBrightness)
+        if shouldInvalidate {
+            self.rootController?.invalidateRefreshTimer()
+        }
     }
 }
