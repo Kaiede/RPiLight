@@ -103,13 +103,13 @@ class LightControllerTests: XCTestCase {
         let mockController = MockBehaviorController(channelCount: 4)
         let testController = LightController(channelControllers: mockController.channelControllers, behavior: MockBehavior())
         
-        let expectation = XCTestExpectation(description: "Controller Stops")
+        let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
-            expectation.fulfill()
+            controllerStopped.fulfill()
         }
         testController.start()
         
-        wait(for: [expectation], timeout: 0.25)
+        wait(for: [controllerStopped], timeout: 0.25)
     }
     
     func testForceStop() {
@@ -117,14 +117,14 @@ class LightControllerTests: XCTestCase {
         let mockBehavior = MockBehavior()
         let testController = LightController(channelControllers: mockController.channelControllers, behavior: mockBehavior)
         
-        let expectation = XCTestExpectation(description: "Controller Stops")
+        let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
-            expectation.fulfill()
+            controllerStopped.fulfill()
         }
         testController.start()
         testController.stop()
         
-        wait(for: [expectation], timeout: 0.25)
+        wait(for: [controllerStopped], timeout: 0.25)
         
         // Shouldn't have waited until a refresh to stop the controller
         XCTAssertFalse(mockBehavior.shouldStop)
@@ -135,13 +135,13 @@ class LightControllerTests: XCTestCase {
         let mockBehavior = MockOneShotBehavior()
         let testController = LightController(channelControllers: mockController.channelControllers, behavior: mockBehavior)
         
-        let expectation = XCTestExpectation(description: "Controller Stops")
+        let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
-            expectation.fulfill()
+            controllerStopped.fulfill()
         }
         testController.start()
         
-        wait(for: [expectation], timeout: 0.25)
+        wait(for: [controllerStopped], timeout: 0.25)
         
         XCTAssertEqual(mockBehavior.refreshCount, mockBehavior.stopAfter)
         XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter + 1)
