@@ -64,7 +64,7 @@ class MockOneShotBehavior: Behavior {
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
         self.updateCount += 1
         
-        if self.updateCount > self.stopAfter {
+        if self.updateCount >= self.stopAfter {
             return .stop
         }
         
@@ -149,7 +149,7 @@ class LightControllerTests: XCTestCase {
         
         waitForExpectations(timeout: 0.25) { (error) in
             XCTAssertEqual(mockBehavior.refreshCount, mockBehavior.stopAfter)
-            XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter + 1)
+            XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter)
         }
     }
     

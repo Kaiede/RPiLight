@@ -71,6 +71,7 @@ public class LightController: BehaviorController {
     private var refreshTimer: DispatchSourceTimer?
 
     private var behavior: Behavior
+    private var isRunning: Bool
     private var isRefreshOneShot: Bool
     private var stopClosure: StopClosure?
 
@@ -85,8 +86,9 @@ public class LightController: BehaviorController {
                                    attributes: [],
                                    autoreleaseFrequency: .inherit,
                                    target: nil)
-        self.refreshTimer = nil
+        self.isRunning = false
         self.isRefreshOneShot = false
+        self.refreshTimer = nil
         
         // Copy the channel controllers
         self.channelControllers = channelControllers
@@ -133,8 +135,9 @@ public class LightController: BehaviorController {
     
     public func start() {
         self.queue.async {
-            let now = Date()
-            self.scheduleRefresh(forDate: now)
+            self.isRunning = true
+            self.isRefreshOneShot = true
+            self.refresh()
         }
     }
     
@@ -152,8 +155,10 @@ public class LightController: BehaviorController {
     
     public func invalidateRefreshTimer() {
         self.queue.async {
-            let now = Date()
-            self.scheduleRefresh(forDate: now)
+            if self.isRunning {
+                let now = Date()
+                self.scheduleRefresh(forDate: now)
+            }
         }
     }
     
@@ -167,9 +172,12 @@ public class LightController: BehaviorController {
     }
     
     private func stopInternal() {
-        if let oldTimer = self.refreshTimer {
-            oldTimer.cancel()
-            self.refreshTimer = nil
+        if self.isRunning {
+            self.isRunning = false
+            if let oldTimer = self.refreshTimer {
+                oldTimer.cancel()
+                self.refreshTimer = nil
+            }
             DispatchQueue.main.async { [weak self] in
                 if let controller = self {
                     controller.stopClosure?(controller)
