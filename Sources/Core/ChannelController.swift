@@ -25,13 +25,14 @@
 
 import Foundation
 
+import Logging
 import PWM
 
 protocol ChannelLayer {
     func lightLevel(forDate now: Date) -> Double
 }
 
-class ChannelController {
+public class ChannelController: BehaviorChannel {
     var channel: Channel
     var layers: [ChannelLayer]
 
@@ -48,7 +49,7 @@ class ChannelController {
         }
     }
 
-    func update(forDate date: Date) {
+    public func update(forDate date: Date) {
         guard self.layers.count > 0 else {
             self.channel.setting = .intensity(0.0)
             return

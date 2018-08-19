@@ -24,6 +24,8 @@
  */
 
 import Foundation
+
+import Logging
 import PWM
 
 protocol LayerPoint {
@@ -44,7 +46,7 @@ class Layer: ChannelLayer {
     }
 
     func lightLevel(forDate now: Date) -> Double {
-        if now > self.activeSegment.endDate {
+        if now > self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
         }
 
@@ -57,6 +59,13 @@ class Layer: ChannelLayer {
             .max(by: { $0.element < $1.element })!
 
         let activeSegment = Layer.segment(forIndex: activeIndex, withStartDate: activeDate, points: points)
+        
+        Log.withInfo {
+            let formatter = Log.dateFormatter
+            Log.info("Switched to Segment: [\(activeIndex)] \(formatter.string(from: activeSegment.startDate)) -> \(formatter.string(from: activeSegment.endDate))")
+            Log.info("Segment Range: \(activeSegment.range)")
+        }
+        
         return (activeIndex, activeSegment)
     }
 

@@ -160,15 +160,23 @@ for channelInfo in configuration.channels {
 //
 // MARK: Initialize Light Controller and Run
 //
-var controller = LightController(channels: activeChannels)
-
-Log.error("Closed for Renovation")
-/*
 if previewMode.value {
-    let previewer = Previewer(usingController: controller)
-    previewer.runSchedule(configuration.schedule)
-} else {
-    // Ruin the Schedule Normally
-    controller.applySchedule(schedule: configuration.schedule)
+    // Preview
+    let controller = try! LightController(channels: activeChannels, withConfig: configuration.channels, behavior: PreviewLightBehavior())
+    controller.setStopHandler { (controller) in
+        Log.info("Simulation Complete")
+        exit(0)
+    }
+
+    controller.start()
     dispatchMain()
-}*/
+} else {
+    // Normal Schedule
+    let controller = try! LightController(channels: activeChannels, withConfig: configuration.channels)
+    controller.setStopHandler { (controller) in
+        Log.error("Controller unexpectedly stopped.")
+        exit(1)
+    }
+    controller.start()
+    dispatchMain()
+}

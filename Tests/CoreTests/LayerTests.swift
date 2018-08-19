@@ -104,9 +104,35 @@ class LayerTests: XCTestCase {
 
         for (timeString, expectedBrightness) in testExpectations {
             // Start from known point every time
-            let startTimeString = MockLayerPoint.dateFormatter.date(from: "00:00:00")!
-            let testLayer = Layer(points: LayerTests.testData, startTime: startTimeString)
+            let startTime = MockLayerPoint.dateFormatter.date(from: "00:00:00")!
+            let testLayer = Layer(points: LayerTests.testData, startTime: startTime)
 
+            let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
+            let brightness = testLayer.lightLevel(forDate: testDate)
+            XCTAssertEqual(brightness, expectedBrightness, "\(timeString)")
+        }
+    }
+    
+    func testLightLevelInReverse() {
+        let testExpectations = [
+            ("08:00:00", 0.0),
+            ("08:15:00", 0.125), // Midway
+            ("08:30:00", 0.25),
+            ("11:00:00", 0.25), // Midway
+            ("12:00:00", 0.25),
+            ("14:00:00", 0.50),
+            ("18:00:00", 0.50),
+            ("19:00:00", 0.30), // Midway
+            ("20:00:00", 0.10),
+            ("22:30:00", 0.10),
+            ("23:00:00", 0.0)
+        ]
+        
+        for (timeString, expectedBrightness) in testExpectations.reversed() {
+            // Start from known point every time
+            let startTime = MockLayerPoint.dateFormatter.date(from: "23:59:59")!
+            let testLayer = Layer(points: LayerTests.testData, startTime: startTime)
+            
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
             let brightness = testLayer.lightLevel(forDate: testDate)
             XCTAssertEqual(brightness, expectedBrightness, "\(timeString)")
@@ -127,6 +153,7 @@ class LayerTests: XCTestCase {
     static var allTests = [
         ("testActiveIndex", testActiveIndex),
         ("testActiveSegment", testActiveSegment),
-        ("testLightLevel", testLightLevel)
+        ("testLightLevel", testLightLevel),
+        ("testLightLevelInReverse", testLightLevelInReverse)
     ]
 }

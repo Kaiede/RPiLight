@@ -2,7 +2,7 @@
     "hardware": {
         "pwmMode": "simulated",
         "channels": 1
-    }
+    },
 
     "SIM00": {
         "minIntensity": 0.0025,

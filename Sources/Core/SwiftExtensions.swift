@@ -81,6 +81,15 @@ public extension FileManager {
 //
 // MARK: Dispatch Extensions
 //
+extension DispatchWallTime {
+    init(date: Date) {
+        let NSEC_IN_SEC: UInt64 = 1_000_000_000
+        let interval = date.timeIntervalSince1970
+        let spec = timespec(tv_sec: Int(interval), tv_nsec: Int(UInt64(interval * Double(NSEC_IN_SEC)) % NSEC_IN_SEC))
+        self.init(timespec: spec)
+    }
+}
+
 extension DispatchSourceTimer {
     public func schedulePrecise(forDate date: Date) {
         #if swift(>=4.0)

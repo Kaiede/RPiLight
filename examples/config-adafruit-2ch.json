@@ -16,7 +16,7 @@
             { "time": "22:30:00", "brightness": 0.10 },
             { "time": "23:00:00", "brightness": 0.0 },
         ]
-    }
+    },
 
     "PWM01": {
         "schedule": [
