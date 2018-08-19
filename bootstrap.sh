@@ -90,5 +90,5 @@ add_swift_path
 
 git clone https://github.com/Kaiede/RPiLight.git
 pushd ~/RPiLight > /dev/null
-./install.sh 
+./install.sh update
 popd > /dev/null
