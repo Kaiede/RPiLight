@@ -109,7 +109,7 @@ class LightControllerTests: XCTestCase {
         }
         testController.start()
         
-        wait(for: [controllerStopped], timeout: 0.25)
+        waitForExpectations(timeout: 0.25)
     }
     
     func testForceStop() {
@@ -124,10 +124,10 @@ class LightControllerTests: XCTestCase {
         testController.start()
         testController.stop()
         
-        wait(for: [controllerStopped], timeout: 0.25)
-        
-        // Shouldn't have waited until a refresh to stop the controller
-        XCTAssertFalse(mockBehavior.shouldStop)
+        waitForExpectations(timeout: 0.25) { (error) in
+            // Shouldn't have waited until a refresh to stop the controller
+            XCTAssertFalse(mockBehavior.shouldStop)
+        }
     }
     
     func testOneShot() {
@@ -141,10 +141,10 @@ class LightControllerTests: XCTestCase {
         }
         testController.start()
         
-        wait(for: [controllerStopped], timeout: 0.25)
-        
-        XCTAssertEqual(mockBehavior.refreshCount, mockBehavior.stopAfter)
-        XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter + 1)
+        waitForExpectations(timeout: 0.25) { (error) in
+            XCTAssertEqual(mockBehavior.refreshCount, mockBehavior.stopAfter)
+            XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter + 1)
+        }
     }
     
     static var allTests = [
