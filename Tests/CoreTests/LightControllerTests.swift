@@ -27,12 +27,17 @@ import XCTest
 @testable import Core
 
 class MockBehavior: Behavior {
+    var refreshCount: Int = 0
+    var stopsAt: Int = 1
     var shouldStop: Bool = false
     
     init() {}
     
     func refresh(controller: BehaviorController, forDate date: Date) {
-        self.shouldStop = true
+        self.refreshCount += 1
+        if self.refreshCount > self.stopsAt {
+            self.shouldStop = true
+        }
         controller.invalidateRefreshTimer()
     }
     
@@ -115,6 +120,7 @@ class LightControllerTests: XCTestCase {
     func testForceStop() {
         let mockController = MockBehaviorController(channelCount: 4)
         let mockBehavior = MockBehavior()
+        mockBehavior.stopsAt = 20
         let testController = LightController(channelControllers: mockController.channelControllers, behavior: mockBehavior)
         
         let controllerStopped = expectation(description: "Controller Stops")
