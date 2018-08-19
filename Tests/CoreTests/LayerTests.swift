@@ -141,23 +141,23 @@ class LayerTests: XCTestCase {
     
     func testLayerRateOfChange() {
         let testExpectations = [
-            // Time, Rate, Segment Start, Segment End
-            ("07:00:00", 0.000, "23:00:00", "08:00:00"),
-            ("08:15:00", 0.568, "08:00:00", "08:30:00"),
-            ("10:00:00", 0.000, "08:30:00", "12:00:00"),
-            ("13:00:00", 0.142, "12:00:00", "14:00:00"),
-            ("16:00:00", 0.000, "14:00:00", "18:00:00"),
-            ("19:00:00", 0.227, "18:00:00", "20:00:00"),
-            ("21:00:00", 0.000, "20:00:00", "22:30:00"),
-            ("22:45:00", 0.227, "22:30:00", "23:00:00"),
-            ("23:30:00", 0.000, "23:00:00", "08:00:00")
+            // Time, Delta Change, Segment Start, Segment End
+            ("07:00:00", 0.00, "23:00:00", "08:00:00"),
+            ("08:15:00", 0.25, "08:00:00", "08:30:00"),
+            ("10:00:00", 0.00, "08:30:00", "12:00:00"),
+            ("13:00:00", 0.25, "12:00:00", "14:00:00"),
+            ("16:00:00", 0.00, "14:00:00", "18:00:00"),
+            ("19:00:00", 0.40, "18:00:00", "20:00:00"),
+            ("21:00:00", 0.00, "20:00:00", "22:30:00"),
+            ("22:45:00", 0.10, "22:30:00", "23:00:00"),
+            ("23:30:00", 0.00, "23:00:00", "08:00:00")
         ]
         
         // We should be able to query the same object at any time
         let startTime = MockLayerPoint.dateFormatter.date(from: "00:00:00")!
         let testLayer = Layer(points: LayerTests.testData, startTime: startTime)
         
-        for (timeString, expectedRate, expectedStart, expectedEnd) in testExpectations {
+        for (timeString, expectedChange, expectedStart, expectedEnd) in testExpectations {
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
 
             let startDate = MockLayerPoint.dateFormatter.date(from: expectedStart)!
@@ -167,12 +167,10 @@ class LayerTests: XCTestCase {
             let startDateCorrected = startComponents.calcNextDateCustom(after: testDate, direction: .backward)!
             let endDateCorrected = endComponents.calcNextDateCustom(after: testDate, direction: .forward)!
 
-            let (layerRate, layerStart, layerEnd) = testLayer.rateOfChange(forDate: testDate)
-            let updatesPerSecond = layerRate * 4096.0
-            print("\(startDateCorrected) -> \(endDateCorrected) [\(layerRate)]")
-            XCTAssertEqual(updatesPerSecond, expectedRate, accuracy: 0.001, "\(startDateCorrected) -> \(endDateCorrected)")
-            XCTAssertEqual(layerStart, startDateCorrected, "\(startDateCorrected) -> \(endDateCorrected)")
-            XCTAssertEqual(layerEnd, endDateCorrected, "\(startDateCorrected) -> \(endDateCorrected)")
+            let layerSegment = testLayer.segment(forDate: testDate)
+            XCTAssertEqual(layerSegment.totalBrightnessChange, expectedChange)
+            XCTAssertEqual(layerSegment.startDate, startDateCorrected, "\(startDateCorrected) -> \(endDateCorrected)")
+            XCTAssertEqual(layerSegment.endDate, endDateCorrected, "\(startDateCorrected) -> \(endDateCorrected)")
         }
     }
 

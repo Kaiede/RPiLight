@@ -45,14 +45,12 @@ class MockBehaviorController: BehaviorController {
 class MockBehaviorChannel: BehaviorChannel {
     var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
-    var forceSleep: Bool = false
+    var brightnessDelta: Double = 1.0
     
-    func rateOfChange(forDate date: Date) -> ChannelRateOfChange {
-        if forceSleep {
-            return (rate: 0.0, segmentStart: Date.distantPast, segmentEnd: Date.distantFuture)
-        } else {
-            return (rate: 1.0 / 4096.0, segmentStart: Date.distantPast, segmentEnd: Date.distantFuture)
-        }
+    func segment(forDate date: Date) -> ChannelSegment {
+        let startDate = date.addingTimeInterval(-30.0)
+        let endDate = date.addingTimeInterval(30.0)
+        return MockChannelSegment(startBrightness: 0.0, endBrightness: brightnessDelta, startDate: startDate, endDate: endDate)
     }
 
     func update(forDate date: Date) {
@@ -85,14 +83,17 @@ class BehaviorTests: XCTestCase {
         let refreshDate = Date()
         let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
         
+        let expectedRefreshRate = (1.0 * 4096.0) / 60.0 // 1.0 brightness change over 1 minute
+        let expectedInterval = Int(1000 / expectedRefreshRate)
+        
         switch result {
         case .stop:
             XCTFail()
         case .oneShot(_):
             XCTFail()
         case .repeating(let date, let interval):
-            XCTAssertEqual(date, Date.distantPast)
-            XCTAssertEqual(interval, 1000)
+            XCTAssertEqual(date, refreshDate.addingTimeInterval(-30))
+            XCTAssertEqual(interval, expectedInterval)
         }
     }
     
@@ -100,20 +101,40 @@ class BehaviorTests: XCTestCase {
         let testBehavior = DefaultLightBehavior()
         
         let mockController = MockBehaviorController(channelCount: 4)
-        for case let channel as MockBehaviorChannel in mockController.channelControllers.values {
-            channel.forceSleep = true
-        }
+
+        let testData = [
+            // Change, Should Sleep
+            (0.00000, true),
+            (0.00001, true),
+            (0.00010, false),
+            (0.01000, false),
+            (0.33332, false),
+            (0.50000, false),
+            (0.75000, false),
+            (1.00000, false)
+        ]
         
-        let refreshDate = Date()
-        let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
-        
-        switch result {
-        case .stop:
-            XCTFail()
-        case .oneShot(let date):
-            XCTAssertEqual(date, Date.distantFuture)
-        case .repeating(_, _):
-            XCTFail()
+        for (brightnessDelta, expectSleep) in testData {
+            for case let channel as MockBehaviorChannel in mockController.channelControllers.values {
+                channel.brightnessDelta = brightnessDelta
+            }
+            let refreshDate = Date()
+            let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
+            
+            switch result {
+            case .stop:
+                XCTFail()
+            case .oneShot(let date):
+                if expectSleep {
+                    XCTAssertEqual(date, refreshDate.addingTimeInterval(30))
+                } else {
+                    XCTFail()
+                }
+            case .repeating(_, _):
+                if expectSleep {
+                    XCTFail()
+                }
+            }
         }
     }
     

@@ -28,13 +28,44 @@ import Foundation
 import Logging
 import PWM
 
-public typealias ChannelRateOfChange = (rate: Double, segmentStart: Date, segmentEnd: Date)
+public protocol ChannelSegment {
+    var startBrightness: Double { get }
+    var endBrightness: Double { get }
+    var startDate: Date { get }
+    var endDate: Date { get }
+}
+
+extension ChannelSegment {
+    var totalBrightnessChange: Double {
+        return abs(self.endBrightness - self.startBrightness)
+    }
+    
+    var duration: TimeInterval {
+        return self.endDate.timeIntervalSince(self.startDate)
+    }
+}
 
 protocol ChannelLayer {
     var activeIndex: Int { get }
 
-    func rateOfChange(forDate date: Date) -> ChannelRateOfChange
+    func segment(forDate date: Date) -> ChannelSegment
     func lightLevel(forDate now: Date) -> Double
+}
+
+// Wrapper that allows for merging multiple ChannelSegments
+struct ChannelControllerSegment: ChannelSegment {
+    var startBrightness: Double = 0.0
+    var endBrightness: Double = 0.0
+    
+    var startDate: Date = Date.distantFuture
+    var endDate: Date = Date.distantFuture
+    
+    mutating func union(withSegment segment: ChannelSegment) {
+        self.startBrightness = max(self.startBrightness, segment.startBrightness)
+        self.endBrightness = max(self.endBrightness, segment.endBrightness)
+        self.startDate = min(self.startDate, segment.startDate)
+        self.endDate = min(self.endDate, segment.endDate)
+    }
 }
 
 public class ChannelController: BehaviorChannel {
@@ -58,19 +89,14 @@ public class ChannelController: BehaviorChannel {
         self.rootController?.invalidateRefreshTimer()
     }
     
-    public func rateOfChange(forDate date: Date) -> ChannelRateOfChange {
-        // brightnessRate is Units of Brightness (0-1) per Second
-        var brightnessRate: Double = 0.0
-        var segmentEnd: Date = Date.distantFuture
-        var segmentStart: Date = Date.distantFuture
+    public func segment(forDate date: Date) -> ChannelSegment {
+        var channelSegment = ChannelControllerSegment()
         for layer in self.layers {
-            let (layerBrightnessRate, layerSegmentStart, layerSegmentEnd) = layer.rateOfChange(forDate: date)
-            brightnessRate = max(brightnessRate, layerBrightnessRate)
-            segmentStart = min(segmentStart, layerSegmentStart)
-            segmentEnd = min(segmentEnd, layerSegmentEnd)
+            let layerSegment = layer.segment(forDate: date)
+            channelSegment.union(withSegment: layerSegment)
         }
-        
-        return (rate: brightnessRate, segmentStart: segmentStart, segmentEnd: segmentEnd)
+
+        return channelSegment
     }
 
     public func update(forDate date: Date) {

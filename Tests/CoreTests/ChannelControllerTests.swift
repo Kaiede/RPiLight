@@ -35,12 +35,28 @@ class MockChannel: Channel {
     var setting: ChannelSetting = .intensity(0.0)
 }
 
+class MockChannelSegment: ChannelSegment {
+    var startBrightness: Double
+    var endBrightness: Double
+    var startDate: Date
+    var endDate: Date
+    
+    init(startBrightness: Double, endBrightness: Double, startDate: Date, endDate: Date) {
+        self.startBrightness = startBrightness
+        self.endBrightness = endBrightness
+        self.startDate = startDate
+        self.endDate = endDate
+    }
+}
+
 class MockLayer: ChannelLayer {
     var activeIndex: Int = 0
     var lightLevel: Double = 0.0
     
-    func rateOfChange(forDate date: Date) -> ChannelRateOfChange {
-        return (rate: 1.0 / 4096.0 , segmentStart: Date.distantPast, segmentEnd: Date.distantFuture)
+    func segment(forDate date: Date) -> ChannelSegment {
+        let startDate = date.addingTimeInterval(-30.0)
+        let endDate = date.addingTimeInterval(30.0)
+        return MockChannelSegment(startBrightness: 0.0, endBrightness: 1.0, startDate: startDate, endDate: endDate)
     }
 
     func lightLevel(forDate now: Date) -> Double {
@@ -126,10 +142,9 @@ class ChannelControllerTests: XCTestCase {
         
         testController.setBase(layer: testLayer)
         
-        let (testRate, testSegmentStart, testSegmentEnd) = testController.rateOfChange(forDate: Date())
-        XCTAssertEqual(testRate, 1.0 / 4096.0)
-        XCTAssertEqual(testSegmentStart, Date.distantPast)
-        XCTAssertEqual(testSegmentEnd, Date.distantFuture)
+        let testSegment = testController.segment(forDate: Date())
+        XCTAssertEqual(testSegment.totalBrightnessChange, 1.0)
+        XCTAssertEqual(testSegment.duration, 60.0)
     }
 
     static var allTests = [

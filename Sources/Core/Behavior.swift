@@ -42,7 +42,7 @@ public protocol BehaviorChannel {
     var rootController: BehaviorController? { get set }
     
     func update(forDate date: Date)
-    func rateOfChange(forDate date: Date) -> ChannelRateOfChange
+    func segment(forDate date: Date) -> ChannelSegment
 }
 
 public protocol BehaviorController {
@@ -104,27 +104,23 @@ public struct DefaultLightBehavior: Behavior {
     }
     
     public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
-        let minChangeRate: Double = 0.0001
+        let minChange: Double = 0.0001
         let targetChanges: Double = 4096
         
-        var shouldSleep: Bool = true
-        var brightnessRate: Double = 0.0
-        var segmentStart: Date = Date.distantFuture
-        var segmentEnd: Date = Date.distantFuture
+        var mergedSegment: ChannelControllerSegment = ChannelControllerSegment()
         for channelController in controller.channelControllers.values {
-            let (channelBrightnessRate, channelSegmentStart, channelSegmentEnd) = channelController.rateOfChange(forDate: date)
-            shouldSleep = shouldSleep && (channelBrightnessRate < minChangeRate)
-            brightnessRate = max(brightnessRate, channelBrightnessRate)
-            segmentStart = min(segmentStart, channelSegmentStart)
-            segmentEnd = min(segmentEnd, channelSegmentEnd)
+            let channelSegment = channelController.segment(forDate: date)
+            mergedSegment.union(withSegment: channelSegment)
         }
         
-        let updatesPerSec = min(100.0, brightnessRate * targetChanges)
+        let shouldSleep = mergedSegment.totalBrightnessChange < minChange
+        let desiredUpdatesPerSec = (mergedSegment.totalBrightnessChange * targetChanges) / mergedSegment.duration
+        let updatesPerSec = min(100.0, desiredUpdatesPerSec)
         
         if shouldSleep {
-            return .oneShot(segmentEnd)
+            return .oneShot(mergedSegment.endDate)
         }
         
-        return .repeating(segmentStart, Int(1000.0 / updatesPerSec))
+        return .repeating(mergedSegment.startDate, Int(1000.0 / updatesPerSec))
     }
 }
