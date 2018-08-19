@@ -45,7 +45,16 @@ class MockBehaviorController: BehaviorController {
 class MockBehaviorChannel: BehaviorChannel {
     var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
+    var forceSleep: Bool = false
     
+    func rateOfChange(forDate date: Date) -> ChannelRateOfChange {
+        if forceSleep {
+            return (rate: 0.0, segmentStart: Date.distantPast, segmentEnd: Date.distantFuture)
+        } else {
+            return (rate: 1.0 / 4096.0, segmentStart: Date.distantPast, segmentEnd: Date.distantFuture)
+        }
+    }
+
     func update(forDate date: Date) {
         self.lastUpdate = date
     }
@@ -82,8 +91,29 @@ class BehaviorTests: XCTestCase {
         case .oneShot(_):
             XCTFail()
         case .repeating(let date, let interval):
-            XCTAssertEqual(date, refreshDate)
-            XCTAssertEqual(interval, 1000 / 24)
+            XCTAssertEqual(date, Date.distantPast)
+            XCTAssertEqual(interval, 1000)
+        }
+    }
+    
+    func testDefaultNextUpdateSleep() {
+        let testBehavior = DefaultLightBehavior()
+        
+        let mockController = MockBehaviorController(channelCount: 4)
+        for case let channel as MockBehaviorChannel in mockController.channelControllers.values {
+            channel.forceSleep = true
+        }
+        
+        let refreshDate = Date()
+        let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
+        
+        switch result {
+        case .stop:
+            XCTFail()
+        case .oneShot(let date):
+            XCTAssertEqual(date, Date.distantFuture)
+        case .repeating(_, _):
+            XCTFail()
         }
     }
     
@@ -160,6 +190,7 @@ class BehaviorTests: XCTestCase {
     static var allTests = [
         ("testDefaultRefresh", testDefaultRefresh),
         ("testDefaultNextUpdate", testDefaultNextUpdate),
+        ("testDefaultNextUpdateSleep", testDefaultNextUpdateSleep),
         ("testPreviewRefresh", testPreviewRefresh),
         ("testPreviewNextUpdate", testPreviewNextUpdate)
     ]

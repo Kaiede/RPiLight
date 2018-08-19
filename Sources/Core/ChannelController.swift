@@ -28,9 +28,12 @@ import Foundation
 import Logging
 import PWM
 
+public typealias ChannelRateOfChange = (rate: Double, segmentStart: Date, segmentEnd: Date)
+
 protocol ChannelLayer {
     var activeIndex: Int { get }
-    
+
+    func rateOfChange(forDate date: Date) -> ChannelRateOfChange
     func lightLevel(forDate now: Date) -> Double
 }
 
@@ -53,6 +56,21 @@ public class ChannelController: BehaviorChannel {
         }
         
         self.rootController?.invalidateRefreshTimer()
+    }
+    
+    public func rateOfChange(forDate date: Date) -> ChannelRateOfChange {
+        // brightnessRate is Units of Brightness (0-1) per Second
+        var brightnessRate: Double = 0.0
+        var segmentEnd: Date = Date.distantFuture
+        var segmentStart: Date = Date.distantFuture
+        for layer in self.layers {
+            let (layerBrightnessRate, layerSegmentStart, layerSegmentEnd) = layer.rateOfChange(forDate: date)
+            brightnessRate = max(brightnessRate, layerBrightnessRate)
+            segmentStart = min(segmentStart, layerSegmentStart)
+            segmentEnd = min(segmentEnd, layerSegmentEnd)
+        }
+        
+        return (rate: brightnessRate, segmentStart: segmentStart, segmentEnd: segmentEnd)
     }
 
     public func update(forDate date: Date) {

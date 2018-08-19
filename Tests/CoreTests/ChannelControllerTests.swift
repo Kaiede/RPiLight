@@ -38,6 +38,10 @@ class MockChannel: Channel {
 class MockLayer: ChannelLayer {
     var activeIndex: Int = 0
     var lightLevel: Double = 0.0
+    
+    func rateOfChange(forDate date: Date) -> ChannelRateOfChange {
+        return (rate: 1.0 / 4096.0 , segmentStart: Date.distantPast, segmentEnd: Date.distantFuture)
+    }
 
     func lightLevel(forDate now: Date) -> Double {
         self.activeIndex += 1
@@ -114,12 +118,26 @@ class ChannelControllerTests: XCTestCase {
         testController.update(forDate: Date())
         XCTAssertTrue(mockController.didInvalidate)
     }
+    
+    func testChannelRateOfChange() {
+        let testChannel = MockChannel()
+        let testLayer = MockLayer()
+        let testController = ChannelController(channel: testChannel)
+        
+        testController.setBase(layer: testLayer)
+        
+        let (testRate, testSegmentStart, testSegmentEnd) = testController.rateOfChange(forDate: Date())
+        XCTAssertEqual(testRate, 1.0 / 4096.0)
+        XCTAssertEqual(testSegmentStart, Date.distantPast)
+        XCTAssertEqual(testSegmentEnd, Date.distantFuture)
+    }
 
     static var allTests = [
         ("testSettingBaseLayer", testSettingBaseLayer),
         ("testUpdateNoLayer", testUpdateNoLayer),
         ("testChannelUpdate", testChannelUpdate),
-        ("testChannelInvalidate", testChannelInvalidate)
+        ("testChannelInvalidate", testChannelInvalidate),
+        ("testChannelRateOfChange", testChannelRateOfChange)
     ]
 }
 

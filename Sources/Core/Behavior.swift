@@ -42,6 +42,7 @@ public protocol BehaviorChannel {
     var rootController: BehaviorController? { get set }
     
     func update(forDate date: Date)
+    func rateOfChange(forDate date: Date) -> ChannelRateOfChange
 }
 
 public protocol BehaviorController {
@@ -103,6 +104,27 @@ public struct DefaultLightBehavior: Behavior {
     }
     
     public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
-        return .repeating(date, 1000 / 24)
+        let minChangeRate: Double = 0.0001
+        let targetChanges: Double = 4096
+        
+        var shouldSleep: Bool = true
+        var brightnessRate: Double = 0.0
+        var segmentStart: Date = Date.distantFuture
+        var segmentEnd: Date = Date.distantFuture
+        for channelController in controller.channelControllers.values {
+            let (channelBrightnessRate, channelSegmentStart, channelSegmentEnd) = channelController.rateOfChange(forDate: date)
+            shouldSleep = shouldSleep && (channelBrightnessRate < minChangeRate)
+            brightnessRate = max(brightnessRate, channelBrightnessRate)
+            segmentStart = min(segmentStart, channelSegmentStart)
+            segmentEnd = min(segmentEnd, channelSegmentEnd)
+        }
+        
+        let updatesPerSec = min(100.0, brightnessRate * targetChanges)
+        
+        if shouldSleep {
+            return .oneShot(segmentEnd)
+        }
+        
+        return .repeating(segmentStart, Int(1000.0 / updatesPerSec))
     }
 }

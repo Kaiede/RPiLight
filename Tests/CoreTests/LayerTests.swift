@@ -138,6 +138,43 @@ class LayerTests: XCTestCase {
             XCTAssertEqual(brightness, expectedBrightness, "\(timeString)")
         }
     }
+    
+    func testLayerRateOfChange() {
+        let testExpectations = [
+            // Time, Rate, Segment Start, Segment End
+            ("07:00:00", 0.000, "23:00:00", "08:00:00"),
+            ("08:15:00", 0.568, "08:00:00", "08:30:00"),
+            ("10:00:00", 0.000, "08:30:00", "12:00:00"),
+            ("13:00:00", 0.142, "12:00:00", "14:00:00"),
+            ("16:00:00", 0.000, "14:00:00", "18:00:00"),
+            ("19:00:00", 0.227, "18:00:00", "20:00:00"),
+            ("21:00:00", 0.000, "20:00:00", "22:30:00"),
+            ("22:45:00", 0.227, "22:30:00", "23:00:00"),
+            ("23:30:00", 0.000, "23:00:00", "08:00:00")
+        ]
+        
+        // We should be able to query the same object at any time
+        let startTime = MockLayerPoint.dateFormatter.date(from: "00:00:00")!
+        let testLayer = Layer(points: LayerTests.testData, startTime: startTime)
+        
+        for (timeString, expectedRate, expectedStart, expectedEnd) in testExpectations {
+            let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
+
+            var startDate = MockLayerPoint.dateFormatter.date(from: expectedStart)!
+            var endDate = MockLayerPoint.dateFormatter.date(from: expectedEnd)!
+            let startComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: startDate)
+            let endComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: endDate)
+            startDate = startComponents.calcNextDateCustom(after: testDate, direction: .backward)!
+            endDate = endComponents.calcNextDateCustom(after: testDate, direction: .forward)!
+
+            let (layerRate, layerStart, layerEnd) = testLayer.rateOfChange(forDate: testDate)
+            let updatesPerSecond = layerRate * 4096.0
+            print("\(startDate) -> \(endDate) [\(layerRate)]")
+            XCTAssertEqual(updatesPerSecond, expectedRate, accuracy: 0.001, "\(startDate) -> \(endDate)")
+            XCTAssertEqual(layerStart, startDate, "\(startDate) -> \(endDate)")
+            XCTAssertEqual(layerEnd, endDate, "\(startDate) -> \(endDate)")
+        }
+    }
 
     static var testData: [MockLayerPoint] = [
         MockLayerPoint(time: "08:00:00", brightness: 0.0),
@@ -154,6 +191,7 @@ class LayerTests: XCTestCase {
         ("testActiveIndex", testActiveIndex),
         ("testActiveSegment", testActiveSegment),
         ("testLightLevel", testLightLevel),
-        ("testLightLevelInReverse", testLightLevelInReverse)
+        ("testLightLevelInReverse", testLightLevelInReverse),
+        ("testLayerRateOfChange", testLayerRateOfChange)
     ]
 }

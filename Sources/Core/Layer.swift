@@ -45,6 +45,14 @@ class Layer: ChannelLayer {
         (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: startTime, withPoints: points)
     }
 
+    func rateOfChange(forDate date: Date) -> ChannelRateOfChange {
+        let (_, activeSegment) = Layer.activeSegment(forDate: date, withPoints: self.points)
+        
+        let timeInterval = activeSegment.timeDelta
+        let brightnessDelta = abs(activeSegment.range.delta)
+        return (rate: brightnessDelta / timeInterval, segmentStart: activeSegment.startDate, segmentEnd: activeSegment.endDate)
+    }
+    
     func lightLevel(forDate now: Date) -> Double {
         if now > self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
