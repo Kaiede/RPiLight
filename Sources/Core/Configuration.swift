@@ -39,6 +39,7 @@ public enum ConfigurationError: Error {
 public struct Configuration {
     public let username: String
     public let hardware: HardwareConfig
+    public let lunarCycle: LunarConfig?
     public let channels: [ChannelConfig]
 
     public init(withPath path: URL) throws {
@@ -54,12 +55,17 @@ public struct Configuration {
         guard let hardwareConfig = json["hardware"] as? JsonDict else { throw ConfigurationError.nodeMissing("hardware", message: "Configuration must include a hardware entry") }
         let hardware = try HardwareConfig(json: hardwareConfig)
 
-        let fixedKeys = Set(["hardware", "user"])
-        guard hardware.channelCount == json.keys.count - fixedKeys.count else {
+        if let lunarJson = json["lunarCycle"] as? JsonDict {
+            self.lunarCycle = try LunarConfig(json: lunarJson)
+        } else {
+            self.lunarCycle = nil
+
+        let fixedKeys = Set(["hardware", "user", "lunarCycle"])
+        let channelKeys = Set(json.keys).subtracting(fixedKeys)
+        guard hardware.channelCount == channelKeys.count else {
             throw ConfigurationError.nodeMissing("channel", message: "Channel count mismatches channel configurations")
         }
 
-        let channelKeys = Set(json.keys).subtracting(fixedKeys)
         var channelArray: [ChannelConfig] = []
         for token in channelKeys {
             guard let jsonChannel = json[token] as? JsonDict else {
@@ -124,6 +130,37 @@ public struct HardwareConfig {
         throw ConfigurationError.nodeMissing("board",
                   message: "We tried to guess the hardware board and failed, it should be specified in 'hardware'")
     }
+}
+
+public struct LunarConfig {
+    public let startTime: DateComponents
+    public let endTime: DateComponents
+
+    init(json: JsonDict) throws {
+        guard let startString = json["start"] as? String else { throw ConfigurationError.nodeMissing("start", message: "Lunar cycle needs a start time") }
+        guard let parsedStart = LunarConfig.dateFormatter.date(from: startString) else { throw ConfigurationError.invalidValue("start", value: startString) }
+
+        guard let endString = json["end"] as? String else { throw ConfigurationError.nodeMissing("end", message: "Lunar cycle needs an end time") }
+        guard let parsedEnd = LunarConfig.dateFormatter.date(from: endString) else { throw ConfigurationError.invalidValue("end", value: endString) }
+
+        let startTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedStart)
+        let endTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedEnd)
+
+        self.init(startTime: startTime, endTime: endTime)
+    }
+
+    init(startTime: DateComponents, endTime: DateComponents) {
+        self.startTime = startTime
+        self.endTime = endTime
+    }
+
+    static private let dateFormatter: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.calendar = Calendar.current
+        return dateFormatter
+    }()
 }
 
 public struct ChannelConfig {

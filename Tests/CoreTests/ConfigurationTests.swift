@@ -91,6 +91,38 @@ class ConfigurationTests: XCTestCase {
         }
     }
 
+    func testEmptyLunarConfig() {
+        let jsonData: JsonDict = [:]
+
+        do {
+            let _ = try LunarConfig(json: jsonData)
+            XCTFail()
+        } catch {
+            // Pass
+        }
+    }
+
+    func testMinLunarConfig() {
+        let jsonData: JsonDict = [
+            "start": "21:00:00",
+            "end": "07:00:00"
+        ]
+
+        do {
+            let testConfig = try LunarConfig(json: jsonData)
+
+            XCTAssertEqual(testConfig.startTime.hour, 21)
+            XCTAssertEqual(testConfig.startTime.minute, 0)
+            XCTAssertEqual(testConfig.startTime.second, 0)
+
+            XCTAssertEqual(testConfig.endTime.hour, 7)
+            XCTAssertEqual(testConfig.endTime.minute, 0)
+            XCTAssertEqual(testConfig.endTime.second, 0)
+        } catch {
+            XCTFail()
+        }
+    }
+
     func testEmptyChannelEventConfig() {
         let jsonData: JsonDict = [:]
 
@@ -295,7 +327,7 @@ class ConfigurationTests: XCTestCase {
         }
     }
 
-    func testConfig() {
+    func testConfigWithoutOptionals() {
         let jsonData: JsonDict = [
             "user": "pi",
             "hardware": [
@@ -333,6 +365,47 @@ class ConfigurationTests: XCTestCase {
         }
     }
 
+    func testConfigWithOptionals() {
+        let jsonData: JsonDict = [
+            "hardware": [
+                "pwmMode": "simulated",
+                "channels": 2
+            ],
+            "lunarCycle": [
+                "start": "21:00:00",
+                "end": "07:00:00"
+            ],
+            "SIM00": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                    ],[
+                        "time": "11:30:00",
+                        "brightness": 0.50
+                    ]]
+            ],
+            "SIM01": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                    ],[
+                        "time": "11:30:00",
+                        "brightness": 0.50
+                    ]]
+            ]
+        ]
+
+        do {
+            let testConfig = try Configuration(json: jsonData)
+
+            XCTAssertEqual(testConfig.channels.count, 2)
+        } catch {
+            XCTFail()
+        }
+    }
+
     static public let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HH:mm:ss"
@@ -346,6 +419,10 @@ class ConfigurationTests: XCTestCase {
         ("testEmptyHardwareConfig", testEmptyHardwareConfig),
         ("testMinHardwareConfig", testMinHardwareConfig),
         ("testHardwareConfig", testHardwareConfig),
+
+        // Lunar Config
+        ("testEmptyLunarConfig", testEmptyLunarConfig),
+        ("testMinLunarConfig", testMinLunarConfig),
 
         // Channel Events
         ("testEmptyChannelEventConfig", testEmptyChannelEventConfig),
@@ -363,6 +440,7 @@ class ConfigurationTests: XCTestCase {
         ("testConfigNoHardware", testConfigNoHardware),
         ("testConfigNoChannels", testConfigNoChannels),
         ("testConfigWrongChannelCount", testConfigWrongChannelCount),
-        ("testConfig", testConfig)
+        ("testConfigWithoutOptionals", testConfigWithoutOptionals),
+        ("testCOnfigWithOptionals", testConfigWithOptionals)
     ]
 }
