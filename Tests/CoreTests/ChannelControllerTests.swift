@@ -75,15 +75,15 @@ class ChannelControllerTests: XCTestCase {
         let layer2 = MockLayer()
         layer2.lightLevel = 0.5
 
-        testController.setBase(layer: layer1)
+        testController.set(layer: layer1)
 
-        XCTAssertEqual(testController.layers.count, 1)
-        XCTAssertEqual(testController.layers[0].lightLevel(forDate: Date()), 1.0)
+        XCTAssertEqual(testController.layers.compactMap({ $0 }).count, 1)
+        XCTAssertEqual(testController.layers[0]?.lightLevel(forDate: Date()), 1.0)
 
-        testController.setBase(layer: layer2)
+        testController.set(layer: layer2)
 
-        XCTAssertEqual(testController.layers.count, 1)
-        XCTAssertEqual(testController.layers[0].lightLevel(forDate: Date()), 0.5)
+        XCTAssertEqual(testController.layers.compactMap({ $0 }).count, 1)
+        XCTAssertEqual(testController.layers[0]?.lightLevel(forDate: Date()), 0.5)
     }
 
     func testUpdateNoLayer() {
@@ -102,7 +102,7 @@ class ChannelControllerTests: XCTestCase {
         let testLayer = MockLayer()
         let testController = ChannelController(channel: testChannel)
 
-        testController.setBase(layer: testLayer)
+        testController.set(layer: testLayer)
 
         let testData = [ 0.0, 0.25, 0.50, 0.75, 1.0 ]
         for testValue in testData {
@@ -124,7 +124,7 @@ class ChannelControllerTests: XCTestCase {
         // Case 1: Setting Layer
         XCTAssertFalse(mockController.didInvalidate)
         let testLayer = MockLayer()
-        testController.setBase(layer: testLayer)
+        testController.set(layer: testLayer)
         XCTAssertTrue(mockController.didInvalidate)
         
         mockController.didInvalidate = false
@@ -140,7 +140,7 @@ class ChannelControllerTests: XCTestCase {
         let testLayer = MockLayer()
         let testController = ChannelController(channel: testChannel)
         
-        testController.setBase(layer: testLayer)
+        testController.set(layer: testLayer)
         
         let testSegment = testController.segment(forDate: Date())
         XCTAssertEqual(testSegment.totalBrightnessChange, 1.0)

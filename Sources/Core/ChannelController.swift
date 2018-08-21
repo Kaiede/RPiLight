@@ -68,30 +68,30 @@ struct ChannelControllerSegment: ChannelSegment {
     }
 }
 
+enum ChannelLayerType: Int {
+    case schedule
+    case lunar
+}
+
 public class ChannelController: BehaviorChannel {
     public var rootController: BehaviorController?
     var channel: Channel
-    var layers: [ChannelLayer]
+    var layers: [ChannelLayer?]
 
     init(channel: Channel) {
         self.rootController = nil
         self.channel = channel
-        self.layers = []
+        self.layers = [nil, nil]
     }
 
-    func setBase(layer: ChannelLayer) {
-        if self.layers.count == 0 {
-            self.layers.append(layer)
-        } else {
-            self.layers[0] = layer
-        }
-        
+    func set(layer: ChannelLayer, forType type: ChannelLayerType = .schedule) {
+        self.layers[type.rawValue] = layer
         self.rootController?.invalidateRefreshTimer()
     }
     
     public func segment(forDate date: Date) -> ChannelSegment {
         var channelSegment = ChannelControllerSegment()
-        for layer in self.layers {
+        for layer in self.layers.compactMap({ $0 }) {
             let layerSegment = layer.segment(forDate: date)
             channelSegment.union(withSegment: layerSegment)
         }
@@ -100,14 +100,15 @@ public class ChannelController: BehaviorChannel {
     }
 
     public func update(forDate date: Date) {
-        guard self.layers.count > 0 else {
+        let activeLayers = self.layers.compactMap({ $0 })
+        guard activeLayers.count > 0 else {
             self.channel.setting = .intensity(0.0)
             return
         }
         
         var shouldInvalidate: Bool = false
         var channelBrightness: Double = 1.0
-        for layer in self.layers {
+        for layer in activeLayers {
             let oldIndex = layer.activeIndex
             let layerBrightness = layer.lightLevel(forDate: date)
             channelBrightness *= layerBrightness

@@ -123,7 +123,7 @@ public class LightController: BehaviorController {
             
             let points = channelConfig.schedule.map({ ChannelEvent(channel: channel, event: $0 )})
             let layer = Layer(points: points, startTime: now)
-            controller.setBase(layer: layer)
+            controller.set(layer: layer)
         }
         
         self.init(channelControllers: channelControllers, behavior: behavior)

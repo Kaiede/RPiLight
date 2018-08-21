@@ -84,6 +84,14 @@ public extension FileManager {
     }
 }
 
+#if !swift(>=4.1)
+extension ContiguousArray {
+    public func compactMap<ElementOfResult>(_ transform: (Element) throws -> ElementOfResult?) rethrows -> [ElementOfResult] {
+        return try self.flatMap(transform)
+    }
+}
+#endif
+
 //
 // MARK: Dispatch Extensions
 //
