@@ -26,6 +26,7 @@
 import Foundation
 
 import Logging
+import PWM
 
 public enum LightBehaviorUpdate {
     // Stop the controller
@@ -39,8 +40,10 @@ public enum LightBehaviorUpdate {
 }
 
 public protocol BehaviorChannel {
+    var channelGamma: Double { get }
     var rootController: BehaviorController? { get set }
-    
+
+    func set(layer: ChannelLayer, forType type: ChannelLayerType)
     func update(forDate date: Date)
     func segment(forDate date: Date) -> ChannelSegment
 }

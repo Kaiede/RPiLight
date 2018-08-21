@@ -45,7 +45,7 @@ extension ChannelSegment {
     }
 }
 
-protocol ChannelLayer {
+public protocol ChannelLayer {
     var activeIndex: Int { get }
 
     func segment(forDate date: Date) -> ChannelSegment
@@ -68,7 +68,7 @@ struct ChannelControllerSegment: ChannelSegment {
     }
 }
 
-enum ChannelLayerType: Int {
+public enum ChannelLayerType: Int {
     case schedule
     case lunar
 }
@@ -77,6 +77,10 @@ public class ChannelController: BehaviorChannel {
     public var rootController: BehaviorController?
     var channel: Channel
     var layers: [ChannelLayer?]
+
+    public var channelGamma: Double {
+        return channel.gamma
+    }
 
     var activeLayers: [ChannelLayer] {
         return self.layers.compactMap { $0 }
@@ -88,7 +92,7 @@ public class ChannelController: BehaviorChannel {
         self.layers = [nil, nil]
     }
 
-    func set(layer: ChannelLayer, forType type: ChannelLayerType = .schedule) {
+    public func set(layer: ChannelLayer, forType type: ChannelLayerType = .schedule) {
         self.layers[type.rawValue] = layer
         self.rootController?.invalidateRefreshTimer()
     }

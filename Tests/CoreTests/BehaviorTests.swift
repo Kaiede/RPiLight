@@ -43,10 +43,15 @@ class MockBehaviorController: BehaviorController {
 }
 
 class MockBehaviorChannel: BehaviorChannel {
+    var channelGamma: Double = 1.8
     var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
     var brightnessDelta: Double = 1.0
-    
+
+    func set(layer: ChannelLayer, forType type: ChannelLayerType) {
+        // Not Needed for Tests
+    }
+
     func segment(forDate date: Date) -> ChannelSegment {
         let startDate = date.addingTimeInterval(-30.0)
         let endDate = date.addingTimeInterval(30.0)
