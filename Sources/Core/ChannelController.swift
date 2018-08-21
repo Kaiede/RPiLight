@@ -78,6 +78,10 @@ public class ChannelController: BehaviorChannel {
     var channel: Channel
     var layers: [ChannelLayer?]
 
+    var activeLayers: [ChannelLayer] {
+        return self.layers.compactMap { $0 }
+    }
+
     init(channel: Channel) {
         self.rootController = nil
         self.channel = channel
@@ -91,7 +95,7 @@ public class ChannelController: BehaviorChannel {
     
     public func segment(forDate date: Date) -> ChannelSegment {
         var channelSegment = ChannelControllerSegment()
-        for layer in self.layers.compactMap({ $0 }) {
+        for layer in self.activeLayers {
             let layerSegment = layer.segment(forDate: date)
             channelSegment.union(withSegment: layerSegment)
         }
@@ -100,7 +104,7 @@ public class ChannelController: BehaviorChannel {
     }
 
     public func update(forDate date: Date) {
-        let activeLayers = self.layers.compactMap({ $0 })
+        let activeLayers = self.activeLayers
         guard activeLayers.count > 0 else {
             self.channel.setting = .intensity(0.0)
             return

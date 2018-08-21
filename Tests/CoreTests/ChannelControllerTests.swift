@@ -77,12 +77,12 @@ class ChannelControllerTests: XCTestCase {
 
         testController.set(layer: layer1)
 
-        XCTAssertEqual(testController.layers.compactMap({ $0 }).count, 1)
+        XCTAssertEqual(testController.activeLayers.count, 1)
         XCTAssertEqual(testController.layers[0]?.lightLevel(forDate: Date()), 1.0)
 
         testController.set(layer: layer2)
 
-        XCTAssertEqual(testController.layers.compactMap({ $0 }).count, 1)
+        XCTAssertEqual(testController.activeLayers.count, 1)
         XCTAssertEqual(testController.layers[0]?.lightLevel(forDate: Date()), 0.5)
     }
 
