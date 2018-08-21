@@ -30,18 +30,17 @@ import SwiftyGPIO
 
 typealias JsonDict = [String: Any]
 
-enum ConfigurationError: Error {
+public enum ConfigurationError: Error {
     case fileNotFound
     case nodeMissing(String, message: String)
     case invalidValue(String, value: String)
 }
 
-struct Configuration {
-    let hardware: Hardware
-    let channels: [ChannelInfo]
-    let schedule: [Event]
+public struct Configuration {
+    public let hardware: HardwareConfig
+    public let channels: [ChannelConfig]
 
-    init(withPath path: URL) throws {
+    public init(withPath path: URL) throws {
         guard let configData = try? Data(contentsOf: path, options: []) else { throw ConfigurationError.fileNotFound }
         let jsonAny = try? JSONSerialization.jsonObject(with: configData, options: [])
         guard let json = jsonAny as? JsonDict else { throw ConfigurationError.nodeMissing("root", message: "Unable to read configuration, invalid format") }
@@ -51,48 +50,46 @@ struct Configuration {
 
     init(json: JsonDict) throws {
         guard let hardwareConfig = json["hardware"] as? JsonDict else { throw ConfigurationError.nodeMissing("hardware", message: "Configuration must include a hardware entry") }
-        let hardware = try Hardware(json: hardwareConfig)
+        let hardware = try HardwareConfig(json: hardwareConfig)
 
-        var channelArray: [ChannelInfo] = []
-        if let jsonChannels = json["channels"] as? [JsonDict] {
-            for jsonChannel in jsonChannels {
-                let channel = try ChannelInfo(json: jsonChannel)
-                channelArray.append(channel)
-            }
+        guard hardware.channelCount == json.keys.count - 1 else {
+            throw ConfigurationError.nodeMissing("channel", message: "Channel count mismatches channel configurations")
         }
-        
-        // TODO: Currently Optional. Shouldn't Be Going Forward
-        var scheduleArray: [Event] = []
-        if let jsonSchedule = json["schedule"] as? [JsonDict] {
-            for jsonEvent in jsonSchedule {
-                let event = try Event(json: jsonEvent)
-                scheduleArray.append(event)
+
+        let fixedKeys = Set(["hardware"])
+        let channelKeys = Set(json.keys).subtracting(fixedKeys)
+        var channelArray: [ChannelConfig] = []
+        for token in channelKeys {
+            guard let jsonChannel = json[token] as? JsonDict else {
+                throw ConfigurationError.invalidValue(token, value: "Not a Dictionary")
             }
+
+            let channel = try ChannelConfig(token: token, json: jsonChannel)
+            channelArray.append(channel)
         }
 
         self.hardware = hardware
         self.channels = channelArray
-        self.schedule = scheduleArray
     }
 }
 
-struct Hardware {
-    let type: ModuleType
-    let board: BoardType
-    let channelCount: Int
-    let frequency: Int
-    let gamma: Double
+public struct HardwareConfig {
+    public let type: ModuleType
+    public let board: BoardType
+    public let channelCount: Int
+    public let frequency: Int
+    public let gamma: Double
 
 
     init(json: JsonDict) throws {
         guard let pwmMode = json["pwmMode"] as? String else { throw ConfigurationError.nodeMissing("pwmMode", message: "Hardware must have a pwmMode") }
         guard let moduleType = ModuleType(rawValue: pwmMode) else { throw ConfigurationError.invalidValue("pwmMode", value: pwmMode) }
 
-        let boardType = try Hardware.getBoardType(json: json)
+        let boardType = try HardwareConfig.getBoardType(json: json)
         
         let frequency = json["freq"] as? Int ?? 480
         let channelCount = json["channels"] as? Int ?? 1
-        let gamma = json[""] as? Double ?? 1.8
+        let gamma = json["gamma"] as? Double ?? 1.8
 
         self.init(type: moduleType, board: boardType, channelCount: channelCount, frequency: frequency, gamma: gamma)
     }
@@ -105,46 +102,78 @@ struct Hardware {
         self.gamma = gamma
     }
 
-    func createModule() throws -> Module {
+    public func createModule() throws -> Module {
         return try self.type.createModule(board: self.board, channelCount: Int(self.channelCount), frequency: Int(self.frequency), gamma: gamma)
     }
 
     private static func getBoardType(json: JsonDict) throws -> BoardType {
+        if let board = json["board"] as? String {
+            guard let boardType = BoardType(rawValue: board) else {
+                throw ConfigurationError.invalidValue("board", value: board)
+            }
+            return boardType
+        }
+
         if let bestGuessBoard = BoardType.bestGuess() {
             return bestGuessBoard
         }
 
-        guard let board = json["board"] as? String else {
-            throw ConfigurationError.nodeMissing("board",
-                      message: "We tried to guess the hardware board and failed, it should be specified in 'hardware'")
-        }
-        guard let boardType = BoardType(rawValue: board) else {
-            throw ConfigurationError.invalidValue("board", value: board)
-        }
-        return boardType
+        throw ConfigurationError.nodeMissing("board",
+                  message: "We tried to guess the hardware board and failed, it should be specified in 'hardware'")
     }
 }
 
-struct ChannelInfo {
-    let token: String
-    let minIntensity: Double
-    
-    init(json: JsonDict) throws {
-        guard let token = json["token"] as? String else { throw ConfigurationError.nodeMissing("token", message: "All channels in configuration must have a token") }
+public struct ChannelConfig {
+    public let token: String
+    public let minIntensity: Double
+    public let schedule: [ChannelEventConfig]
+
+    init(token: String, json: JsonDict) throws {
+        // Load Schedule
+        var schedule: [ChannelEventConfig] = []
+        guard let jsonSchedule = json["schedule"] as? [JsonDict] else { throw ConfigurationError.nodeMissing("schedule", message: "Channels must have a schedule") }
+
+        for jsonEvent in jsonSchedule {
+            let event = try ChannelEventConfig(json: jsonEvent)
+            schedule.append(event)
+        }
+
+        // Optional Configuration Settings
         let minIntensity = json["minIntensity"] as? Double ?? 0.0
-        
-        self.init(token: token, minIntensity: minIntensity)
+
+        self.init(token: token, minIntensity: minIntensity, schedule: schedule)
     }
-    
-    init(token: String, minIntensity: Double) {
+
+    init(token: String, minIntensity: Double, schedule: [ChannelEventConfig]) {
         self.token = token
         self.minIntensity = minIntensity
+        self.schedule = schedule
     }
 }
 
-struct Event {
-    let time: DateComponents
-    let channelValues: [ChannelValue]
+public struct ChannelEventConfig {
+    public let time: DateComponents
+    public let setting: ChannelSetting
+
+    init(json: JsonDict) throws {
+        guard let timeString = json["time"] as? String else { throw ConfigurationError.nodeMissing("time", message: "Events must have a time") }
+        guard let parsedTime = ChannelEventConfig.dateFormatter.date(from: timeString) else { throw ConfigurationError.invalidValue("time", value: timeString) }
+
+        let splitTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
+
+        if let intensity = json["intensity"] as? Double {
+            self.init(time: splitTime, setting: .intensity(intensity))
+        } else if let brightness = json["brightness"] as? Double {
+            self.init(time: splitTime, setting: .brightness(brightness))
+        } else {
+            throw ConfigurationError.nodeMissing("brightness or intensity", message: "All channels in schedule events must have a brightness or intensity")
+        }
+    }
+
+    init(time: DateComponents, setting: ChannelSetting) {
+        self.time = time
+        self.setting = setting
+    }
 
     static private let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -153,47 +182,4 @@ struct Event {
         dateFormatter.calendar = Calendar.current
         return dateFormatter
     }()
-
-    init(json: JsonDict) throws {
-        guard let timeString = json["time"] as? String else { throw ConfigurationError.nodeMissing("time", message: "Events must have a time") }
-        guard let channelArray = json["channels"] as? [JsonDict] else { throw ConfigurationError.nodeMissing("channelArray", message: "Events in schedule must have a channels array") }
-
-        guard let parsedTime = Event.dateFormatter.date(from: timeString) else { throw ConfigurationError.invalidValue("time", value: timeString) }
-
-        let splitTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
-        var channelValueArray: [ChannelValue] = []
-        for jsonChannelValue in channelArray {
-            let channelValue = try ChannelValue(json: jsonChannelValue)
-            channelValueArray.append(channelValue)
-        }
-
-        self.init(time: splitTime, channelValues: channelValueArray)
-    }
-
-    init(time: DateComponents, channelValues: [ChannelValue]) {
-        self.time = time
-        self.channelValues = channelValues
-    }
-}
-
-
-struct ChannelValue {
-    let token: String
-    let setting: ChannelSetting
-
-    init(json: JsonDict) throws {
-        guard let token = json["token"] as? String else { throw ConfigurationError.nodeMissing("token", message: "All channels in schedule events must have a token") }
-        if let intensity = json["intensity"] as? Double {
-            self.init(token: token, setting: .intensity(intensity))
-        } else if let brightness = json["brightness"] as? Double {
-            self.init(token: token, setting: .brightness(brightness))
-        } else {
-            throw ConfigurationError.nodeMissing("brightness or intensity", message: "All channels in schedule events must have a brightness or intensity")
-        }
-    }
-
-    init(token: String, setting: ChannelSetting) {
-        self.token = token
-        self.setting = setting
-    }
 }

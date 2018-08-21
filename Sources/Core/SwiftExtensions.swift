@@ -39,7 +39,7 @@ extension Calendar {
     }
 }
 
-extension DateComponents {
+public extension DateComponents {
     // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
     // but may not be very relevant for any other package.
     func calcNextDateCustom(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
@@ -49,15 +49,15 @@ extension DateComponents {
         guard let targetDate = calendar.date(byAdding: copyOfSelf, to: startOfDay) else { return nil }
         switch direction {
         case .forward:
-            if targetDate < date { copyOfSelf.day = 1 }
+            if targetDate <= date { copyOfSelf.day = 1 }
         case .backward:
-            if targetDate > date { copyOfSelf.day = -1 }
+            if targetDate >= date { copyOfSelf.day = -1 }
         }
 
         return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
     }
 
-    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
+    public func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
         #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
             return Calendar.current.nextDate(after: date,
                                              matching: self,
@@ -72,8 +72,8 @@ extension DateComponents {
     }
 }
 
-extension FileManager {
-    var currentDirectoryUrl: URL {
+public extension FileManager {
+    public var currentDirectoryUrl: URL {
         return URL(fileURLWithPath: self.currentDirectoryPath)
     }
 }
@@ -81,6 +81,15 @@ extension FileManager {
 //
 // MARK: Dispatch Extensions
 //
+extension DispatchWallTime {
+    init(date: Date) {
+        let NSEC_IN_SEC: UInt64 = 1_000_000_000
+        let interval = date.timeIntervalSince1970
+        let spec = timespec(tv_sec: Int(interval), tv_nsec: Int(UInt64(interval * Double(NSEC_IN_SEC)) % NSEC_IN_SEC))
+        self.init(timespec: spec)
+    }
+}
+
 extension DispatchSourceTimer {
     public func schedulePrecise(forDate date: Date) {
         #if swift(>=4.0)

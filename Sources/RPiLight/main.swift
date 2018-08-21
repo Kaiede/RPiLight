@@ -25,8 +25,10 @@
 
 import Dispatch
 import Foundation
-import Logging
 import Moderator
+
+import Core
+import Logging
 import PWM
 
 //
@@ -87,10 +89,13 @@ Log.withDebug {
     formatter.calendar = Calendar.current
     formatter.timeZone = TimeZone.current
     let now = Date()
-    for event in configuration.schedule {
-        let prevDate = event.time.calcNextDate(after: now, direction: .backward)!
-        let nextDate = event.time.calcNextDate(after: now, direction: .forward)!
-        Log.debug("\t\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+    for channel in configuration.channels {
+        Log.debug("==== Channel \(channel.token)")
+        for event in channel.schedule {
+            let prevDate = event.time.calcNextDate(after: now, direction: .backward)!
+            let nextDate = event.time.calcNextDate(after: now, direction: .forward)!
+            Log.debug("\t\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+        }
     }
 }
 
@@ -155,13 +160,23 @@ for channelInfo in configuration.channels {
 //
 // MARK: Initialize Light Controller and Run
 //
-var controller = LightController(channels: activeChannels)
-
 if previewMode.value {
-    let previewer = Previewer(usingController: controller)
-    previewer.runSchedule(configuration.schedule)
+    // Preview
+    let controller = try! LightController(channels: activeChannels, withConfig: configuration.channels, behavior: PreviewLightBehavior())
+    controller.setStopHandler { (controller) in
+        Log.info("Simulation Complete")
+        exit(0)
+    }
+
+    controller.start()
+    dispatchMain()
 } else {
-    // Ruin the Schedule Normally
-    controller.applySchedule(schedule: configuration.schedule)
+    // Normal Schedule
+    let controller = try! LightController(channels: activeChannels, withConfig: configuration.channels)
+    controller.setStopHandler { (controller) in
+        Log.error("Controller unexpectedly stopped.")
+        exit(1)
+    }
+    controller.start()
     dispatchMain()
 }
