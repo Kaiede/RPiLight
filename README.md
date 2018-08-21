@@ -55,7 +55,35 @@ Once bootstrapped, it is possible to get the latest source and update using `ins
 
 ## Configuring RPiLight
 
-There are example configuration files in the [examples](examples) folder. These files are JSON-formatted. Let's go ahead and break down one of those examples:
+There are example configuration files in the [examples](examples) folder. These files are JSON-formatted. Let's go ahead and break down a specific example:
+
+```
+{
+    "hardware" : {
+        "board": "pizero",
+        "pwmMode": "pca9685",
+        "freq": 960,
+        "channels": 8,
+        "gamma": 1.8
+    },
+    
+    "PWM00": {
+        "minIntensity": 0.0025
+        "schedule": [
+            { "time": "08:00:00", "brightness": 0.0 },
+            { "time": "08:30:00", "brightness": 0.25 },
+            { "time": "12:00:00", "brightness": 0.25 },
+            { "time": "14:00:00", "brightness": 0.50 },
+            { "time": "18:00:00", "brightness": 0.50 },
+            { "time": "20:00:00", "brightness": 0.10 },
+            { "time": "22:30:00", "brightness": 0.10 },
+            { "time": "23:00:00", "brightness": 0.0 }
+        ]
+    }
+    
+    <etc>
+}
+```
 
 ### Hardware
 
@@ -71,74 +99,53 @@ There are example configuration files in the [examples](examples) folder. These 
 
 `board` is optional, and RPiLight will attempt to autodetect which Raspberry Pi board you are currently running for you. Only set it if you are getting errors that it should be set. It is used to tell RPiLight what hardware board you have, so that the `pwmMode` will work correctly. Valid options are: `pi1`, `pi2`, `pi3`, `pizero` or `desktop` (used for testing).
 
-The `pwmMode` parameter tells RPiLight what PWM controller to use. It can be `simulated`, `hardware`, or `pca9685`. `simulated` is used for testing, and doesn't produce any output. `hardware` Uses the two internal PWM channels of the Raspberry Pi. `pca9685` uses the PCA9685 expansion over I2C on the default address, like the Adafruit PWM board.
+The `pwmMode` parameter tells RPiLight what PWM controller to use. It can be `simulated`, `hardware`, or `pca9685`. `simulated` is used for testing, and doesn't produce any output. `hardware` Uses the two internal PWM channels of the Raspberry Pi. `pca9685` uses the PCA9685 expansion over I2C on the default address, such as the Adafruit PCA9685 PWM Bonnet or Hat.
 
 The `freq` parameter tells RPiLight what PWM frequency to use, in Hz. It must be a multiple of `480`: `480`, `960`, `1440`, `1920`, `2400`, or `2880`. For `adafruit`, the maximum value this can be is `1440`. Before picking a value, check to see what your LED drivers support. Meanwell LDD drivers can only go so high (1 KHz), and so RPiLight should not use a value over `960` when driving Meanwell LDDs. This value should not be used with `simulated`, as it has no meaning.
 
 The `channels` parameter tells RPiLight how many channels to use. This can be `1-2` for `hardware`, and `1-16` for `simulated` and `pca9685`. This will always count up from the first channel, So if you pass in `4` to the `pca9685` controller, then you will get control over channels 0-3. 
 
-`gamma` controls how brightness is converted into light intensity. The default is `1.8`
+`gamma` controls how brightness is converted into light intensity. The default is `1.8`. The human eye is closer to a gamma of around `2.5`, and most displays use a gamma of `2.2`. For many light controllers, the `gamma` can be considered to be `1.0` where brightness and intensity are the same thing. 
 
-### Per Channel Tweaks
-
-```
-"channels" : [
-    { "token": "PWM0-IO18", "minIntensity": 0.0025 }
-],
-```
-
-For each channel you want to tweak, you add 
-
-The `token` is short-hand for the channel name, and depends on what PWM controller you are using. Examples are below, in the "Schedule" section.
-
-Currently, the only option available here is `minIntensity`. This sets a cut-off for the channel. If the intensity drops below this value for that channel, it will turn it off instead. A specific example is that Twinstar ES lights tend to start showing problems at around 0.2% intensity, where some of the LEDs shut off, but not others. By setting the `minIntensity` to 0.25%, the entire light will go off or come on at the same time.
-
-Minimum intensity is also taken into account when turning the lights off or on during your schedule. It will adjust things for you so that the cutoff is reached as close to the point in time where you wanted the lights to turn off or come on as possible.
-
-### Schedule
+### Channel Configuration
 
 ```
-"schedule" : [
-    {
-        "time" : "08:00:00",
-        "channels" : [
-            { "token": "PWM00", "brightness": 0.0 }
-        ]
-    },
-    {
-        "time" : "08:30:00",
-        "channels" : [
-            { "token": "PWM00", "brightness": 0.25 }
-        ]
-    },
-    {
-        "time" : "12:00:00",
-        "channels" : [
-            { "token": "PWM00", "brightness": 0.25 }
-        ]
-    },
-
-    <etc>
-]
+"PWM00": {
+        "minIntensity": 0.0025
+        "schedule": [
+        { "time": "08:00:00", "brightness": 0.0 },
+        { "time": "08:30:00", "brightness": 0.25 },
+        { "time": "12:00:00", "brightness": 0.25 },
+        { "time": "14:00:00", "brightness": 0.50 },
+        { "time": "18:00:00", "brightness": 0.50 },
+        { "time": "20:00:00", "brightness": 0.10 },
+        { "time": "22:30:00", "brightness": 0.10 },
+        { "time": "23:00:00", "brightness": 0.0 }
+    ]
+}
 ```
 
-The `schedule` array is where the work really happens. It is an array of events used to control the lights. Inside each event, we have two children:
-
-`time` is a 24-hour time of the event, in hours, minutes, and seconds. So 8:15 pm would be 20:15:00. This time is in the local timezone set on the Raspberry Pi. 
-
-This internal `channels` array contains items with a `token` and a `brightness` or `intensity` value. The `token` is short-hand for the channel name, and depends on what PWM controller you are using. Examples are below. The `brightness` or `intensity` is a floating point value between `0` and `1.0`, with `1.0` being fully on, and `0` being off. Which you use depends on what the goal is. If the light is at 50%, using `brightness` will *look* like 50% brightness. Using `intensity` will give you 50% of the lumen/PAR output of the channel. If setting the level for plants, It is recommended to use `intensity`, but if setting the level for aesthetics, it is recommended to use `brightness`. To avoid confusion, it is best to create a schedule using one or the other, but not both. 
-
-In both cases, changes in the light level will be calculated as brightness to make the shift appear natural to the eye.
+Each channel has its settings and schedule bound to it. The channel token is used to name the settings/schedule assoicated with it, and depends on what hardware you are using.
 
 Example Channel Tokens:
 ```
-PWM00 - PWM15       : Adafruit PCA9685 Channels 0-15
+PWM00 to PWM15      : Adafruit PCA9685 Channels 0-15
 PWM0-IO18           : Raspberry Pi PWM channel 0, on GPIO18
 PWM1-IO19           : Raspberry Pi PWM channel 1, on GPIO19
-SIM00 - SIM15       : Simulated Channels 0-15
+SIM00 to SIM15      : Simulated Channels 0-15
 ```
 
-In this example, the lights will be off at 8:00 am. Starting at 8:00 am, it will ramp up the lights until they are at 25% at 8:30 am. Then they will remain at 25% until 12:00 pm. 
+`minIntensity` is used to adjust the cut-off of the light, and is optional. The default is `0.0`. This will treat the channel as off at any intensity level or lower. In this example it will turn of at `0.25%` intensity. Twinstar E lights start shutting off some LEDs but not others at around `0.2%` intensity, so this example provides a generally nicer transition for the lights when turning off or on.
+
+The `schedule` array is where the work really happens. It is an array of events used to control the lights. In this example, the lights will be off at 8:00 am. Starting at 8:00 am, it will ramp up the lights until they are at 25% at 8:30 am. Then they will remain at 25% until 12:00 pm. Increase again to 50% brightness (28.7% intensity) by 2:00 pm until 6:00 pm. Then it shifts to 10% brightness by 8:00pm where it stays before ramping back to off between 10:30 pm and 11:00 pm.
+
+`time` is a 24-hour time of the event, in hours, minutes, and seconds. So 8:15 pm would be 20:15:00. This time is in the local timezone set on the Raspberry Pi. 
+
+`brightness` or `intensity` is how strong the light should be. One or the other must be used. Brightness is adjusted by gamma, while intensity directly sets the intensity of the light. The key here is that brightness takes into account how the light will *look* to the human eye, while intensity is a raw measure of the light being output. Use `brightness` when trying to set a light level pleasing to the eye. Use `intensity` if you are trying to hit a specific PAR/PPFD value for plants, which will make your math easier.
+
+> For example, you are measuring 75 PAR/PPFD at the substrate at full power on your light, but want to get to 25 PAR/PPFD to keep the tank low light. The intensity of the light you want is `0.3333` (repeating). This will get you close to 25 PAR/PPFD. However, if I picked `0.3333` *brightness*, the result will be quite a bit lower. Instead, I want `0.5431660741` when using brightness: `intensity = brightness ^ gamma`. In this case: `1/3 = 0.5431660741 ^ 1.8`. So in this case, it does make a lot more sense to simply set the power for planted tanks using intensity, where you can simply calculate the percentage directly. 
+
+In both cases, changes in the light level will be calculated as brightness to make the shift appear natural to the eye.
 
 ### Testing Your Hardware / Schedule
 
