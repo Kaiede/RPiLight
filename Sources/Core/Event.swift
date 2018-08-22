@@ -65,12 +65,17 @@ class LunarCycleController: EventController {
             return
         }
 
-        let illumination = Moon.fastIllumination(forDate: nightStart.halfway(to: nightEnd).toJ2000Date())
-        let intensityFactor: ChannelSetting = .intensity(illumination.fraction)
+        let illuminationStart = Moon.fastIllumination(forDate: nightStart.toJ2000Date())
+        let illuminationEnd = Moon.fastIllumination(forDate: nightEnd.toJ2000Date())
+        let intensityFactorStart: ChannelSetting = .intensity(illuminationStart.fraction)
+        let intensityFactorEnd: ChannelSetting = .intensity(illuminationEnd.fraction)
 
         for channelController in controller.channelControllers.values {
             let gamma = channelController.channelGamma
-            let layer = Layer(nightStart: nightStart, end: nightEnd, brightnessFactor: intensityFactor.asBrightness(withGamma: gamma))
+            let layer = Layer(nightStart: nightStart,
+                              end: nightEnd,
+                              brightnessFactorStart: intensityFactorStart.asBrightness(withGamma: gamma),
+                              end: intensityFactorEnd.asBrightness(withGamma: gamma))
 
             channelController.set(layer: layer, forType: .lunar)
         }
@@ -82,15 +87,8 @@ struct LunarPoint: LayerPoint {
     let brightness: Double
 }
 
-extension Date {
-    func halfway(to date: Date) -> Date {
-        let interval = date.timeIntervalSince(self)
-        return self.addingTimeInterval(interval / 2)
-    }
-}
-
 extension Layer {
-    convenience init(nightStart: Date, end nightEnd: Date, brightnessFactor: Double) {
+    convenience init(nightStart: Date, end nightEnd: Date, brightnessFactorStart brightnessStart: Double, end brightnessEnd: Double) {
         let desiredTransitionTime: TimeInterval = 60.0 * 5.0
         let nightInterval = nightEnd.timeIntervalSince(nightStart)
         let transitionInterval: TimeInterval = nightInterval > desiredTransitionTime * 2 ? desiredTransitionTime : nightInterval / 2.0
@@ -106,8 +104,8 @@ extension Layer {
 
         var layerPoints: [LunarPoint] = []
         layerPoints.append(LunarPoint(time: nightStartPoint, brightness: 1.0))
-        layerPoints.append(LunarPoint(time: nightFullStartPoint, brightness: brightnessFactor))
-        layerPoints.append(LunarPoint(time: nightFullEndPoint, brightness: brightnessFactor))
+        layerPoints.append(LunarPoint(time: nightFullStartPoint, brightness: brightnessStart))
+        layerPoints.append(LunarPoint(time: nightFullEndPoint, brightness: brightnessEnd))
         layerPoints.append(LunarPoint(time: nightEndPoint, brightness: 1.0))
         self.init(points: layerPoints, startTime: nightStart)
     }
