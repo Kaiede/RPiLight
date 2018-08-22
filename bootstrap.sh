@@ -67,14 +67,10 @@ function install_swift() {
 }
 
 function add_swift_path() {
-	PROFILE_PATH=$(realpath ~/.bash_profile)
+	PROFILE_PATH="/etc/profile.d/swiftlang.sh"
 
-	echo "Adding /opt/swift/bin to ~/.bash_profile..."
-	touch $PROFILE_PATH
-	echo "#" >> $PROFILE_PATH
-	echo "# Swift Binaries" >> $PROFILE_PATH
-	echo "#" >> $PROFILE_PATH
-	echo "export PATH=\$PATH:/opt/swift/bin" >> $PROFILE_PATH
+	echo "Adding /opt/swift/bin to PATH..."
+	sudo echo "export PATH=\$PATH:/opt/swift/bin" > $PROFILE_PATH
 	source $PROFILE_PATH
 
 	export PATH
@@ -90,5 +86,5 @@ add_swift_path
 
 git clone https://github.com/Kaiede/RPiLight.git
 pushd ~/RPiLight > /dev/null
-./install.sh update
+./build.sh stable install
 popd > /dev/null
