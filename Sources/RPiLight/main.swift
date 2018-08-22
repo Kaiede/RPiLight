@@ -209,6 +209,12 @@ if previewMode.value {
         Log.error("Controller unexpectedly stopped.")
         exit(1)
     }
+
+    if let lunarCycle = configuration.lunarCycle {
+        let lunarCycleController = LunarCycleController(config: lunarCycle)
+        controller.setEvent(controller: lunarCycleController)
+    }
+
     controller.start()
     dispatchMain()
 }

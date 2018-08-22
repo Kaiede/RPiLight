@@ -29,11 +29,11 @@ import Ephemeris
 import Logging
 import PWM
 
-enum EventId: Equatable {
+public enum EventId: Equatable {
     case lunar
 }
 
-protocol EventController {
+public protocol EventController {
     var time: DateComponents { get }
     var token: EventId { get }
 
@@ -43,18 +43,22 @@ protocol EventController {
 //
 // MARK: Lunar Cycle Events
 //
-class LunarCycleController: EventController {
-    let token: EventId = .lunar
+public class LunarCycleController: EventController {
+    public let token: EventId = .lunar
 
-    let time: DateComponents
+    public let time: DateComponents
     let endTime: DateComponents
+
+    public convenience init(config: LunarConfig) {
+        self.init(startTime: config.startTime, endTime: config.endTime)
+    }
 
     init(startTime: DateComponents, endTime: DateComponents) {
         self.time = startTime
         self.endTime = endTime
     }
 
-    func fire(forController controller: BehaviorController, date: Date) {
+    public func fire(forController controller: BehaviorController, date: Date) {
         let calendar = Calendar.current
         guard let nightStart = calendar.date(byAdding: self.time, to: calendar.startOfDay(for: date)) else {
             Log.error("Unable to calculate when lunar night begins")
@@ -69,6 +73,9 @@ class LunarCycleController: EventController {
         let illuminationEnd = Moon.fastIllumination(forDate: nightEnd.toJ2000Date())
         let intensityFactorStart: ChannelSetting = .intensity(illuminationStart.fraction)
         let intensityFactorEnd: ChannelSetting = .intensity(illuminationEnd.fraction)
+
+        Log.info("Starting Lunar Night: \(intensityFactorStart) -> \(intensityFactorEnd)")
+        Log.info("Lunar Night Period: \(Log.dateFormatter.string(from: nightStart)) -> \(Log.dateFormatter.string(from: nightEnd))")
 
         for channelController in controller.channelControllers.values {
             let gamma = channelController.channelGamma

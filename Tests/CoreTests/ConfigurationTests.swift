@@ -127,7 +127,7 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [:]
 
         do {
-            let _ = try ChannelEventConfig(json: jsonData)
+            let _ = try ChannelPointConfig(json: jsonData)
             XCTFail()
         } catch {
             // Pass
@@ -140,7 +140,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let _ = try ChannelEventConfig(json: jsonData)
+            let _ = try ChannelPointConfig(json: jsonData)
             XCTFail()
         } catch {
             // Pass
@@ -159,13 +159,13 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testEvent1 = try ChannelEventConfig(json: jsonDataIntensity)
+            let testEvent1 = try ChannelPointConfig(json: jsonDataIntensity)
             let testDate1 = ConfigurationTests.dateFormatter.date(from: "08:00:00")!
             let expectedComponents1 = Calendar.current.dateComponents([.hour, .minute, .second], from: testDate1)
             XCTAssertEqual(testEvent1.time, expectedComponents1)
             XCTAssertEqual(testEvent1.setting.asIntensity(withGamma: 2.0), 0.25)
 
-            let testEvent2 = try ChannelEventConfig(json: jsonDataBrightness)
+            let testEvent2 = try ChannelPointConfig(json: jsonDataBrightness)
             let testDate2 = ConfigurationTests.dateFormatter.date(from: "10:30:00")!
             let expectedComponents2 = Calendar.current.dateComponents([.hour, .minute, .second], from: testDate2)
             XCTAssertEqual(testEvent2.time, expectedComponents2)
