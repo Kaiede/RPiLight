@@ -68,6 +68,11 @@ There are example configuration files in the [examples](examples) folder. These 
         "gamma": 1.8
     },
     
+    "lunarCycle": {
+        "start": "21:00:00",
+        "end": "07:00:00",
+    },
+
     "PWM00": {
         "minIntensity": 0.0025
         "schedule": [
@@ -155,6 +160,21 @@ The `schedule` array is where the work really happens. It is an array of events 
 > For example, you are measuring 75 PAR/PPFD at the substrate at full power on your light, but want to get to 25 PAR/PPFD to keep the tank low light. The intensity of the light you want is `0.3333` (repeating). This will get you close to 25 PAR/PPFD. However, if I picked `0.3333` *brightness*, the result will be quite a bit lower. Instead, I want `0.5431660741` when using brightness: `intensity = brightness ^ gamma`. In this case: `1/3 = 0.5431660741 ^ 1.8`. So in this case, it does make a lot more sense to simply set the power for planted tanks using intensity, where you can simply calculate the percentage directly. 
 
 In both cases, changes in the light level will be calculated as brightness to make the shift appear natural to the eye.
+
+### Lunar Cycle 
+
+```
+"lunarCycle": {
+    "start": "21:00:00",
+    "end": "07:00:00",
+}
+```
+
+The lunar cycle feature makes it possible to have light during a night period that follows the cycle of the moon phases. It works by taking your existing schedule, and adjusting it based on the current phase of the moon between `start` and `end`. 
+
+Using the above example, I make my lights drop down to 4% brightness at 9:00pm to 7:00am. What will happen is that if the moon is full, the lights will remain at 4% all night. If the moon is half full, the lights will be brought down to 2% during the night. If the moon is new, the lights will be off. 
+
+The feature doesn't currently take moonrise or moonset into account. 
 
 ### Testing Your Hardware / Schedule
 
