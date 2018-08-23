@@ -145,7 +145,10 @@ public class LightController: BehaviorController {
     public func setEvent(controller: EventController) {
         self.queue.async {
             self.eventControllers[controller.token] = controller
-            self.scheduleEvent(forDate: Date())
+
+            if self.isRunning {
+                self.scheduleEvent(forDate: Date())
+            }
         }
     }
     
@@ -154,6 +157,7 @@ public class LightController: BehaviorController {
             self.isRunning = true
             self.isRefreshOneShot = true
             self.refresh()
+            self.scheduleEvent(forDate: Date())
         }
     }
     
@@ -210,13 +214,16 @@ public class LightController: BehaviorController {
                 self.refreshTimer = nil
                 oldTimer.cancel()
             }
+            self.stopEventInternal()
             DispatchQueue.main.async { [weak self] in
                 if let controller = self {
                     controller.stopClosure?(controller)
                 }
             }
         }
+    }
 
+    private func stopEventInternal() {
         if let eventTimer = self.eventTimer {
             self.eventTimer = nil
             eventTimer.cancel()
@@ -270,12 +277,13 @@ public class LightController: BehaviorController {
             let eventDate = result.1
 
             let eventTimer = DispatchSource.makeTimerSource(flags: [], queue: self.queue)
-            eventTimer.schedulePrecise(forDate: eventDate)
             eventTimer.setEventHandler {
                 [weak self] in
                 self?.fireEvent()
             }
 
+            eventTimer.schedulePrecise(forDate: eventDate)
+            eventTimer.resume()
             Log.info("Next Event: \(token) (\(Log.dateFormatter.string(from: eventDate)))")
             self.eventTimer = eventTimer
             self.nextEvent = token
