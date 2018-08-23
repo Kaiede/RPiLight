@@ -58,7 +58,7 @@ class LayerTests: XCTestCase {
 
         for (timeString, expectedIndex) in testExpectations {
             let testTime = MockLayerPoint.dateFormatter.date(from: timeString)!
-            let testLayer = Layer(points: LayerTests.testData, startTime: testTime)
+            let testLayer = Layer(identifier: "Mock", points: LayerTests.testData, startTime: testTime)
 
             XCTAssertEqual(testLayer.activeIndex, expectedIndex)
         } 
@@ -77,7 +77,7 @@ class LayerTests: XCTestCase {
         for (timeString, expectedIndex) in testExpectations {
             let nextExpectedIndex = (expectedIndex + 1) % LayerTests.testData.count
             let testTime = MockLayerPoint.dateFormatter.date(from: timeString)!
-            let testLayer = Layer(points: LayerTests.testData, startTime: testTime)
+            let testLayer = Layer(identifier: "Mock", points: LayerTests.testData, startTime: testTime)
             let activeSegment = testLayer.activeSegment
 
             XCTAssertLessThanOrEqual(activeSegment.startDate, testTime)
@@ -105,7 +105,7 @@ class LayerTests: XCTestCase {
         for (timeString, expectedBrightness) in testExpectations {
             // Start from known point every time
             let startTime = MockLayerPoint.dateFormatter.date(from: "00:00:00")!
-            let testLayer = Layer(points: LayerTests.testData, startTime: startTime)
+            let testLayer = Layer(identifier: "Mock", points: LayerTests.testData, startTime: startTime)
 
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
             let brightness = testLayer.lightLevel(forDate: testDate)
@@ -131,7 +131,7 @@ class LayerTests: XCTestCase {
         for (timeString, expectedBrightness) in testExpectations.reversed() {
             // Start from known point every time
             let startTime = MockLayerPoint.dateFormatter.date(from: "23:59:59")!
-            let testLayer = Layer(points: LayerTests.testData, startTime: startTime)
+            let testLayer = Layer(identifier: "Mock", points: LayerTests.testData, startTime: startTime)
             
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
             let brightness = testLayer.lightLevel(forDate: testDate)
@@ -155,7 +155,7 @@ class LayerTests: XCTestCase {
         
         // We should be able to query the same object at any time
         let startTime = MockLayerPoint.dateFormatter.date(from: "00:00:00")!
-        let testLayer = Layer(points: LayerTests.testData, startTime: startTime)
+        let testLayer = Layer(identifier: "Mock", points: LayerTests.testData, startTime: startTime)
         
         for (timeString, expectedChange, expectedStart, expectedEnd) in testExpectations {
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
