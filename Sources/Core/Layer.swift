@@ -34,18 +34,20 @@ protocol LayerPoint {
 }
 
 class Layer: ChannelLayer {
+    private let identifier: String
     private let points: [LayerPoint]
 
     // Current State
     private(set) var activeIndex: Int
     private(set) var activeSegment: LayerSegment
 
-    init(points: [LayerPoint], startTime: Date) {
+    init(identifier: String, points: [LayerPoint], startTime: Date) {
+        self.identifier = identifier
         self.points = points
         (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: startTime, withPoints: points)
         Log.withInfo {
-            let formatter = Log.dateFormatter
-            Log.info("Initial Segment Guess: [\(activeSegment.range)] \(formatter.string(from: activeSegment.startDate)) -> \(formatter.string(from: activeSegment.endDate))")
+            let formatter = Log.timeFormatter
+            Log.info("Initial Segment Guess: [\(identifier)] \(activeSegment.range) \(formatter.string(from: activeSegment.startDate)) -> \(formatter.string(from: activeSegment.endDate))")
         }
     }
 
@@ -59,8 +61,8 @@ class Layer: ChannelLayer {
         if now > self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
             Log.withInfo {
-                let formatter = Log.dateFormatter
-                Log.info("Switched to Segment: [\(activeSegment.range)] \(formatter.string(from: activeSegment.startDate)) -> \(formatter.string(from: activeSegment.endDate))")
+                let formatter = Log.timeFormatter
+                Log.info("Switched to Segment: [\(self.identifier)] \(activeSegment.range) \(formatter.string(from: activeSegment.startDate)) -> \(formatter.string(from: activeSegment.endDate))")
             }
         }
 

@@ -74,8 +74,8 @@ public class LunarCycleController: EventController {
         let intensityFactorStart: ChannelSetting = .intensity(illuminationStart.fraction)
         let intensityFactorEnd: ChannelSetting = .intensity(illuminationEnd.fraction)
 
-        Log.info("Starting Lunar Night: \(intensityFactorStart) -> \(intensityFactorEnd)")
-        Log.info("Lunar Night Period: \(Log.dateFormatter.string(from: nightStart)) -> \(Log.dateFormatter.string(from: nightEnd))")
+        Log.info("Starting Lunar Night: \(illuminationStart.fraction) -> \(illuminationEnd.fraction)")
+        Log.info("Lunar Night Period: \(Log.timeFormatter.string(from: nightStart)) -> \(Log.timeFormatter.string(from: nightEnd))")
 
         for channelController in controller.channelControllers.values {
             let gamma = channelController.channelGamma
@@ -114,6 +114,6 @@ extension Layer {
         layerPoints.append(LunarPoint(time: nightFullStartPoint, brightness: brightnessStart))
         layerPoints.append(LunarPoint(time: nightFullEndPoint, brightness: brightnessEnd))
         layerPoints.append(LunarPoint(time: nightEndPoint, brightness: 1.0))
-        self.init(points: layerPoints, startTime: nightStart)
+        self.init(identifier: "Lunar", points: layerPoints, startTime: nightStart)
     }
 }

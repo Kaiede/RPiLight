@@ -131,7 +131,7 @@ public class LightController: BehaviorController {
             channelControllers[channelConfig.token] = controller
             
             let points = channelConfig.schedule.map({ ChannelPoint(channel: channel, event: $0 )})
-            let layer = Layer(points: points, startTime: now)
+            let layer = Layer(identifier: "Schedule", points: points, startTime: now)
             controller.set(layer: layer)
         }
         
@@ -179,11 +179,18 @@ public class LightController: BehaviorController {
     }
 
     private func fireEvent() {
-        guard let eventToken = self.nextEvent else { return }
+        guard let eventToken = self.nextEvent else {
+            Log.warn("Event handler fired without an event token")
+            return
+        }
+
         if let event = self.eventControllers[eventToken] {
             let now = Date()
+            Log.info("Firing Event: \(eventToken)")
             event.fire(forController: self, date: now)
             self.scheduleEvent(forDate: now)
+        } else {
+            Log.error("Event \"\(eventToken)\" not found.")
         }
     }
 
@@ -224,6 +231,7 @@ public class LightController: BehaviorController {
         let update = self.behavior.nextUpdate(forController: self, forDate: now)
         switch update {
         case .stop:
+            Log.info("Stopping Light Controller")
             self.stopInternal()
             return
         case .oneShot(let restartDate):
@@ -248,6 +256,12 @@ public class LightController: BehaviorController {
     }
 
     private func scheduleEvent(forDate now: Date) {
+        guard !self.eventControllers.isEmpty else {
+            Log.info("Scheduling no event")
+            self.stopEventInternal()
+            return
+        }
+
         let calcDates = self.eventControllers.map { (key, value) -> (EventId, Date) in
             return (key, value.time.calcNextDate(after: now)!)
         }
@@ -265,6 +279,8 @@ public class LightController: BehaviorController {
             Log.info("Next Event: \(token) (\(Log.dateFormatter.string(from: eventDate)))")
             self.eventTimer = eventTimer
             self.nextEvent = token
+        } else {
+            Log.error("Unable to schedule next event")
         }
     }
 }
