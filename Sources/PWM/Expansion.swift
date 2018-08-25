@@ -63,8 +63,8 @@ class ExpansionPWM: Module, CustomStringConvertible {
         guard channelCount > 0 && channelCount <= 16 else {
             throw ModuleInitError.invalidChannelCount(min: 1, max: 16, actual: channelCount)
         }
-        guard frequency % 480 == 0 && frequency <= 1440 else {
-            throw ModuleInitError.invalidFrequency(min: 480, max: 1440, actual: frequency)
+        guard frequency <= 1500 else {
+            throw ModuleInitError.invalidFrequency(min: 480, max: 1500, actual: frequency)
         }
 
         self.channelCount = channelCount
