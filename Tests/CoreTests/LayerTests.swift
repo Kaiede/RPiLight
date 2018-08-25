@@ -127,7 +127,7 @@ class LayerTests: XCTestCase {
             ("22:30:00", 0.10),
             ("23:00:00", 0.0)
         ]
-        
+
         for (timeString, expectedBrightness) in testExpectations.reversed() {
             // Start from known point every time
             let startTime = MockLayerPoint.dateFormatter.date(from: "23:59:59")!
@@ -152,11 +152,11 @@ class LayerTests: XCTestCase {
             ("22:45:00", 0.10, "22:30:00", "23:00:00"),
             ("23:30:00", 0.00, "23:00:00", "08:00:00")
         ]
-        
+
         // We should be able to query the same object at any time
         let startTime = MockLayerPoint.dateFormatter.date(from: "00:00:00")!
         let testLayer = Layer(identifier: "Mock", points: LayerTests.testData, startTime: startTime)
-        
+
         for (timeString, expectedChange, expectedStart, expectedEnd) in testExpectations {
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
 
