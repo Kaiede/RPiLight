@@ -68,8 +68,18 @@ class SwiftExtensionsTests: XCTestCase {
         }
     }
 
+    func testGetUid() {
+        XCTAssertEqual(getUid(username: "root"), 0)
+    }
+
+    func testGetUsername() {
+        XCTAssertEqual(getUsername(uid: 0), "root")
+    }
+
     static var allTests = [
-        ("testCalcNextDateCustom", testCalcNextDateCustom)
+        ("testCalcNextDateCustom", testCalcNextDateCustom),
+        ("testGetUid", testGetUid),
+        ("testGetUsername", testGetUsername)
     ]
 
     static private let dateFormatter: DateFormatter = {

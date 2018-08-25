@@ -26,6 +26,12 @@
 import Dispatch
 import Foundation
 
+#if os(Linux)
+    import Glibc
+#else
+    import Darwin
+#endif
+
 //
 // MARK: Foundation Extensions
 //
@@ -106,4 +112,16 @@ extension DispatchSourceTimer {
         self.scheduleRepeating(wallDeadline: DispatchWallTime(date: date), interval: .milliseconds(milliseconds), leeway: .milliseconds(1))
         #endif
     }
+}
+
+// MARK: User Functions
+public func getUid(username: String) -> uid_t? {
+    let user = getpwnam(username)?.pointee
+    return user?.pw_uid
+}
+
+public func getUsername(uid: uid_t) -> String? {
+    let user = getpwuid(uid)?.pointee
+    guard let name = user?.pw_name else { return nil }
+    return String(cString: name)
 }
