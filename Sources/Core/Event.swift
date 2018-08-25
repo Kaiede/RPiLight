@@ -37,6 +37,7 @@ public protocol EventController {
     var time: DateComponents { get }
     var token: EventId { get }
 
+    var firesOnStart: Bool { get }
     func fire(forController controller: BehaviorController, date: Date)
 }
 
@@ -45,6 +46,7 @@ public protocol EventController {
 //
 public class LunarCycleController: EventController {
     public let token: EventId = .lunar
+    public let firesOnStart: Bool = true
 
     public let time: DateComponents
     let endTime: DateComponents
@@ -59,8 +61,7 @@ public class LunarCycleController: EventController {
     }
 
     public func fire(forController controller: BehaviorController, date: Date) {
-        let calendar = Calendar.current
-        guard let nightStart = calendar.date(byAdding: self.time, to: calendar.startOfDay(for: date)) else {
+        guard let nightStart = time.calcNextDate(after: date, direction: .backward) else {
             Log.error("Unable to calculate when lunar night begins")
             return
         }

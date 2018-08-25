@@ -147,7 +147,11 @@ public class LightController: BehaviorController {
             self.eventControllers[controller.token] = controller
 
             if self.isRunning {
-                self.scheduleEvent(forDate: Date())
+                let now = Date()
+                if (controller.firesOnStart) {
+                    controller.fire(forController: self, date: now)
+                }
+                self.scheduleEvent(forDate: now)
             }
         }
     }
@@ -157,7 +161,9 @@ public class LightController: BehaviorController {
             self.isRunning = true
             self.isRefreshOneShot = true
             self.refresh()
-            self.scheduleEvent(forDate: Date())
+            let now = Date()
+            self.fireStartupEvents(forDate: now)
+            self.scheduleEvent(forDate: now)
         }
     }
     
@@ -179,6 +185,12 @@ public class LightController: BehaviorController {
                 let now = Date()
                 self.scheduleRefresh(forDate: now)
             }
+        }
+    }
+
+    private func fireStartupEvents(forDate date: Date) {
+        for controller in self.eventControllers.values where controller.firesOnStart {
+            controller.fire(forController: self, date: date)
         }
     }
 
