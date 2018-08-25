@@ -367,6 +367,7 @@ class ConfigurationTests: XCTestCase {
 
     func testConfigWithOptionals() {
         let jsonData: JsonDict = [
+            "user": "pi",
             "hardware": [
                 "pwmMode": "simulated",
                 "channels": 2

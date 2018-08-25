@@ -59,6 +59,7 @@ public struct Configuration {
             self.lunarCycle = try LunarConfig(json: lunarJson)
         } else {
             self.lunarCycle = nil
+        }
 
         let fixedKeys = Set(["hardware", "user", "lunarCycle"])
         let channelKeys = Set(json.keys).subtracting(fixedKeys)
