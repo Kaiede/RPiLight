@@ -37,6 +37,7 @@ public enum ConfigurationError: Error {
 }
 
 public struct Configuration {
+    public let username: String
     public let hardware: HardwareConfig
     public let channels: [ChannelConfig]
 
@@ -49,14 +50,15 @@ public struct Configuration {
     }
 
     init(json: JsonDict) throws {
+        guard let username = json["user"] as? String else { throw ConfigurationError.nodeMissing("user", message: "Don't run as root!") }
         guard let hardwareConfig = json["hardware"] as? JsonDict else { throw ConfigurationError.nodeMissing("hardware", message: "Configuration must include a hardware entry") }
         let hardware = try HardwareConfig(json: hardwareConfig)
 
-        guard hardware.channelCount == json.keys.count - 1 else {
+        let fixedKeys = Set(["hardware", "user"])
+        guard hardware.channelCount == json.keys.count - fixedKeys.count else {
             throw ConfigurationError.nodeMissing("channel", message: "Channel count mismatches channel configurations")
         }
 
-        let fixedKeys = Set(["hardware"])
         let channelKeys = Set(json.keys).subtracting(fixedKeys)
         var channelArray: [ChannelConfig] = []
         for token in channelKeys {
@@ -68,6 +70,7 @@ public struct Configuration {
             channelArray.append(channel)
         }
 
+        self.username = username
         self.hardware = hardware
         self.channels = channelArray
     }

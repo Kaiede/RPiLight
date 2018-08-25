@@ -27,6 +27,12 @@ import Dispatch
 import Foundation
 import Moderator
 
+#if os(Linux)
+    import Glibc
+#else
+    import Darwin
+#endif
+
 import Core
 import Logging
 import PWM
@@ -77,27 +83,6 @@ func loadConfiguration() -> Configuration {
 }
 
 let configuration = loadConfiguration()
-Log.info("Configured Board: \(configuration.hardware.board.rawValue)")
-Log.info("Configured PWM Module: \(configuration.hardware.type.rawValue)")
-Log.info("Configured PWM Frequency: \(configuration.hardware.frequency) Hz")
-Log.info("Configured Gamma: \(configuration.hardware.gamma)")
-
-Log.withDebug {
-    Log.debug("Configured Schedule Details for Today:")
-    let formatter = DateFormatter()
-    formatter.dateFormat = "dd MMM HH:mm:ss Z"
-    formatter.calendar = Calendar.current
-    formatter.timeZone = TimeZone.current
-    let now = Date()
-    for channel in configuration.channels {
-        Log.debug("==== Channel \(channel.token)")
-        for event in channel.schedule {
-            let prevDate = event.time.calcNextDate(after: now, direction: .backward)!
-            let nextDate = event.time.calcNextDate(after: now, direction: .forward)!
-            Log.debug("\t\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
-        }
-    }
-}
 
 //
 // MARK: Create Module
@@ -155,6 +140,46 @@ for channelInfo in configuration.channels {
     
     Log.info("\(channelInfo.token) Minimum Intensity: \(channelInfo.minIntensity)")
     channel.minIntensity = channelInfo.minIntensity
+}
+
+//
+// MARK: Output Config & Drop Root
+//
+let originalUid = getuid()
+let targetUsername = configuration.username
+guard let targetUid = getUid(username: targetUsername) else {
+    fatalError("Cannot find user '\(targetUsername)'.")
+}
+
+// Remove Access Now that We Are Memory Mapped
+if targetUid != originalUid {
+    guard setuid(targetUid) == 0 else {
+        fatalError("Couldn't switch to user '\(targetUsername)'")
+    }
+}
+
+Log.info("Startup User: \(getUsername(uid: originalUid) ?? "Unknown")")
+Log.info("Final User: \(targetUsername)")
+Log.info("Configured Board: \(configuration.hardware.board.rawValue)")
+Log.info("Configured PWM Module: \(configuration.hardware.type.rawValue)")
+Log.info("Configured PWM Frequency: \(configuration.hardware.frequency) Hz")
+Log.info("Configured Gamma: \(configuration.hardware.gamma)")
+
+Log.withDebug {
+    Log.debug("Configured Schedule Details for Today:")
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dd MMM HH:mm:ss Z"
+    formatter.calendar = Calendar.current
+    formatter.timeZone = TimeZone.current
+    let now = Date()
+    for channel in configuration.channels {
+        Log.debug("==== Channel \(channel.token)")
+        for event in channel.schedule {
+            let prevDate = event.time.calcNextDate(after: now, direction: .backward)!
+            let nextDate = event.time.calcNextDate(after: now, direction: .forward)!
+            Log.debug("\t\(formatter.string(from: prevDate)) -> \(formatter.string(from: nextDate))")
+        }
+    }
 }
 
 //

@@ -1,4 +1,5 @@
 {
+    "user": "pi",
     "hardware": {
         "pwmMode": "pca9685",
         "freq": 480,

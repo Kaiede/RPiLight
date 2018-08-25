@@ -1,4 +1,5 @@
 {
+    "user": "pi",
     "hardware": {
         "pwmMode": "simulated",
         "channels": 1

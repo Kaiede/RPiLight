@@ -59,6 +59,7 @@ There are example configuration files in the [examples](examples) folder. These 
 
 ```
 {
+    "user": "pi",
     "hardware" : {
         "board": "pizero",
         "pwmMode": "pca9685",
@@ -84,6 +85,14 @@ There are example configuration files in the [examples](examples) folder. These 
     <etc>
 }
 ```
+
+### Username
+
+```
+"user": "pi",
+```
+
+This normally shouldn't need to be changed from the example unless you are attempting to run this on something other than a Raspberry Pi. RPiLight starts as root, but drops privileges once it has configured access to the hardware. 
 
 ### Hardware
 

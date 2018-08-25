@@ -1,4 +1,5 @@
 {
+    "user": "pi",
     "hardware": {
         "pwmMode": "hardware",
         "freq": 960,
