@@ -113,7 +113,7 @@ public struct DefaultLightBehavior: Behavior {
         var mergedSegment: ChannelControllerSegment = ChannelControllerSegment()
         for channelController in controller.channelControllers.values {
             let channelSegment = channelController.segment(forDate: date)
-            mergedSegment.union(withSegment: channelSegment)
+            mergedSegment.unionByChannel(withSegment: channelSegment)
         }
         
         let shouldSleep = mergedSegment.totalBrightnessChange < minChange

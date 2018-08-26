@@ -36,12 +36,29 @@ public protocol ChannelSegment {
 }
 
 extension ChannelSegment {
+    var deltaBrightnessChange: Double {
+        return self.endBrightness - self.startBrightness
+    }
+    
     var totalBrightnessChange: Double {
         return abs(self.endBrightness - self.startBrightness)
     }
     
     var duration: TimeInterval {
         return self.endDate.timeIntervalSince(self.startDate)
+    }
+    
+    public func interpolateBrightness(forDate date: Date) -> Double {
+        if date <= self.startDate {
+            return self.startBrightness
+        } else if date >= self.endDate {
+            return self.endBrightness
+        } else {
+            let spentInterval = date.timeIntervalSince(self.startDate)
+            let factor = spentInterval / self.duration;
+            
+            return self.startBrightness + (factor * self.deltaBrightnessChange)
+        }
     }
 }
 
@@ -54,17 +71,68 @@ public protocol ChannelLayer {
 
 // Wrapper that allows for merging multiple ChannelSegments
 struct ChannelControllerSegment: ChannelSegment {
-    var startBrightness: Double = 0.0
-    var endBrightness: Double = 0.0
+    var startBrightness: Double = 1.0
+    var endBrightness: Double = 1.0
     
-    var startDate: Date = Date.distantFuture
+    var startDate: Date = Date.distantPast
     var endDate: Date = Date.distantFuture
     
-    mutating func union(withSegment segment: ChannelSegment) {
-        self.startBrightness = max(self.startBrightness, segment.startBrightness)
-        self.endBrightness = max(self.endBrightness, segment.endBrightness)
-        self.startDate = min(self.startDate, segment.startDate)
-        self.endDate = min(self.endDate, segment.endDate)
+    mutating func unionByLayer(withSegment segment: ChannelSegment) {
+        // Get the segment time that represents the union of the two.
+        let newStartDate = max(self.startDate, segment.startDate)
+        let newEndDate = min(self.endDate, segment.endDate)
+
+        let startBrightness = self.interpolateBrightness(forDate: newStartDate)
+        let endBrightness = self.interpolateBrightness(forDate: newEndDate)
+        
+        let segmentStartBrightness = segment.interpolateBrightness(forDate: newStartDate)
+        let segmentEndBrightness = segment.interpolateBrightness(forDate: newEndDate)
+
+        self.startDate = newStartDate
+        self.endDate = newEndDate
+        self.startBrightness = startBrightness * segmentStartBrightness
+        self.endBrightness = endBrightness * segmentEndBrightness
+    }
+    
+    mutating func unionByChannel(withSegment segment: ChannelSegment) {
+        let newStartDate = max(self.startDate, segment.startDate)
+        let newEndDate = min(self.endDate, segment.endDate)
+        
+        let startBrightness = self.interpolateBrightness(forDate: newStartDate)
+        let endBrightness = self.interpolateBrightness(forDate: newEndDate)
+        
+        let segmentStartBrightness = segment.interpolateBrightness(forDate: newStartDate)
+        let segmentEndBrightness = segment.interpolateBrightness(forDate: newEndDate)
+        
+        self.startDate = newStartDate
+        self.endDate = newEndDate
+        if abs(endBrightness - startBrightness) > abs(segmentEndBrightness - segmentStartBrightness) {
+            self.startBrightness = startBrightness
+            self.endBrightness = endBrightness
+        } else {
+            self.startBrightness = segmentStartBrightness
+            self.endBrightness = segmentEndBrightness
+        }
+    }
+    
+    private func biggestDelta(leftStart: Double, end leftEnd: Double, rightStart: Double, end rightEnd: Double) -> (start: Double, end: Double) {
+        let leftEndLeftStart = abs(leftEnd - leftStart)
+        let rightEndLeftStart = abs(rightEnd - leftStart)
+        let leftEndRightStart = abs(leftEnd - rightStart)
+        let rightEndRightStart = abs(rightEnd - rightStart)
+        
+        let maxDelta = max(leftEndLeftStart, max(rightEndLeftStart, max(leftEndRightStart, rightEndRightStart)))
+        if leftEndLeftStart == maxDelta {
+            return (start: leftStart, end: leftEnd)
+        } else if rightEndLeftStart == maxDelta {
+            return (start: leftStart, end: rightEnd)
+        } else if leftEndRightStart == maxDelta {
+            return (start: rightStart, end: leftEnd)
+        } else if rightEndRightStart == maxDelta {
+            return (start: rightStart, end: rightEnd)
+        } else {
+            fatalError()
+        }
     }
 }
 
@@ -101,7 +169,7 @@ public class ChannelController: BehaviorChannel {
         var channelSegment = ChannelControllerSegment()
         for layer in self.activeLayers {
             let layerSegment = layer.segment(forDate: date)
-            channelSegment.union(withSegment: layerSegment)
+            channelSegment.unionByLayer(withSegment: layerSegment)
         }
 
         return channelSegment

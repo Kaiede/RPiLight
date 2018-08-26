@@ -133,11 +133,11 @@ class BehaviorTests: XCTestCase {
                 if expectSleep {
                     XCTAssertEqual(date, refreshDate.addingTimeInterval(30))
                 } else {
-                    XCTFail()
+                    XCTFail("\(brightnessDelta) shouldn't sleep")
                 }
             case .repeating(_, _):
                 if expectSleep {
-                    XCTFail()
+                    XCTFail("\(brightnessDelta) should sleep")
                 }
             }
         }
