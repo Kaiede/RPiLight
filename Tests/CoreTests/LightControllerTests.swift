@@ -30,6 +30,7 @@ class MockBehavior: Behavior {
     var refreshCount: Int = 0
     var stopsAt: Int = 1
     var shouldStop: Bool = false
+    var intervalMs: Int = 10
     
     init() {}
     
@@ -45,7 +46,7 @@ class MockBehavior: Behavior {
         if self.shouldStop {
             return .stop
         } else {
-            return .repeating(date, 10)
+            return .repeating(date, self.intervalMs)
         }
     }
 }
@@ -120,7 +121,7 @@ class LightControllerTests: XCTestCase {
     func testForceStop() {
         let mockController = MockBehaviorController(channelCount: 4)
         let mockBehavior = MockBehavior()
-        mockBehavior.stopsAt = 20
+        mockBehavior.intervalMs = 1000
         let testController = LightController(channelControllers: mockController.channelControllers, behavior: mockBehavior)
         
         let controllerStopped = expectation(description: "Controller Stops")
