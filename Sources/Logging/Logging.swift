@@ -37,6 +37,21 @@ public enum LogLevel: Int, Comparable {
     case warn
     case error
     
+    public init(fromString levelString: String) {
+        switch levelString.lowercased() {
+        case "debug":
+            self = .debug
+        case "info":
+            self = .info
+        case "warn":
+            self = .warn
+        case "error":
+            self = .error
+        default:
+            self = .info
+        }
+    }
+    
     public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
         return lhs.rawValue < rhs.rawValue
     }
@@ -51,8 +66,16 @@ public typealias LogClosure = () -> Void
 public struct Log {
     private static var stdOut: StdoutOutputStream = StdoutOutputStream()
     private static var stdErr: StderrOutputStream = StderrOutputStream()
-    
+
     public private(set) static var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd MMM HH:mm:ss.SSS"
+        formatter.calendar = Calendar.current
+        formatter.timeZone = TimeZone.current
+        return formatter
+    }()
+
+    public private(set) static var timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss.SSS"
         formatter.calendar = Calendar.current
@@ -110,7 +133,7 @@ public struct Log {
     private static func log(_ item: Any, level: LogLevel, file: String, line: Int) {
         guard level >= Log.logLevel else { return }
         
-        let nowString = Log.dateFormatter.string(from: Date())
+        let nowString = Log.timeFormatter.string(from: Date())
         if Log.logLevel == .debug {
             let shortFileName = URL(fileURLWithPath: file).lastPathComponent
             print("[\(level)][\(nowString)][\(shortFileName):\(line)]", item, separator: " ", terminator: "\n", to: &Log.stdErr)

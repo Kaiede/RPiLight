@@ -82,7 +82,18 @@ func loadConfiguration() -> Configuration {
     }
 }
 
+
 let configuration = loadConfiguration()
+if !verbose.value {
+    Log.setLoggingLevel(configuration.logging)
+}
+
+import Ephemeris
+Log.withDebug {
+    let j2000Date = Calendar.current.startOfDay(for: Date()).toJ2000Date() + 1.0
+    let illumination = Moon.fastIllumination(forDate: j2000Date)
+    Log.debug("Tonight's Lunar Illumination: \(illumination.fraction * 100.0)")
+}
 
 //
 // MARK: Create Module
@@ -202,6 +213,12 @@ if previewMode.value {
         Log.error("Controller unexpectedly stopped.")
         exit(1)
     }
+
+    if let lunarCycle = configuration.lunarCycle {
+        let lunarCycleController = LunarCycleController(config: lunarCycle)
+        controller.setEvent(controller: lunarCycleController)
+    }
+
     controller.start()
     dispatchMain()
 }

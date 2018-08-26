@@ -6,6 +6,11 @@
         "channels": 2
     },
 
+    "lunarCycle": {
+        "start": "21:00:00",
+        "end": "07:00:00",
+    },
+
     "PWM00": {
         "schedule": [
             { "time": "08:00:00", "brightness": 0.0 },

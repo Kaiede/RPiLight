@@ -43,7 +43,7 @@ public enum LightControllerError: Error {
 //
 // Wrapper for Configuration that's compatible with Layers
 //
-struct ChannelEvent: LayerPoint {
+struct ChannelPoint: LayerPoint {
     var time: DateComponents {
         return self.event.time
     }
@@ -53,9 +53,9 @@ struct ChannelEvent: LayerPoint {
     }
     
     private let channel: Channel
-    private let event: ChannelEventConfig
+    private let event: ChannelPointConfig
     
-    init(channel: Channel, event: ChannelEventConfig) {
+    init(channel: Channel, event: ChannelPointConfig) {
         self.channel = channel
         self.event = event
     }
@@ -67,8 +67,12 @@ struct ChannelEvent: LayerPoint {
 public class LightController: BehaviorController {
     public let channelControllers: [String: BehaviorChannel]
 
+    private var eventControllers: [EventId: EventController]
+    private var nextEvent: EventId?
+
     private let queue: DispatchQueue
     private var refreshTimer: DispatchSourceTimer?
+    private var eventTimer: DispatchSourceTimer?
 
     private var behavior: Behavior
     private var isRunning: Bool
@@ -89,7 +93,12 @@ public class LightController: BehaviorController {
         self.isRunning = false
         self.isRefreshOneShot = false
         self.refreshTimer = nil
-        
+
+        self.eventTimer = nil
+        self.nextEvent = nil
+
+        self.eventControllers = [:]
+
         // Copy the channel controllers
         self.channelControllers = channelControllers
         
@@ -121,9 +130,9 @@ public class LightController: BehaviorController {
             let controller = ChannelController(channel: channel)
             channelControllers[channelConfig.token] = controller
             
-            let points = channelConfig.schedule.map({ ChannelEvent(channel: channel, event: $0 )})
-            let layer = Layer(points: points, startTime: now)
-            controller.setBase(layer: layer)
+            let points = channelConfig.schedule.map({ ChannelPoint(channel: channel, event: $0 )})
+            let layer = Layer(identifier: "Schedule", points: points, startTime: now)
+            controller.set(layer: layer)
         }
         
         self.init(channelControllers: channelControllers, behavior: behavior)
@@ -132,12 +141,29 @@ public class LightController: BehaviorController {
     deinit {
         self.stopInternal()
     }
+
+    public func setEvent(controller: EventController) {
+        self.queue.async {
+            self.eventControllers[controller.token] = controller
+
+            if self.isRunning {
+                let now = Date()
+                if (controller.firesOnStart) {
+                    controller.fire(forController: self, date: now)
+                }
+                self.scheduleEvent(forDate: now)
+            }
+        }
+    }
     
     public func start() {
         self.queue.async {
             self.isRunning = true
             self.isRefreshOneShot = true
             self.refresh()
+            let now = Date()
+            self.fireStartupEvents(forDate: now)
+            self.scheduleEvent(forDate: now)
         }
     }
     
@@ -161,7 +187,29 @@ public class LightController: BehaviorController {
             }
         }
     }
-    
+
+    private func fireStartupEvents(forDate date: Date) {
+        for controller in self.eventControllers.values where controller.firesOnStart {
+            controller.fire(forController: self, date: date)
+        }
+    }
+
+    private func fireEvent() {
+        guard let eventToken = self.nextEvent else {
+            Log.warn("Event handler fired without an event token")
+            return
+        }
+
+        if let event = self.eventControllers[eventToken] {
+            let now = Date()
+            Log.info("Firing Event: \(eventToken)")
+            event.fire(forController: self, date: now)
+            self.scheduleEvent(forDate: now)
+        } else {
+            Log.error("Event \"\(eventToken)\" not found.")
+        }
+    }
+
     private func refresh() {
         let now = Date()
         self.behavior.refresh(controller: self, forDate: now)
@@ -175,14 +223,22 @@ public class LightController: BehaviorController {
         if self.isRunning {
             self.isRunning = false
             if let oldTimer = self.refreshTimer {
-                oldTimer.cancel()
                 self.refreshTimer = nil
+                oldTimer.cancel()
             }
+            self.stopEventInternal()
             DispatchQueue.main.async { [weak self] in
                 if let controller = self {
                     controller.stopClosure?(controller)
                 }
             }
+        }
+    }
+
+    private func stopEventInternal() {
+        if let eventTimer = self.eventTimer {
+            self.eventTimer = nil
+            eventTimer.cancel()
         }
     }
     
@@ -194,6 +250,7 @@ public class LightController: BehaviorController {
         let update = self.behavior.nextUpdate(forController: self, forDate: now)
         switch update {
         case .stop:
+            Log.info("Stopping Light Controller")
             self.stopInternal()
             return
         case .oneShot(let restartDate):
@@ -215,5 +272,35 @@ public class LightController: BehaviorController {
             self?.refresh()
         }
         self.refreshTimer?.resume()
+    }
+
+    private func scheduleEvent(forDate now: Date) {
+        guard !self.eventControllers.isEmpty else {
+            Log.info("Scheduling no event")
+            self.stopEventInternal()
+            return
+        }
+
+        let calcDates = self.eventControllers.map { (key, value) -> (EventId, Date) in
+            return (key, value.time.calcNextDate(after: now)!)
+        }
+        if let result = calcDates.min(by: { $0.1 < $1.1 }) {
+            let token = result.0
+            let eventDate = result.1
+
+            let eventTimer = DispatchSource.makeTimerSource(flags: [], queue: self.queue)
+            eventTimer.setEventHandler {
+                [weak self] in
+                self?.fireEvent()
+            }
+
+            eventTimer.schedulePrecise(forDate: eventDate)
+            eventTimer.resume()
+            Log.info("Next Event: \(token) (\(Log.dateFormatter.string(from: eventDate)))")
+            self.eventTimer = eventTimer
+            self.nextEvent = token
+        } else {
+            Log.error("Unable to schedule next event")
+        }
     }
 }

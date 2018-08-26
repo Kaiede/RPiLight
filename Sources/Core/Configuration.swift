@@ -38,7 +38,9 @@ public enum ConfigurationError: Error {
 
 public struct Configuration {
     public let username: String
+    public let logging: LogLevel
     public let hardware: HardwareConfig
+    public let lunarCycle: LunarConfig?
     public let channels: [ChannelConfig]
 
     public init(withPath path: URL) throws {
@@ -54,12 +56,20 @@ public struct Configuration {
         guard let hardwareConfig = json["hardware"] as? JsonDict else { throw ConfigurationError.nodeMissing("hardware", message: "Configuration must include a hardware entry") }
         let hardware = try HardwareConfig(json: hardwareConfig)
 
-        let fixedKeys = Set(["hardware", "user"])
-        guard hardware.channelCount == json.keys.count - fixedKeys.count else {
+        if let lunarJson = json["lunarCycle"] as? JsonDict {
+            self.lunarCycle = try LunarConfig(json: lunarJson)
+        } else {
+            self.lunarCycle = nil
+        }
+
+        let loggingString = json["logging"] as? String ?? "info"
+
+        let fixedKeys = Set(["hardware", "user", "lunarCycle", "logging"])
+        let channelKeys = Set(json.keys).subtracting(fixedKeys)
+        guard hardware.channelCount == channelKeys.count else {
             throw ConfigurationError.nodeMissing("channel", message: "Channel count mismatches channel configurations")
         }
 
-        let channelKeys = Set(json.keys).subtracting(fixedKeys)
         var channelArray: [ChannelConfig] = []
         for token in channelKeys {
             guard let jsonChannel = json[token] as? JsonDict else {
@@ -71,6 +81,7 @@ public struct Configuration {
         }
 
         self.username = username
+        self.logging = LogLevel(fromString: loggingString)
         self.hardware = hardware
         self.channels = channelArray
     }
@@ -126,18 +137,49 @@ public struct HardwareConfig {
     }
 }
 
+public struct LunarConfig {
+    public let startTime: DateComponents
+    public let endTime: DateComponents
+
+    init(json: JsonDict) throws {
+        guard let startString = json["start"] as? String else { throw ConfigurationError.nodeMissing("start", message: "Lunar cycle needs a start time") }
+        guard let parsedStart = LunarConfig.dateFormatter.date(from: startString) else { throw ConfigurationError.invalidValue("start", value: startString) }
+
+        guard let endString = json["end"] as? String else { throw ConfigurationError.nodeMissing("end", message: "Lunar cycle needs an end time") }
+        guard let parsedEnd = LunarConfig.dateFormatter.date(from: endString) else { throw ConfigurationError.invalidValue("end", value: endString) }
+
+        let startTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedStart)
+        let endTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedEnd)
+
+        self.init(startTime: startTime, endTime: endTime)
+    }
+
+    init(startTime: DateComponents, endTime: DateComponents) {
+        self.startTime = startTime
+        self.endTime = endTime
+    }
+
+    static private let dateFormatter: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.calendar = Calendar.current
+        return dateFormatter
+    }()
+}
+
 public struct ChannelConfig {
     public let token: String
     public let minIntensity: Double
-    public let schedule: [ChannelEventConfig]
+    public let schedule: [ChannelPointConfig]
 
     init(token: String, json: JsonDict) throws {
         // Load Schedule
-        var schedule: [ChannelEventConfig] = []
+        var schedule: [ChannelPointConfig] = []
         guard let jsonSchedule = json["schedule"] as? [JsonDict] else { throw ConfigurationError.nodeMissing("schedule", message: "Channels must have a schedule") }
 
         for jsonEvent in jsonSchedule {
-            let event = try ChannelEventConfig(json: jsonEvent)
+            let event = try ChannelPointConfig(json: jsonEvent)
             schedule.append(event)
         }
 
@@ -147,20 +189,20 @@ public struct ChannelConfig {
         self.init(token: token, minIntensity: minIntensity, schedule: schedule)
     }
 
-    init(token: String, minIntensity: Double, schedule: [ChannelEventConfig]) {
+    init(token: String, minIntensity: Double, schedule: [ChannelPointConfig]) {
         self.token = token
         self.minIntensity = minIntensity
         self.schedule = schedule
     }
 }
 
-public struct ChannelEventConfig {
+public struct ChannelPointConfig {
     public let time: DateComponents
     public let setting: ChannelSetting
 
     init(json: JsonDict) throws {
         guard let timeString = json["time"] as? String else { throw ConfigurationError.nodeMissing("time", message: "Events must have a time") }
-        guard let parsedTime = ChannelEventConfig.dateFormatter.date(from: timeString) else { throw ConfigurationError.invalidValue("time", value: timeString) }
+        guard let parsedTime = ChannelPointConfig.dateFormatter.date(from: timeString) else { throw ConfigurationError.invalidValue("time", value: timeString) }
 
         let splitTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
 

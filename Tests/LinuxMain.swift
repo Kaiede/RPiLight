@@ -6,6 +6,7 @@ XCTMain([
     testCase(BehaviorTests.allTests),
     testCase(ChannelControllerTests.allTests),
     testCase(ConfigurationTests.allTests),
+    testCase(EventTests.allTests),
     testCase(LayerTests.allTests),
     testCase(LightControllerTests.allTests)
 ])

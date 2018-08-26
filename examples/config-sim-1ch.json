@@ -5,6 +5,11 @@
         "channels": 1
     },
 
+    "lunarCycle": {
+        "start": "21:00:00",
+        "end": "07:00:00",
+    },
+
     "SIM00": {
         "minIntensity": 0.0025,
         "schedule": [

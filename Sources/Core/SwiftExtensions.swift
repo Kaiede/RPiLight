@@ -84,6 +84,14 @@ public extension FileManager {
     }
 }
 
+#if !swift(>=4.1)
+extension Sequence {
+    func compactMap<ElementOfResult>(_ transform: (Iterator.Element) throws -> ElementOfResult?) rethrows -> [ElementOfResult] {
+        return try flatMap(transform)
+    }
+}
+#endif
+
 //
 // MARK: Dispatch Extensions
 //
