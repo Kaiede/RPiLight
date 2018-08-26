@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Build Script 
+# Build Script
 #
 # ./build.sh <options>
 #	stable - Get latest tag
 #	latest - Get latest source
 #	package - Build Package
 #   install - Install Locally
-#   
+#
 
 usage()
 {
@@ -76,6 +76,21 @@ function copy_binaries() {
 }
 
 #
+# Calculate the Package Version
+#
+# Takes variable to set with version
+function get_package_version() {
+	local VERSION=$(git describe --tags)
+
+	local VERSION_ARRAY=(${VERSION//-/ })
+	if [ "${VERSION_ARRAY[1]}" == "0" ]; then
+		eval "$1=${VERSION_ARRAY[0]}"
+	fi
+
+	eval "$1=$VERSION"
+}
+
+#
 # Build Binary Package
 #
 function build_package() {
@@ -90,18 +105,19 @@ function build_package() {
 
 	copy_binaries "$PACKAGE_PATH" ""
 
-	PACKAGE_ARCH=$(uname -m)
-	PACKAGE_VERSION=$(git describe --tags `git rev-list --tags --max-count=1`)
+	PACKAGE_ARCH=$(uname -m | rev | cut -c 2- | rev)
+	PACKAGE_VERSION=""
+	get_package_version PACKAGE_VERSION
 
 	mkdir -p "$PACKAGE_DEBIAN"
-	echo Package: RPiLight > "$PACKAGE_DEBIAN/control"
+	echo Package: rpilight-$PACKAGE_ARCH > "$PACKAGE_DEBIAN/control"
 	echo Version: $PACKAGE_VERSION >> "$PACKAGE_DEBIAN/control"
 	echo Architecture: armhf >> "$PACKAGE_DEBIAN/control"
-	echo Depends: swiftlang \(\>= 3.1.1\) >> "$PACKAGE_DEBIAN/control"
+	echo Depends: swiftlang-$PACKAGE_ARCH \(\>= 3.1.1\) >> "$PACKAGE_DEBIAN/control"
 	echo Maintainer: Kaiede \(user@biticus.net\) >> "$PACKAGE_DEBIAN/control"
-	echo Description: TBD >> "$PACKAGE_DEBIAN/control"
+	echo Description: "Aquarium Light Controller for Raspberry Pi" >> "$PACKAGE_DEBIAN/control"
 
-	fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight\_$PACKAGE_VERSION\_$PACKAGE_ARCH.deb
+	fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight-$PACKAGE_ARCH\_$PACKAGE_VERSION\_armhf.deb
 }
 
 #
