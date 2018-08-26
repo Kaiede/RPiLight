@@ -38,6 +38,7 @@ public enum ConfigurationError: Error {
 
 public struct Configuration {
     public let username: String
+    public let logging: LogLevel
     public let hardware: HardwareConfig
     public let lunarCycle: LunarConfig?
     public let channels: [ChannelConfig]
@@ -61,7 +62,9 @@ public struct Configuration {
             self.lunarCycle = nil
         }
 
-        let fixedKeys = Set(["hardware", "user", "lunarCycle"])
+        let loggingString = json["logging"] as? String ?? "info"
+
+        let fixedKeys = Set(["hardware", "user", "lunarCycle", "logging"])
         let channelKeys = Set(json.keys).subtracting(fixedKeys)
         guard hardware.channelCount == channelKeys.count else {
             throw ConfigurationError.nodeMissing("channel", message: "Channel count mismatches channel configurations")
@@ -78,6 +81,7 @@ public struct Configuration {
         }
 
         self.username = username
+        self.logging = LogLevel(fromString: loggingString)
         self.hardware = hardware
         self.channels = channelArray
     }

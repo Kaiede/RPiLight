@@ -82,7 +82,11 @@ func loadConfiguration() -> Configuration {
     }
 }
 
+
 let configuration = loadConfiguration()
+if !verbose.value {
+    Log.setLoggingLevel(configuration.logging)
+}
 
 import Ephemeris
 Log.withDebug {

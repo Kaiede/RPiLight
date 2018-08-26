@@ -37,6 +37,21 @@ public enum LogLevel: Int, Comparable {
     case warn
     case error
     
+    public init(fromString levelString: String) {
+        switch levelString.lowercased() {
+        case "debug":
+            self = .debug
+        case "info":
+            self = .info
+        case "warn":
+            self = .warn
+        case "error":
+            self = .error
+        default:
+            self = .info
+        }
+    }
+    
     public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
         return lhs.rawValue < rhs.rawValue
     }
