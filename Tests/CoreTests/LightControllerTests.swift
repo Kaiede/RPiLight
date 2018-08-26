@@ -30,6 +30,7 @@ class MockBehavior: Behavior {
     var refreshCount: Int = 0
     var stopsAt: Int = 1
     var shouldStop: Bool = false
+    var didStop: Bool = false
     var intervalMs: Int = 10
     
     init() {}
@@ -44,6 +45,7 @@ class MockBehavior: Behavior {
     
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
         if self.shouldStop {
+            self.didStop = true
             return .stop
         } else {
             return .repeating(date, self.intervalMs)
@@ -55,6 +57,7 @@ class MockOneShotBehavior: Behavior {
     var refreshCount: Int = 0
     var updateCount: Int = 0
     var stopAfter: Int = 2
+    var didStop: Bool = false
     
     init() {}
     
@@ -66,6 +69,7 @@ class MockOneShotBehavior: Behavior {
         self.updateCount += 1
         
         if self.updateCount >= self.stopAfter {
+            self.didStop = true
             return .stop
         }
         
@@ -133,7 +137,7 @@ class LightControllerTests: XCTestCase {
         
         waitForExpectations(timeout: 0.25) { (error) in
             // Shouldn't have waited until a refresh to stop the controller
-            XCTAssertFalse(mockBehavior.shouldStop)
+            XCTAssertFalse(mockBehavior.didStop)
         }
     }
     
@@ -151,6 +155,7 @@ class LightControllerTests: XCTestCase {
         waitForExpectations(timeout: 0.25) { (error) in
             XCTAssertEqual(mockBehavior.refreshCount, mockBehavior.stopAfter)
             XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter)
+            XCTAssertTrue(mockBehavior.didStop)
         }
     }
     
