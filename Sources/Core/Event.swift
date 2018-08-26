@@ -75,8 +75,8 @@ public class LunarCycleController: EventController {
         let intensityFactorStart: ChannelSetting = .intensity(illuminationStart.fraction)
         let intensityFactorEnd: ChannelSetting = .intensity(illuminationEnd.fraction)
 
-        Log.info("Starting Lunar Night: \(illuminationStart.fraction) -> \(illuminationEnd.fraction)")
         Log.info("Lunar Night Period: \(Log.timeFormatter.string(from: nightStart)) -> \(Log.timeFormatter.string(from: nightEnd))")
+        Log.info("Calculated Lunar Light: \(illuminationStart.fraction) -> \(illuminationEnd.fraction)")
 
         for channelController in controller.channelControllers.values {
             let gamma = channelController.channelGamma
