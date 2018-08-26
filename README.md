@@ -48,9 +48,9 @@ RPiLight includes a bootstrapping script that can install Swift and its dependen
 source <(curl -s https://raw.githubusercontent.com/Kaiede/RPiLight/master/bootstrap.sh)
 ```
 
-Once bootstrapped, it is possible to get the latest source and update using `install.sh`:
+Once bootstrapped, it is possible to get the latest release and update using `build.sh`:
 ```
-./install.sh update
+./build.sh stable install
 ```
 
 ## Configuring RPiLight
@@ -172,17 +172,17 @@ You should first make sure the service is stopped before running previews to avo
 
 The install script will do most of the work, so you should only need to start it using `systemctl`.
 ```
-sudo systemctl start rpilight.service
+sudo systemctl start rpilight
 ```
 
 If you need to restart the service after making changes to the schedule:
 ```
-sudo systemctl restart rpilight.service
+sudo systemctl restart rpilight
 ```
 
 Or stop it to run previews:
 ```
-sudo systemctl stop rpilight.service
+sudo systemctl stop rpilight
 ```
 
 ## Built With
