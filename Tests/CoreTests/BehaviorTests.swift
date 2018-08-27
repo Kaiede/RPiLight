@@ -109,9 +109,10 @@ class BehaviorTests: XCTestCase {
 
         let testData = [
             // Change, Should Sleep
-            (0.00000, true),
-            (0.00001, true),
+            (0.00000, true), // Min brightness delta
+            (0.00001, true), // Min brightness delta
             (0.00010, false),
+            (0.00100, false),
             (0.01000, false),
             (0.33332, false),
             (0.50000, false),
@@ -131,11 +132,13 @@ class BehaviorTests: XCTestCase {
                 XCTFail()
             case .oneShot(let date):
                 if expectSleep {
+                    // Works because the mocks always add 30 seconds to the refreshDate to get the end of the segment.
                     XCTAssertEqual(date, refreshDate.addingTimeInterval(30))
                 } else {
                     XCTFail("\(brightnessDelta) shouldn't sleep")
                 }
-            case .repeating(_, _):
+            case .repeating(_, let interval):
+                XCTAssertLessThanOrEqual(interval, 60 * 1000, "\(brightnessDelta) created too long an interval")
                 if expectSleep {
                     XCTFail("\(brightnessDelta) should sleep")
                 }

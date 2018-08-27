@@ -123,7 +123,8 @@ public struct DefaultLightBehavior: Behavior {
         if shouldSleep {
             return .oneShot(mergedSegment.endDate)
         }
-        
-        return .repeating(mergedSegment.startDate, Int(1000.0 / updatesPerSec))
+
+        let interval = min(1000.0 * mergedSegment.duration, 1000.0 / updatesPerSec)
+        return .repeating(mergedSegment.startDate, Int(interval))
     }
 }
