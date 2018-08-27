@@ -138,7 +138,12 @@ class BehaviorTests: XCTestCase {
                     XCTFail("\(brightnessDelta) shouldn't sleep")
                 }
             case .repeating(_, let interval):
+                // Interval cannot be more than the duration (60 seconds)
                 XCTAssertLessThanOrEqual(interval, 60 * 1000, "\(brightnessDelta) created too long an interval")
+                // There shouldn't be any events firing after the end of the segment, but it isn't possible to be perfect
+                // if the interval is an integer of milliseconds. Allow up to 30 milliseconds drift in this test, which is
+                // fine in practice.
+                XCTAssertLessThanOrEqual((60 * 1000) % (interval), 30, "\(brightnessDelta) should stay under the allowable 30 ms drift")
                 if expectSleep {
                     XCTFail("\(brightnessDelta) should sleep")
                 }
