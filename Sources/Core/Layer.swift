@@ -111,10 +111,7 @@ struct LayerSegment: ChannelSegment {
     }
 
     func lightLevel(forDate now: Date) -> Double {
-        let timeSpent = max(0.0, now.timeIntervalSince(self.startDate))
-        let factor = min(1.0, timeSpent / self.timeDelta)
-
-        return self.range.bound(self.range.origin + (factor * self.range.delta))
+        return self.range.bound(self.interpolateBrightness(forDate: now))
     }
 }
 
