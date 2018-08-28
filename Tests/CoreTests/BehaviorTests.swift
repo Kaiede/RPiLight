@@ -24,6 +24,7 @@
  */
 
 import XCTest
+import Dispatch
 @testable import Core
 
 extension DispatchTimeInterval {
@@ -115,7 +116,7 @@ class BehaviorTests: XCTestCase {
             XCTFail()
         case .repeating(let date, let interval):
             XCTAssertEqual(date, refreshDate.addingTimeInterval(-30))
-            XCTAssertEqual(interval, expectedInterval)
+            XCTAssertEqual(interval.asMicroseconds(), expectedInterval.asMicroseconds())
         }
     }
     
@@ -235,7 +236,7 @@ class BehaviorTests: XCTestCase {
             case .repeating(let date, let interval):
                 XCTAssertEqual(shouldBeRunning, true)
                 XCTAssertEqual(date, refreshDate)
-                XCTAssertEqual(interval, .milliseconds(10))
+                XCTAssertEqual(interval.asMicroseconds(), DispatchTimeInterval.milliseconds(10).asMicroseconds())
             }
         }
     }
