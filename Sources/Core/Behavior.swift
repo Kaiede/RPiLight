@@ -23,6 +23,7 @@
  SOFTWARE.)
  */
 
+import Dispatch
 import Foundation
 
 import Logging
@@ -36,7 +37,7 @@ public enum LightBehaviorUpdate {
     case oneShot(Date)
     
     // Do repeating updates starting at date
-    case repeating(Date, Int)
+    case repeating(Date, DispatchTimeInterval)
 }
 
 public protocol BehaviorChannel {
@@ -93,7 +94,7 @@ public struct PreviewLightBehavior: Behavior {
             return .stop
         }
         
-        return .repeating(date, 10)
+        return .repeating(date, .milliseconds(10))
     }
 }
 
@@ -124,6 +125,6 @@ public struct DefaultLightBehavior: Behavior {
             return .oneShot(mergedSegment.endDate)
         }
 
-        return .repeating(mergedSegment.startDate, Int(interval * 1000.0))
+        return .repeating(mergedSegment.startDate, .microseconds(Int(interval * 1_000_000.0)))
     }
 }

@@ -261,7 +261,7 @@ public class LightController: BehaviorController {
             Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate))")
         case .repeating(let restartDate, let updateInterval):
             let refreshTimer = DispatchSource.makeTimerSource(flags: [], queue: self.queue)
-            refreshTimer.schedulePrecise(forDate: restartDate, everyMilliseconds: updateInterval)
+            refreshTimer.schedulePrecise(forDate: restartDate, repeating: updateInterval)
             self.refreshTimer = refreshTimer
             self.isRefreshOneShot = false
             Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(updateInterval) ms")

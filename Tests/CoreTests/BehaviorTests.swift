@@ -26,6 +26,23 @@
 import XCTest
 @testable import Core
 
+extension DispatchTimeInterval {
+    func asMicroseconds() -> Int {
+        switch self {
+        case .seconds(let seconds):
+            return seconds * 1_000_000
+        case .milliseconds(let milliseconds):
+            return milliseconds * 1_000
+        case .microseconds(let microseconds):
+            return microseconds
+        case .nanoseconds(let nanoseconds):
+            return nanoseconds / 1_000
+        case .never:
+            return Int.max
+        }
+    }
+}
+
 class MockBehaviorController: BehaviorController {
     var channelControllers: [String : BehaviorChannel] = [:]
     var didInvalidate: Bool = false
@@ -89,7 +106,7 @@ class BehaviorTests: XCTestCase {
         let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
         
         let expectedRefreshRate = (1.0 * 4096.0) / 60.0 // 1.0 brightness change over 1 minute
-        let expectedInterval = Int(1000 / expectedRefreshRate)
+        let expectedInterval = DispatchTimeInterval.microseconds(Int(1_000_000.0 / expectedRefreshRate))
         
         switch result {
         case .stop:
@@ -139,11 +156,13 @@ class BehaviorTests: XCTestCase {
                 }
             case .repeating(_, let interval):
                 // Interval cannot be more than the duration (60 seconds)
-                XCTAssertLessThanOrEqual(interval, 60 * 1000, "\(brightnessDelta) created too long an interval")
+                XCTAssertLessThanOrEqual(interval.asMicroseconds(), DispatchTimeInterval.seconds(60).asMicroseconds(), "\(brightnessDelta) created too long an interval")
                 // There shouldn't be any events firing after the end of the segment, but it isn't possible to be perfect
-                // if the interval is an integer of milliseconds. Allow up to 30 milliseconds drift in this test, which is
-                // fine in practice.
-                XCTAssertLessThanOrEqual((60 * 1000) % (interval), 30, "\(brightnessDelta) should stay under the allowable 30 ms drift")
+                // if the interval is an integer. The live code has migrated to using microseconds to minimize this error, but
+                // in practice, the maximum possible error is about 4096 units of time that nextUpdate() is returning.
+                // Previously that was milliseconds (4s) but now it is microseconds (4ms), which should be fine in practice.
+                // Being off by 4 milliseconds isn't really going to be noticeable by users.
+                XCTAssertLessThanOrEqual(DispatchTimeInterval.seconds(60).asMicroseconds() % (interval.asMicroseconds()), 2048, "\(brightnessDelta) should stay under the allowable 30 ms drift")
                 if expectSleep {
                     XCTFail("\(brightnessDelta) should sleep")
                 }
@@ -216,7 +235,7 @@ class BehaviorTests: XCTestCase {
             case .repeating(let date, let interval):
                 XCTAssertEqual(shouldBeRunning, true)
                 XCTAssertEqual(date, refreshDate)
-                XCTAssertEqual(interval, 10)
+                XCTAssertEqual(interval, .milliseconds(10))
             }
         }
     }

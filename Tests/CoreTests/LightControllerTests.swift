@@ -48,7 +48,7 @@ class MockBehavior: Behavior {
             self.didStop = true
             return .stop
         } else {
-            return .repeating(date, self.intervalMs)
+            return .repeating(date, .milliseconds(self.intervalMs))
         }
     }
 }

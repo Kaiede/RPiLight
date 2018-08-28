@@ -113,11 +113,11 @@ extension DispatchSourceTimer {
         #endif
     }
 
-    public func schedulePrecise(forDate date: Date, everyMilliseconds milliseconds: Int) {
+    public func schedulePrecise(forDate date: Date, repeating interval: DispatchTimeInterval) {
         #if swift(>=4.0)
-        self.schedule(wallDeadline: DispatchWallTime(date: date), repeating: .milliseconds(milliseconds), leeway: .milliseconds(1))
+        self.schedule(wallDeadline: DispatchWallTime(date: date), repeating: interval, leeway: .milliseconds(1))
         #else
-        self.scheduleRepeating(wallDeadline: DispatchWallTime(date: date), interval: .milliseconds(milliseconds), leeway: .milliseconds(1))
+        self.scheduleRepeating(wallDeadline: DispatchWallTime(date: date), interval: interval, leeway: .milliseconds(1))
         #endif
     }
 }
