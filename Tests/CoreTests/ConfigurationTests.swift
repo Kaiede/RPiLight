@@ -25,6 +25,7 @@
 
 import XCTest
 import PWM
+import SwiftyJSON
 @testable import Core
 
 /*
@@ -42,7 +43,7 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [:]
 
         do {
-            let _ = try HardwareConfig(json: jsonData)
+            let _ = try HardwareConfig(json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -55,7 +56,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testHardware = try HardwareConfig(json: jsonData)
+            let testHardware = try HardwareConfig(json: JSON(jsonData))
 
             // Required
             XCTAssertEqual(testHardware.type, .simulated)
@@ -80,7 +81,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testHardware = try HardwareConfig(json: jsonData)
+            let testHardware = try HardwareConfig(json: JSON(jsonData))
             XCTAssertEqual(testHardware.board, .raspberryPiV6)
             XCTAssertEqual(testHardware.type, .simulated)
             XCTAssertEqual(testHardware.channelCount, 2)
@@ -95,7 +96,7 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [:]
 
         do {
-            let _ = try LunarConfig(json: jsonData)
+            let _ = try LunarConfig(json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -109,7 +110,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testConfig = try LunarConfig(json: jsonData)
+            let testConfig = try LunarConfig(json: JSON(jsonData))
 
             XCTAssertEqual(testConfig.startTime.hour, 21)
             XCTAssertEqual(testConfig.startTime.minute, 0)
@@ -127,7 +128,7 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [:]
 
         do {
-            let _ = try ChannelPointConfig(json: jsonData)
+            let _ = try ChannelPointConfig(json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -140,7 +141,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let _ = try ChannelPointConfig(json: jsonData)
+            let _ = try ChannelPointConfig(json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -159,13 +160,13 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testEvent1 = try ChannelPointConfig(json: jsonDataIntensity)
+            let testEvent1 = try ChannelPointConfig(json: JSON(jsonDataIntensity))
             let testDate1 = ConfigurationTests.dateFormatter.date(from: "08:00:00")!
             let expectedComponents1 = Calendar.current.dateComponents([.hour, .minute, .second], from: testDate1)
             XCTAssertEqual(testEvent1.time, expectedComponents1)
             XCTAssertEqual(testEvent1.setting.asIntensity(withGamma: 2.0), 0.25)
 
-            let testEvent2 = try ChannelPointConfig(json: jsonDataBrightness)
+            let testEvent2 = try ChannelPointConfig(json: JSON(jsonDataBrightness))
             let testDate2 = ConfigurationTests.dateFormatter.date(from: "10:30:00")!
             let expectedComponents2 = Calendar.current.dateComponents([.hour, .minute, .second], from: testDate2)
             XCTAssertEqual(testEvent2.time, expectedComponents2)
@@ -179,7 +180,7 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [:]
 
         do {
-            let _ = try ChannelConfig(token: "TestToken", json: jsonData)
+            let _ = try ChannelConfig(token: "TestToken", json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -192,7 +193,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let _ = try ChannelConfig(token: "TestToken", json: jsonData)
+            let _ = try ChannelConfig(token: "TestToken", json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -211,7 +212,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testConfig = try ChannelConfig(token: "TestToken", json: jsonData)
+            let testConfig = try ChannelConfig(token: "TestToken", json: JSON(jsonData))
 
             XCTAssertEqual(testConfig.minIntensity, 0.0)
             XCTAssertEqual(testConfig.schedule.count, 2)
@@ -233,7 +234,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testConfig = try ChannelConfig(token: "TestToken", json: jsonData)
+            let testConfig = try ChannelConfig(token: "TestToken", json: JSON(jsonData))
 
             XCTAssertEqual(testConfig.minIntensity, 0.0025)
             XCTAssertEqual(testConfig.schedule.count, 2)
@@ -246,7 +247,7 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [:]
 
         do {
-            let _ = try Configuration(json: jsonData)
+            let _ = try Configuration(json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -278,7 +279,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let _ = try Configuration(json: jsonData)
+            let _ = try Configuration(json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -294,7 +295,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let _ = try Configuration(json: jsonData)
+            let _ = try Configuration(json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -320,7 +321,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let _ = try Configuration(json: jsonData)
+            let _ = try Configuration(json: JSON(jsonData))
             XCTFail()
         } catch {
             // Pass
@@ -357,7 +358,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testConfig = try Configuration(json: jsonData)
+            let testConfig = try Configuration(json: JSON(jsonData))
 
             XCTAssertEqual(testConfig.channels.count, 2)
         } catch {
@@ -399,7 +400,7 @@ class ConfigurationTests: XCTestCase {
         ]
 
         do {
-            let testConfig = try Configuration(json: jsonData)
+            let testConfig = try Configuration(json: JSON(jsonData))
 
             XCTAssertEqual(testConfig.channels.count, 2)
         } catch {
