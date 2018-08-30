@@ -30,7 +30,7 @@ RPiLight includes a bootstrapping script that walks you through getting things s
 source <(curl -s https://raw.githubusercontent.com/Kaiede/RPiLight/master/bootstrap.sh)
 ```
 
-Once installed, if you installed the package, you can update:
+Once installed, if you installed the package, you can update using this: (use `rpilight-armv6` intead on the Pi Zero or 1)
 ```
 sudo apt-get update
 sudo apt-get install rpilight
