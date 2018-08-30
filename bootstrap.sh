@@ -4,87 +4,104 @@
 #
 
 #
+# Configuring Package Repositories
+#
+function install_swift_repo() {
+    curl -s https://packagecloud.io/install/repositories/swift-arm/debian/script.deb.sh | sudo bash
+}
+
+function install_binary_repo() {
+    curl -s https://packagecloud.io/install/repositories/Kaiede/rpilight/script.deb.sh | sudo bash
+}
+
+function install_experimental_repo() {
+    curl -s https://packagecloud.io/install/repositories/Kaiede/experimental/script.deb.sh | sudo bash
+}
+
+#
 # Setup Pre-Requisites
 #
-function install_dependencies() {
-    echo "Installing Dependencies..."
+function install_source_dependencies() {
+    echo "Installing Source Dependencies..."
     sudo apt-get install --yes \
-                    autoconf \
-                    clang-3.8 \
-                    cmake \
                     git \
-                    icu-devtools \
-                    libblocksruntime-dev \
-                    libbsd-dev \
-                    libcurl4-openssl-dev \
-                    libedit-dev \
-                    libicu-dev \
-                    libncurses5-dev \
-                    libpthread-workqueue-dev \
-                    libpython-dev \
-                    libsqlite3-dev \
-                    libtool \
-                    libxml2-dev \
-                    ninja-build \
-                    pkg-config \
-                    pv \
-                    python \
-                    swig \
-                    systemtap-sdt-dev \
-                    uuid-dev	
-
-
-	sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100
-	sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 100
+                    pv
 }
 
 #
 # Install Swift
 #
 function install_swift() {
-	PROCESSOR=$(uname -m)
-	SWIFT_TARBALL=$(realpath swift3_binaries.tgz)
-	COMPONENT_NUM=2
+    PROCESSOR=$(uname -m)
 
-	if [ "$PROCESSOR" == "armv6l" ]; then
-		echo "Downloading Swift 3.1.1 for ARMv6..."
-		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/r7a97yh1h7hc059/swift-3.1.1-Rpi1armv6-RaspbianStretchAug17_dispatchfix.tgz?dl=1
-	elif [ "$PROCESSOR" == "armv7l" ]; then
-		echo "Downloading Swift 3.1.1 for ARMv7..."
-		curl -L -o "$SWIFT_TARBALL" https://www.dropbox.com/s/z7uihfx2bcbuurw/swift-3.1.1-RPi23-RaspbianStretchAug17.tgz?dl=1
-	else
-		echo "Unknown Processor. RPiLight may not work."
-		exit 1
-	fi
-
-	echo "Installing Swift into /opt/swift/..."
-	if [ ! -d "/opt/swift" ]; then
-		sudo mkdir -p /opt/swift
-	fi
-	pushd /opt/swift > /dev/null
-	pv "$SWIFT_TARBALL" | sudo tar -zx --strip-components=$COMPONENT_NUM 
-	popd > /dev/null
+    if [ "$arch" == "aarch64" ]; then
+        sudo apt-get install swift4
+    elif [ "$arch" == "armv6l" ]; then
+        sudo apt-get install swift3-armv6
+    else
+        sudo apt-get install swift3
+    fi
 }
 
-function add_swift_path() {
-	PROFILE_PATH="/etc/profile.d/swiftlang.sh"
+#
+# Install Service
+#
+function install_binaries() {
+    local arch=$(uname -m)
 
-	echo "Adding /opt/swift/bin to PATH..."
-	sudo echo "export PATH=\$PATH:/opt/swift/bin" > $PROFILE_PATH
-	source $PROFILE_PATH
-
-	export PATH
+    if [ "$arch" == "armv6l" ]; then
+        sudo apt-get install rpilight-armv6
+    else
+        sudo apt-get install rpilight
+    fi
 }
+
 
 #
 # Script Flow
 #
 cd ~
-install_dependencies
-install_swift
-add_swift_path
 
-git clone https://github.com/Kaiede/RPiLight.git
-pushd ~/RPiLight > /dev/null
-./build.sh stable install
-popd > /dev/null
+while true; do
+    read -p "Install [S]ource or [B]inary?" input
+    case $input in
+        [Ss]* ) install_type=source; break;;
+        [Bb]* ) install_type=binary; break;;
+        * ) echo "Please answer source or binary.";;
+    esac
+done
+
+while true; do
+    read -p "Install [E]xperimental or [S]table Builds?" input
+    case $input in
+        [Ee]* ) build_type=latest; break;;
+        [Ss]* ) build_type=stable; break;;
+        * ) echo "Please answer experimental or stable.";;
+    esac
+done
+
+
+
+# Install the Repositories
+install_swift_repo
+install_binary_repo
+if [ "$build_type" == "latest" ]; then
+    install_experimental_repo
+fi
+
+# Install the Source or Binaries
+if [ "$install_type" == "source" ]; then
+    install_source_dependencies
+    install_swift
+
+    #
+    # Clone and Build
+    #
+    git clone https://github.com/Kaiede/RPiLight.git
+    pushd ~/RPiLight > /dev/null
+    ./build.sh $build_type install
+    popd > /dev/null
+else
+    install_binaries
+fi
+
