@@ -1,0 +1,6 @@
+#!/bin/sh
+
+if [ -e "/lib/systemd/system/rpilight.service" ]; then 
+	echo >&2 "Stopping rpilight systemd service..."
+	systemctl stop rpilight
+fi

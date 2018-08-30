@@ -3,13 +3,13 @@
 # Build Script
 #
 # ./build.sh <options>
-#	stable - Get latest tag
-#	latest - Get latest source
-#	package - Build Package
+#   stable - Get latest tag
+#   latest - Get latest source
+#   package - Build Package
 #   install - Install Locally
 #
 
-usage()
+function usage()
 {
     echo "usage: build.sh [stable | latest] [package] [install]"
 }
@@ -18,8 +18,8 @@ usage()
 # Grab Latest Tag
 #
 function update_latest_source() {
-	echo "Fetching Latest Source"
-	git pull --rebase
+    echo "Fetching Latest Source"
+    git pull --rebase
 }
 
 #
@@ -37,42 +37,42 @@ function update_stable_source() {
 # Build It
 #
 function build_rpilight() {
-	echo "Building RPiLight (Release)..."
-	swift build -c release
+    echo "Building RPiLight (Release)..."
+    swift build -c release
 }
 
 #
 # Copy Binaries to Output
 #
 function copy_binaries() {
-	ROOT_DIR="$1"
-	NEED_SUDO="$2"
+    ROOT_DIR="$1"
+    NEED_SUDO="$2"
 
-	BINARY_PATH="$ROOT_DIR/opt/rpilight"
-	CONFIG_PATH="$BINARY_PATH/config"
-	SERVICE_PATH="$ROOT_DIR/lib/systemd/system"
+    BINARY_PATH="$ROOT_DIR/opt/rpilight"
+    CONFIG_PATH="$BINARY_PATH/config"
+    SERVICE_PATH="$ROOT_DIR/lib/systemd/system"
 
-	RPILIGHT_BINARY=$(realpath .build/release/RPiLight)
-	RPILIGHT_EXAMPLES=$(realpath examples)
-	RPILIGHT_SERVICE=$(realpath rpilight.service)
+    RPILIGHT_BINARY=$(realpath .build/release/RPiLight)
+    RPILIGHT_EXAMPLES=$(realpath examples)
+    RPILIGHT_SERVICE=$(realpath rpilight.service)
 
-	if [ ! -e "$BINARY_PATH" ]; then
-		$NEED_SUDO mkdir -p "$BINARY_PATH"
-	fi
-	if [ ! -e "$CONFIG_PATH" ]; then
-		$NEED_SUDO mkdir -p "$CONFIG_PATH"
-	fi
-	if [ ! -e "$SERVICE_PATH" ]; then
-		$NEED_SUDO mkdir -p "$SERVICE_PATH"
-	fi
-	echo "Copying Binaries to $BINARY_PATH"
-	$NEED_SUDO cp "$RPILIGHT_BINARY" "$BINARY_PATH/RPiLight"
+    if [ ! -e "$BINARY_PATH" ]; then
+        $NEED_SUDO mkdir -p "$BINARY_PATH"
+    fi
+    if [ ! -e "$CONFIG_PATH" ]; then
+        $NEED_SUDO mkdir -p "$CONFIG_PATH"
+    fi
+    if [ ! -e "$SERVICE_PATH" ]; then
+        $NEED_SUDO mkdir -p "$SERVICE_PATH"
+    fi
+    echo "Copying Binaries to $BINARY_PATH"
+    $NEED_SUDO cp "$RPILIGHT_BINARY" "$BINARY_PATH/RPiLight"
 
-	echo "Copying Examples"
-	$NEED_SUDO rsync --delete -r "$RPILIGHT_EXAMPLES/" "$BINARY_PATH/examples/"
+    echo "Copying Examples"
+    $NEED_SUDO rsync --delete -r "$RPILIGHT_EXAMPLES/" "$BINARY_PATH/examples/"
 
-	echo "Copying Service Configuration to $SERVICE_PATH" 
-	sudo cp "$RPILIGHT_SERVICE" "$SERVICE_PATH"
+    echo "Copying Service Configuration to $SERVICE_PATH" 
+    sudo cp "$RPILIGHT_SERVICE" "$SERVICE_PATH"
 }
 
 #
@@ -80,65 +80,91 @@ function copy_binaries() {
 #
 # Takes variable to set with version
 function get_package_version() {
-	local VERSION=$(git describe --tags)
+    local VERSION=$(git describe --tags)
 
-	local VERSION_ARRAY=(${VERSION//-/ })
-	if [ "${VERSION_ARRAY[1]}" == "0" ]; then
-		eval "$1=${VERSION_ARRAY[0]}"
-	fi
+    local VERSION_ARRAY=(${VERSION//-/ })
+    if [ "${VERSION_ARRAY[1]}" == "0" ]; then
+        eval "$1=${VERSION_ARRAY[0]}"
+    fi
 
-	eval "$1=$VERSION"
+    eval "$1=$VERSION"
+}
+
+function render_template() {
+  eval "echo \"$(sed 's/\"/\\\\"/g' $1)\""
 }
 
 #
 # Build Binary Package
 #
 function build_package() {
-	PACKAGE_PATH=$(realpath .package)
-	PACKAGE_DEBIAN="$PACKAGE_PATH/DEBIAN"
-	PACKAGE_INSTALL="$PACKAGE_PATH/opt/rpilight"
-	PACKAGE_SYSTEMD="$PACKAGE_PATH/lib/systemd/system"
+    PACKAGE_PATH=$(realpath .package)
+    PACKAGE_DEBIAN="$PACKAGE_PATH/DEBIAN"
+    PACKAGE_INSTALL="$PACKAGE_PATH/opt/rpilight"
+    PACKAGE_SYSTEMD="$PACKAGE_PATH/lib/systemd/system"
+    PACKAGE_ASSETS="$(realpath Assets/DEBIAN)"
 
-	echo "Packaging..."
-	rm -rf "$PACKAGE_PATH"
-	mkdir "$PACKAGE_PATH"
+    echo "Packaging..."
+    rm -rf "$PACKAGE_PATH"
+    mkdir "$PACKAGE_PATH"
 
-	copy_binaries "$PACKAGE_PATH" ""
+    copy_binaries "$PACKAGE_PATH" ""
 
-	PACKAGE_ARCH=$(uname -m | rev | cut -c 2- | rev)
-	PACKAGE_VERSION=""
-	get_package_version PACKAGE_VERSION
+    version=""
+    get_package_version version
 
-	mkdir -p "$PACKAGE_DEBIAN"
-	echo Package: rpilight-$PACKAGE_ARCH > "$PACKAGE_DEBIAN/control"
-	echo Version: $PACKAGE_VERSION >> "$PACKAGE_DEBIAN/control"
-	echo Architecture: armhf >> "$PACKAGE_DEBIAN/control"
-	echo Depends: swiftlang-$PACKAGE_ARCH \(\>= 3.1.1\) >> "$PACKAGE_DEBIAN/control"
-	echo Maintainer: Kaiede \(user@biticus.net\) >> "$PACKAGE_DEBIAN/control"
-	echo Description: "Aquarium Light Controller for Raspberry Pi" >> "$PACKAGE_DEBIAN/control"
+    SYSTEM_ARCH=$(uname -m)
+    case $SYSTEM_ARCH in
+        aarch64 )               package_arch=
+                                swift_package="swift4"
+                                swift_version="4.1.1"
+                                arch=arm64
+                                filename_arch=aarch64
+                                ;;
+        armv6l )                package_arch="-armv6"
+                                swift_package="swift3-armv6"
+                                swift_version="3.1.1"
+                                arch=armhf
+                                filename_arch=$arch
+                                ;;
+        armv7l )                package_arch=
+                                swift_package="swift3"
+                                swift_version="3.1.1"
+                                arch=armhf
+                                filename_arch=$arch
+                                ;;
+        * )                     exit 1
+                                ;;
+    esac
 
-	fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight-$PACKAGE_ARCH\_$PACKAGE_VERSION\_armhf.deb
+
+    mkdir -p "$PACKAGE_DEBIAN"
+    render_template "$PACKAGE_ASSETS/control.tmpl" > "$PACKAGE_DEBIAN/control"
+    cp "$PACKAGE_ASSETS/preinst" "$PACKAGE_DEBIAN/"
+    cp "$PACKAGE_ASSETS/postinst" "$PACKAGE_DEBIAN/"
+
+    fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight$package_arch\_$version\_$filename_arch.deb
 }
 
 #
 # Install Binaries
 #
 function install_rpilight() {
-	echo "Installing..."
-	copy_binaries "" "sudo"
+    echo "Installing..."
+    copy_binaries "" "sudo"
 }
 
 #
 # Service Utilities
 #
 function shutdown_service() {
-	echo "Shutting Down rpilight.service"
-	sudo systemctl stop rpilight.service
+    PACKAGE_ASSETS="$(realpath Assets/DEBIAN)"
+    sudo "$PACKAGE_ASSETS/preinst"
 }
 
 function configure_service() {
-	sudo systemctl daemon-reload
-	sudo systemctl enable rpilight.service
+    PACKAGE_ASSETS="$(realpath Assets/DEBIAN)"
+    sudo "$PACKAGE_ASSETS/postinst"
 }
 
 #
@@ -155,11 +181,11 @@ while [ "$1" != "" ]; do
     case $1 in
         stable | latest )       FETCH=$1
                                 ;;
-        package )    			PACKAGE=1
+        package )               PACKAGE=1
                                 ;;
-        install )           	INSTALL=1
+        install )               INSTALL=1
                                 ;;
-		-h | --help )           usage
+        -h | --help )           usage
                                 exit
                                 ;;
         * )                     usage
@@ -174,34 +200,34 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
 echo "RPiLight Directory: $SCRIPT_DIR"
 if [ "$FETCH" != "0" ]; then
-	echo "Fetch Source: $FETCH"
+    echo "Fetch Source: $FETCH"
 fi
 echo "Build Type: release"
 if [ "$PACKAGE" == "1" ]; then 
-	echo "Build Package: yes"
+    echo "Build Package: yes"
 fi
 if [ "$INSTALL" == "1" ]; then 
-	echo "Install to /opt: yes"
+    echo "Install to /opt: yes"
 fi
 pushd "$SCRIPT_DIR" > /dev/null
 
 if [ "$FETCH" == "stable" ]; then
-	update_stable_source
+    update_stable_source
 elif [ "$FETCH" == "latest" ]; then
-	update_latest_source
+    update_latest_source
 fi
 
 build_rpilight
 
 if [ "$PACKAGE" == "1" ]; then
-	build_package
+    build_package
 fi 
 
 if [ "$INSTALL" == "1" ]; then
-	shutdown_service
-	install_rpilight
-	configure_service
-	echo "To start service, restart or run 'sudo systemctl start rpilight'."
+    shutdown_service
+    install_rpilight
+    configure_service
+    echo "To start service, restart or run 'sudo systemctl start rpilight'."
 fi
 
 popd > /dev/null

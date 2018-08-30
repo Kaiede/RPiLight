@@ -1,0 +1,5 @@
+#!/bin/sh
+
+systemctl daemon-reload
+systemctl enable rpilight.service
+echo >&2 "Run 'sudo systemctl start rpilight' to restart service"
