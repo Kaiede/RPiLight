@@ -37,8 +37,8 @@ class SwiftExtensionsTests: XCTestCase {
         ]
 
         for (startString, targetString, searchDirection) in testExpectations {
-            let startDate = SwiftExtensionsTests.dateFormatter.date(from: startString)!
-            let targetDate = SwiftExtensionsTests.dateFormatter.date(from: targetString)!
+            let startDate = SwiftExtensionsTests.timeFormatter.date(from: startString)!
+            let targetDate = SwiftExtensionsTests.timeFormatter.date(from: targetString)!
             let targetTime = Calendar.current.dateComponents([.hour, .minute, .second], from: targetDate)
 
             let calculatedDate = targetTime.calcNextDateCustom(after: startDate, direction: searchDirection)!
@@ -68,6 +68,45 @@ class SwiftExtensionsTests: XCTestCase {
         }
     }
 
+    func testCalcNextDateCustom_Boundaries() {
+        let testExpectations = [
+            // Start Time, Target Time, Search Direction
+            ( "31 Aug 09:00:00", "08:00:00", Calendar.SearchDirection.forward ),
+            ( "1 Sep 08:00:00", "09:00:00", Calendar.SearchDirection.backward )
+        ]
+
+        for (startString, targetString, searchDirection) in testExpectations {
+            let startDate = SwiftExtensionsTests.dateFormatter.date(from: startString)!
+            let targetDate = SwiftExtensionsTests.timeFormatter.date(from: targetString)!
+            let targetTime = Calendar.current.dateComponents([.hour, .minute, .second], from: targetDate)
+
+            let calculatedDate = targetTime.calcNextDateCustom(after: startDate, direction: searchDirection)!
+
+            XCTAssertNotEqual(startDate, calculatedDate)
+            switch searchDirection {
+            case .backward:
+                XCTAssertLessThan(calculatedDate, startDate)
+            case .forward:
+                XCTAssertGreaterThan(calculatedDate, startDate)
+            }
+
+            // Apple-only: Compare against real implementation
+            #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
+            let calculatedDateMac = Calendar.current.nextDate(after: startDate,
+                                                              matching: targetTime,
+                                                              matchingPolicy: .nextTime,
+                                                              repeatedTimePolicy: .first,
+                                                              direction: searchDirection)!
+
+            // This is normally supposed to work.
+            // On Mojave with Xcode 9.4.1 (Swift 4.1.2), or with Xcode 10, the result matches.
+            // On Travis + Xcode 9.4 image it doesn't.
+            print("Custom: \(calculatedDate), Mac: \(calculatedDateMac)")
+            // XCTAssertEqual(calculatedDate, calculatedDateMac, "\(startDate) -> \(targetTime) [\(searchDirection)]")
+            #endif
+        }
+    }
+
     func testGetUid() {
         XCTAssertEqual(getUid(username: "root"), 0)
     }
@@ -78,11 +117,20 @@ class SwiftExtensionsTests: XCTestCase {
 
     static var allTests = [
         ("testCalcNextDateCustom", testCalcNextDateCustom),
+        ("testCalcNextDateCustom_Boundaries", testCalcNextDateCustom_Boundaries),
         ("testGetUid", testGetUid),
         ("testGetUsername", testGetUsername)
     ]
 
-    static private let dateFormatter: DateFormatter = {
+    public private(set) static var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd MMM HH:mm:ss"
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone(abbreviation: "UTC")!
+        return formatter
+    }()
+
+    static private let timeFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HH:mm:ss"
         dateFormatter.timeZone = TimeZone(abbreviation: "UTC")!

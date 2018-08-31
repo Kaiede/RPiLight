@@ -118,13 +118,13 @@ public struct DefaultLightBehavior: Behavior {
         }
         
         let shouldSleep = mergedSegment.totalBrightnessChange < minChange
-        let desiredInterval = mergedSegment.duration / (mergedSegment.totalBrightnessChange * targetChanges).rounded(.awayFromZero)
-        let interval = min(mergedSegment.duration, max(0.010, desiredInterval))
-
         if shouldSleep {
             return .oneShot(mergedSegment.endDate)
         }
 
+        let desiredChanges = (mergedSegment.totalBrightnessChange * targetChanges).rounded(.awayFromZero)
+        let desiredInterval = mergedSegment.duration / max(1.0, desiredChanges)
+        let interval = min(mergedSegment.duration, max(0.010, desiredInterval))
         return .repeating(mergedSegment.startDate, .microseconds(Int(interval * 1_000_000.0)))
     }
 }
