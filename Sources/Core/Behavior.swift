@@ -125,6 +125,7 @@ public struct DefaultLightBehavior: Behavior {
         let desiredChanges = (mergedSegment.totalBrightnessChange * targetChanges).rounded(.awayFromZero)
         let desiredInterval = mergedSegment.duration / max(1.0, desiredChanges)
         let interval = min(mergedSegment.duration, max(0.010, desiredInterval))
-        return .repeating(mergedSegment.startDate, .microseconds(Int(interval * 1_000_000.0)))
+        let finalInterval: DispatchTimeInterval = interval < 1000.0 ? .microseconds(Int(interval * 1_000_000.0)) : .milliseconds(Int(interval * 1_000.0))
+        return .repeating(mergedSegment.startDate, finalInterval)
     }
 }
