@@ -69,10 +69,23 @@ class Layer: ChannelLayer {
         return self.activeSegment.lightLevel(forDate: now)
     }
 
+    private static func findPreviousStartTime(forDate date: Date, withPoints points: [LayerPoint]) -> (Int, Date) {
+        let dates: [Date] = points.map({
+            guard let calculatedDate: Date = $0.time.calcNextDate(after: date, direction: .backward) else {
+                fatalError("Could not calculate the time \($0.time)  previous to \(date)")
+            }
+            return calculatedDate
+        })
+
+        guard let (index, date) = dates.enumerated().max(by: { $0.element < $1.element }) else {
+            fatalError("Could not calculate the maximum of the dates")
+        }
+
+        return (index, date)
+    }
+
     private static func activeSegment(forDate date: Date, withPoints points: [LayerPoint]) -> (Int, LayerSegment) {
-        let (activeIndex, activeDate) = points.map({ $0.time.calcNextDate(after: date, direction: .backward)! })
-            .enumerated()
-            .max(by: { $0.element < $1.element })!
+       let (activeIndex, activeDate) = findPreviousStartTime(forDate: date, withPoints: points)
 
         let activeSegment = Layer.segment(forIndex: activeIndex, withStartDate: activeDate, points: points)
         return (activeIndex, activeSegment)
@@ -81,7 +94,9 @@ class Layer: ChannelLayer {
     private static func segment(forIndex index: Int, withStartDate startDate: Date, points: [LayerPoint]) -> LayerSegment {
         let nextIndex = (index + 1) % points.count
 
-        let endDate = points[nextIndex].time.calcNextDate(after: startDate)!
+        guard let endDate = points[nextIndex].time.calcNextDate(after: startDate) else {
+            fatalError("Could not calculate next time \(points[nextIndex].time), after date \(startDate)")
+        }
         let segmentRange = SegmentRange(origin: points[index].brightness, end: points[nextIndex].brightness)
         return LayerSegment(startDate: startDate, endDate: endDate, range: segmentRange)
     }

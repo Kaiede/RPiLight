@@ -282,7 +282,10 @@ public class LightController: BehaviorController {
         }
 
         let calcDates = self.eventControllers.map { (key, value) -> (EventId, Date) in
-            return (key, value.time.calcNextDate(after: now)!)
+            guard let calculatedDate = value.time.calcNextDate(after: now) else {
+                fatalError("Could not calculate next time \(value.time), after date \(now)")
+            }
+            return (key, calculatedDate)
         }
         if let result = calcDates.min(by: { $0.1 < $1.1 }) {
             let token = result.0
