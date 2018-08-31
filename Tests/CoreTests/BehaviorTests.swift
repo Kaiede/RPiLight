@@ -67,14 +67,15 @@ class MockBehaviorChannel: BehaviorChannel {
     var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
     var brightnessDelta: Double = 1.0
+    var interval: TimeInterval = 30.0
 
     func set(layer: ChannelLayer, forType type: ChannelLayerType) {
         // Not Needed for Tests
     }
 
     func segment(forDate date: Date) -> ChannelSegment {
-        let startDate = date.addingTimeInterval(-30.0)
-        let endDate = date.addingTimeInterval(30.0)
+        let startDate = date.addingTimeInterval(-self.interval)
+        let endDate = date.addingTimeInterval(self.interval)
         return MockChannelSegment(startBrightness: 0.0, endBrightness: brightnessDelta, startDate: startDate, endDate: endDate)
     }
 
@@ -170,6 +171,32 @@ class BehaviorTests: XCTestCase {
                     XCTFail("\(brightnessDelta) should sleep")
                 }
             }
+        }
+    }
+
+    func testDefaultNextUpdateLargeInterval() {
+        let testBehavior = DefaultLightBehavior()
+        let mockController = MockBehaviorController(channelCount: 1)
+
+        for case let channel as MockBehaviorChannel in mockController.channelControllers.values {
+            channel.brightnessDelta = 1.0 / 4096
+            channel.interval = 60 * 30.0
+        }
+
+        let refreshDate = Date()
+        let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
+
+        switch result {
+        case .repeating( _, let dispatchInterval):
+            switch dispatchInterval {
+            case .milliseconds(let milliseconds):
+                // Good
+                XCTAssertGreaterThan(milliseconds, 1000 * 1000)
+            default:
+                XCTFail("Long intervals shouldn't provide anything but milliseconds")
+            }
+        default:
+            XCTFail("Should get a repeating interval")
         }
     }
     
