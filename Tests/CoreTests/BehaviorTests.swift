@@ -274,6 +274,7 @@ class BehaviorTests: XCTestCase {
         ("testDefaultRefresh", testDefaultRefresh),
         ("testDefaultNextUpdate", testDefaultNextUpdate),
         ("testDefaultNextUpdateSleep", testDefaultNextUpdateSleep),
+        ("testDefaultNextUpdateLargeInterval", testDefaultNextUpdateLargeInterval),
         ("testPreviewRefresh", testPreviewRefresh),
         ("testPreviewNextUpdate", testPreviewNextUpdate)
     ]
