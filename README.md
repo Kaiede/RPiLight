@@ -1,25 +1,28 @@
 # RPiLight
 
 [![Build Status](https://travis-ci.org/Kaiede/RPiLight.svg?branch=master)](https://travis-ci.org/Kaiede/RPiLight)
-![Swift](https://img.shields.io/badge/Swift-3.1.1-green.svg)
-![Swift](https://img.shields.io/badge/Swift-4.1.2-orange.svg)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-
-![Raspbian](https://img.shields.io/badge/OS-Raspbian%20Stretch-green.svg)
+![Swift](https://img.shields.io/badge/Swift%203-Supported-brightgreen.svg)
+![Swift](https://img.shields.io/badge/Swift%204-Compatible-yellow.svg)
 
 An Aquarium Light Controller for the Raspberry Pi
+
+### Hardware / OS
+
+Supported: 
+
+![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-green.svg) ![Swift](https://img.shields.io/badge/Swift%203-Supported-brightgreen.svg)
+* Pi 3B or 3B+ ![Recommended](https://img.shields.io/badge/-Recommended-blue.svg)
+* Pi Zero ![Source Only](https://img.shields.io/badge/-Source%20Only-orange.svg)
+
+Experimental: 
+
+![Debian](https://img.shields.io/badge/ARM64-Debian%20Buster-green.svg) ![Swift](https://img.shields.io/badge/Swift%204-Supported-brightgreen.svg)
+* Pi 3B 
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
-### Hardware
-
-RPiLight supports Rasbian Stretch on:
-* Pi Zero / 1
-* Pi 2 / 3 / 3B\(+\)
-
-There is experimental support for arm64 with the 3B. 
 
 See the page on [Setting up the Raspberry Pi](Docs/HardwareSetup.md) for details.
 
@@ -30,7 +33,7 @@ RPiLight includes a bootstrapping script that walks you through getting things s
 source <(curl -s https://raw.githubusercontent.com/Kaiede/RPiLight/master/bootstrap.sh)
 ```
 
-Once installed, if you installed the package, you can update using this: (use `rpilight-armv6` intead on the Pi Zero or 1)
+Once installed, if you installed the package, you can update using this (not supported on Pi Zero):
 ```
 sudo apt-get update
 sudo apt-get install rpilight
