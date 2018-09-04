@@ -29,6 +29,7 @@
     import Darwin
 #endif
 
+import Logging
 import SwiftyGPIO
 
 //
@@ -40,6 +41,7 @@ public enum BoardType: String {
     case desktop = "Desktop Linux / Mac (x86)"
     case raspberryPiV6 = "Raspberry Pi / Zero (ARMv6)"
     case raspberryPiV7 = "Raspberry Pi 2 / 3 (ARMv7)"
+    case raspberryPi64 = "Raspberry Pi 3 (ARMv8 / 64-bit)"
 }
 
 extension BoardType {
@@ -51,9 +53,12 @@ extension BoardType {
         switch machineType {
         case "armv6l": return .raspberryPiV6
         case "armv7l": return .raspberryPiV7
+        case "aarch64": return .raspberryPi64
         case "x86": return .desktop
         case "x86_64": return .desktop
-        default: return nil
+        default:
+            Log.error("Unknown Machine Type: \(machineType)")
+            return nil
 		}
     }
 }
@@ -63,7 +68,8 @@ extension BoardType {
         switch self {
         case .desktop: return .RaspberryPiPlusZero
         case .raspberryPiV6: return .RaspberryPiPlusZero
-        case .raspberryPiV7: return .RaspberryPi2
+        case .raspberryPiV7: return .RaspberryPi3
+        case .raspberryPi64: return .RaspberryPi3
         }
     }
 }
