@@ -12,6 +12,8 @@ matrix:
       env:
         - SWIFT_BRANCH=swift-3.1.1-release
         - SWIFT_VERSION=swift-3.1.1-RELEASE
+      before_install:
+        - sudo apt-get install -y libbsd-dev
       install:
         - mkdir swift
         - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
@@ -24,6 +26,8 @@ matrix:
       env:
         - SWIFT_BRANCH=swift-4.1.1-release
         - SWIFT_VERSION=swift-4.1.1-RELEASE
+      before_install:
+        - sudo apt-get install -y libbsd-dev
       install:
         - mkdir swift
         - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
@@ -36,6 +40,8 @@ matrix:
       env:
         - SWIFT_BRANCH=swift-4.1.2-release
         - SWIFT_VERSION=swift-4.1.2-RELEASE
+      before_install:
+        - sudo apt-get install -y libbsd-dev
       install:
         - mkdir swift
         - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
