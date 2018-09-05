@@ -10,7 +10,7 @@
         "end": "07:00:00",
     },
 
-    "PWM0-IO18": {
+    "PWM00": {
         "schedule": [
             { "time": "08:00:00", "brightness": 0.0 },
             { "time": "08:30:00", "brightness": 0.25 },
@@ -23,7 +23,7 @@
         ]
     },
 
-    "PWM1-IO19": {
+    "PWM01": {
         "schedule": [
             { "time": "08:00:00", "brightness": 0.0 },
             { "time": "08:30:00", "brightness": 0.30 },

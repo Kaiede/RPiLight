@@ -41,7 +41,7 @@ class SimulatedPWM: Module, CustomStringConvertible {
         var channels: [String] = []
 
         for index in 0...15 {
-            channels.append(String(format: "SIM%02d", index))
+            channels.append(String(format: "PWM%02d", index))
         }
 
         return channels

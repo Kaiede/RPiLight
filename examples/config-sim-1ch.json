@@ -9,7 +9,7 @@
         "end": "07:00:00",
     },
 
-    "SIM00": {
+    "PWM00": {
         "minIntensity": 0.0025,
         "schedule": [
             { "time": "08:00:00", "brightness": 0.0 },
