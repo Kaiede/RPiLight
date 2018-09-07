@@ -37,7 +37,7 @@ let package = Package(
         .Package(url: "https://github.com/Kaiede/Ephemeris.git", from: "1.0.0"),
         .Package(url: "https://github.com/kareman/Moderator.git", from: "0.5.0"),
         .Package(url: "https://github.com/Kaiede/PCA9685.git", from: "1.0.0"),
-        .Package(url: "https://github.com/Kaiede/SwiftyGPIO.git", from: "1.0.10"),
+        .Package(url: "https://github.com/Kaiede/SingleBoard.git", from: "0.1.1"),
         .Package(url: "https://github.com/IBM-Swift/SwiftyJSON.git", from: "17.0.2")
     ],
     swiftLanguageVersions: [3, 4]

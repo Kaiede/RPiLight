@@ -24,7 +24,7 @@
  */
 
 import Logging
-import SwiftyGPIO
+import SingleBoard
 
 class HardwarePWM: Module, CustomStringConvertible {
     private let gamma: Double
@@ -34,16 +34,16 @@ class HardwarePWM: Module, CustomStringConvertible {
         return Array(self.availableChannelMap.keys)
         }()
 
-    let pwms: [Int: [GPIOName: PWMOutput]]
-    private(set) lazy var availableChannelMap: [String: PWMOutput] = {
+    let pwms: BoardPWM
+    private(set) lazy var availableChannelMap: [String: BoardPWMChannel] = {
         [unowned self] in
         return self.calculateAvailableChannels()
         }()
 
-    func calculateAvailableChannels() -> [String: PWMOutput] {
-        var channels: [String: PWMOutput] = [:]
-        channels["PWM0-IO18"] = (self.pwms[0]?[.P18])!
-        channels["PWM1-IO19"] = (self.pwms[1]?[.P19])!
+    func calculateAvailableChannels() -> [String: BoardPWMChannel] {
+        var channels: [String: BoardPWMChannel] = [:]
+        channels["PWM00"] = self.pwms[0]
+        channels["PWM01"] = self.pwms[1]
 
         return channels
     }
@@ -54,7 +54,7 @@ class HardwarePWM: Module, CustomStringConvertible {
         guard board != .desktop else {
             throw ModuleInitError.invalidBoardType(actual: board.rawValue)
         }
-        guard let pwms = SwiftyGPIO.hardwarePWMs(for: board.toSupportedBoard()) else {
+        guard let pwms = SingleBoard.raspberryPi.pwm else {
             throw ModuleInitError.noHardwareAccess
         }
         guard channelCount > 0 && channelCount <= pwms.count else {
@@ -75,7 +75,7 @@ class HardwarePWM: Module, CustomStringConvertible {
         }
 
         let NANOSECONDS = 1_000_000_000
-        let period = NANOSECONDS / self.frequency
+        let period = UInt(NANOSECONDS / self.frequency)
         Log.debug("Channel \(token) created with period of \(period) ns")
         return HardwarePWMChannel(token: token, gamma: self.gamma, output: output, period: period)
     }
@@ -89,10 +89,10 @@ class HardwarePWMChannel: Channel {
         didSet { self.onSettingChanged() }
     }
 
-    let period: Int         // nanoseconds
-    let output: PWMOutput
+    let period: UInt // nanoseconds
+    let output: BoardPWMChannel
 
-    init(token: String, gamma: Double, output: PWMOutput, period: Int) {
+    init(token: String, gamma: Double, output: BoardPWMChannel, period: UInt) {
         self.token = token
         self.gamma = gamma
         self.minIntensity = 0.0
@@ -100,7 +100,7 @@ class HardwarePWMChannel: Channel {
         self.period = period
         self.output = output
 
-        self.output.initPWM()
+        self.output.enable(pins: self.output.pins)
     }
 
     func onSettingChanged() {
@@ -113,6 +113,6 @@ class HardwarePWMChannel: Channel {
         let targetIntensity = Float(intensity * maxValue)
         Log.debug("\(self.token): Intensity Now \(targetIntensity)")
         
-        output.startPWM(period: self.period, duty: targetIntensity)
+        self.output.start(period: self.period, dutyCycle: targetIntensity)
     }
 }
