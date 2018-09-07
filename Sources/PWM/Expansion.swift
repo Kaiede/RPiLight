@@ -25,7 +25,7 @@
 
 import Logging
 import PCA9685
-import SwiftyGPIO
+import SingleBoard
 
 //
 // Expansion PWM Module (PCA 9685)
@@ -69,7 +69,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
 
         self.channelCount = channelCount
         self.gamma = gamma
-        self.controller = PCA9685(supportedBoard: board.toSupportedBoard())
+        self.controller = PCA9685(channel: SingleBoard.raspberryPi.i2c![0]!)
         self.controller.frequency = UInt(frequency)
     }
 
