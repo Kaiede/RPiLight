@@ -26,7 +26,6 @@
 import Foundation
 import Logging
 import PWM
-import SwiftyGPIO
 import SwiftyJSON
 
 typealias JsonDict = [String: JSON]
