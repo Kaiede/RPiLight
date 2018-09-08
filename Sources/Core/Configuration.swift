@@ -41,6 +41,7 @@ public struct Configuration {
     public let logging: LogLevel
     public let hardware: HardwareConfig
     public let lunarCycle: LunarConfig?
+    public let storms: StormConfig?
     public let channels: [ChannelConfig]
 
     public init(withPath path: URL) throws {
@@ -60,6 +61,12 @@ public struct Configuration {
             self.lunarCycle = try LunarConfig(json: json["lunarCycle"])
         } else {
             self.lunarCycle = nil
+        }
+        
+        if json["storms"].exists() {
+            self.storms = try StormConfig(json: json["storms"])
+        } else {
+            self.storms = nil
         }
 
         let loggingString = json["logging"].string ?? "info"
@@ -160,6 +167,65 @@ public struct LunarConfig {
         dateFormatter.calendar = Calendar.current
         return dateFormatter
     }()
+}
+
+public struct StormConfig {
+    public let schedule: [StormEventConfig]
+    
+    init(json: JSON) throws {
+        // Load Schedule
+        var schedule: [StormEventConfig] = []
+        guard let jsonSchedule = json["schedule"].array else { throw ConfigurationError.nodeMissing("schedule", message: "Storms must have a schedule") }
+        
+        for jsonEvent in jsonSchedule {
+            let event = try StormEventConfig(json: jsonEvent)
+            schedule.append(event)
+        }
+        
+        self.init(schedule: schedule)
+    }
+    
+    init(schedule: [StormEventConfig]) {
+        self.schedule = schedule
+    }
+}
+
+public struct StormEventConfig {
+    public let startTime: DateComponents
+    public let endTime: DateComponents
+    public let lightningStrength: Double
+    public let chance: Double
+    
+    static private let dateFormatter: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.calendar = Calendar.current
+        return dateFormatter
+    }()
+    
+    init(json: JSON) throws {
+        guard let startString = json["start"].string else { throw ConfigurationError.nodeMissing("start", message: "Lunar cycle needs a start time") }
+        guard let parsedStart = StormEventConfig.dateFormatter.date(from: startString) else { throw ConfigurationError.invalidValue("start", value: startString) }
+        
+        guard let endString = json["end"].string else { throw ConfigurationError.nodeMissing("end", message: "Lunar cycle needs an end time") }
+        guard let parsedEnd = StormEventConfig.dateFormatter.date(from: endString) else { throw ConfigurationError.invalidValue("end", value: endString) }
+        
+        let startTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedStart)
+        let endTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedEnd)
+
+        guard let lightningStrength = json["lightningStrength"].number?.doubleValue else { throw ConfigurationError.nodeMissing("lightningStrength", message: "Storm should have a lightingStrength") }
+        guard let chance = json["lightningStrength"].number?.doubleValue else { throw ConfigurationError.nodeMissing("chance", message: "Storm should have a chance") }
+        
+        self.init(start: startTime, end: endTime, strength: lightningStrength, chance: chance)
+    }
+    
+    init(start: DateComponents, end: DateComponents, strength: Double, chance: Double) {
+        self.startTime = start
+        self.endTime = end
+        self.lightningStrength = strength
+        self.chance = chance
+    }
 }
 
 public struct ChannelConfig {

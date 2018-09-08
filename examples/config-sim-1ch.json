@@ -8,6 +8,12 @@
         "start": "21:00:00",
         "end": "07:00:00",
     },
+    
+    "storms": {
+        "schedule": [
+            { "start": "16:30:00", "end": "17:00:00", "lightningStrength": 1.0, "chance": 0.50 },
+        ]
+    },
 
     "PWM00": {
         "minIntensity": 0.0025,

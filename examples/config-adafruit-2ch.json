@@ -10,6 +10,12 @@
         "end": "07:00:00",
     },
 
+    "storms": {
+        "schedule": [
+            { "start": "16:30:00", "end": "17:00:00", "lightningStrength": 1.0, "chance": 0.50 },
+        ]
+    },
+    
     "PWM00": {
         "schedule": [
             { "time": "08:00:00", "brightness": 0.0 },
