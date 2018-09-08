@@ -30,7 +30,6 @@
 #endif
 
 import Logging
-import SwiftyGPIO
 
 //
 // BoardType
@@ -60,17 +59,6 @@ extension BoardType {
             Log.error("Unknown Machine Type: \(machineType)")
             return nil
 		}
-    }
-}
-
-extension BoardType {
-    internal func toSupportedBoard() -> SupportedBoard {
-        switch self {
-        case .desktop: return .RaspberryPiPlusZero
-        case .raspberryPiV6: return .RaspberryPiPlusZero
-        case .raspberryPiV7: return .RaspberryPi3
-        case .raspberryPi64: return .RaspberryPi3
-        }
     }
 }
 
