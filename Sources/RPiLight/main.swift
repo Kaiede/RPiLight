@@ -215,6 +215,13 @@ if previewMode.value {
         let lunarCycleController = LunarCycleController(config: lunarCycle)
         controller.setEvent(controller: lunarCycleController)
     }
+    
+    if let storms = configuration.storms {
+        let stormEvents = StormEventController.loadMultiple(events: storms.schedule)
+        for storm in stormEvents {
+            controller.setEvent(controller: storm)
+        }
+    }
 
     controller.start()
     dispatchMain()

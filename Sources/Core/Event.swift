@@ -29,9 +29,9 @@ import Ephemeris
 import Logging
 import PWM
 
-public enum EventId: Equatable {
+public enum EventId: Hashable, Equatable {
     case lunar
-    case storm
+    case storm(Int)
 }
 
 public protocol EventController {
@@ -126,7 +126,7 @@ extension Layer {
 public class StormEventController: EventController {
     private static let randomRange: UInt32 = 1_000_000
     
-    public let token: EventId = .storm
+    public let token: EventId
     public let firesOnStart: Bool = false
 
     public var time: DateComponents
@@ -135,14 +135,15 @@ public class StormEventController: EventController {
     private let chance: UInt32
     
     public static func loadMultiple(events: [StormEventConfig]) -> [StormEventController] {
-        return events.map({ return StormEventController(config: $0) })
+        return events.enumerated().map({ return StormEventController(index: $0.offset, config: $0.element) })
     }
     
-    public convenience init(config: StormEventConfig) {
-        self.init(start: config.startTime, end: config.endTime, strength: config.lightningStrength, chance: config.chance)
+    public convenience init(index: Int, config: StormEventConfig) {
+        self.init(index: index, start: config.startTime, end: config.endTime, strength: config.lightningStrength, chance: config.chance)
     }
     
-    init(start: DateComponents, end: DateComponents, strength: Double, chance: Double) {
+    init(index: Int, start: DateComponents, end: DateComponents, strength: Double, chance: Double) {
+        self.token = .storm(index)
         self.time = start
         self.endTime = end
         self.lightningStrength = strength
