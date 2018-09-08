@@ -31,6 +31,7 @@ import PWM
 
 public enum EventId: Equatable {
     case lunar
+    case storm
 }
 
 public protocol EventController {
@@ -116,5 +117,45 @@ extension Layer {
         layerPoints.append(LunarPoint(time: nightFullEndPoint, brightness: brightnessEnd))
         layerPoints.append(LunarPoint(time: nightEndPoint, brightness: 1.0))
         self.init(identifier: "Lunar", points: layerPoints, startTime: nightStart)
+    }
+}
+
+//
+// MARK: Storm Events
+//
+public class StormEventController: EventController {
+    private static let randomRange: UInt32 = 1_000_000
+    
+    public let token: EventId = .storm
+    public let firesOnStart: Bool = false
+
+    public var time: DateComponents
+    private let endTime: DateComponents
+    private let lightningStrength: Double
+    private let chance: UInt32
+    
+    public static func loadMultiple(events: [StormEventConfig]) -> [StormEventController] {
+        return events.map({ return StormEventController(config: $0) })
+    }
+    
+    public convenience init(config: StormEventConfig) {
+        self.init(start: config.startTime, end: config.endTime, strength: config.lightningStrength, chance: config.chance)
+    }
+    
+    init(start: DateComponents, end: DateComponents, strength: Double, chance: Double) {
+        self.time = start
+        self.endTime = end
+        self.lightningStrength = strength
+        self.chance = UInt32(Double(StormEventController.randomRange) * chance)
+    }
+    
+    public func fire(forController controller: BehaviorController, date: Date) {
+        let stormCheck = UInt32.random(in: 0...StormEventController.randomRange)
+        guard stormCheck < self.chance else {
+            Log.info("Skies are clear. No Storm Now.")
+            return
+        }
+        
+        Log.warn("Skies are dark. But Not Yet Currently Implemented.")
     }
 }
