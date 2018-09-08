@@ -27,10 +27,25 @@ import XCTest
 @testable import Core
 
 class EventTests: XCTestCase {
-    func testEmpty() {}
+    func testEventCollisions() {
+        var hashes: [EventId:Bool] = [:]
+
+        // Case 0: Lunar is always "safe"
+        hashes[.lunar] = true
+        
+        // Case 1: 1000 storms is a good excessive number
+        for index in 0...1000 {
+            let eventId: EventId = .storm(index)
+            if hashes[eventId] == true {
+                XCTFail("\(eventId) collided")
+            }
+            
+            hashes[eventId] = true
+        }
+    }
     
     static var allTests = [
-        ("testEmpty", testEmpty)
+        ("testEventCollisions", testEventCollisions)
     ]
 }
 
