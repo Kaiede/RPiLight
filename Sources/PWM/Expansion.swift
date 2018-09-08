@@ -69,7 +69,7 @@ class ExpansionPWM: Module, CustomStringConvertible {
 
         self.channelCount = channelCount
         self.gamma = gamma
-        self.controller = PCA9685(controller: SingleBoard.raspberryPi.i2c![0]!)
+        self.controller = PCA9685(controller: SingleBoard.raspberryPi.i2c![1]!)
         self.controller.frequency = UInt(frequency)
     }
 
