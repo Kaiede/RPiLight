@@ -27,6 +27,7 @@ import Dispatch
 import Foundation
 
 #if os(Linux)
+    import CBSD
     import Glibc
 #else
     import Darwin
@@ -35,6 +36,20 @@ import Foundation
 //
 // MARK: Foundation Extensions
 //
+#if !swift(>=4.2)
+extension UInt32 {
+    static func random(in range: Range<UInt32>) -> UInt32 {
+        let rangeLength = range.upperBound - range.lowerBound
+        return arc4random_uniform(rangeLength) + range.lowerBound
+    }
+    
+    static func random(in range: ClosedRange<UInt32>) -> UInt32 {
+        let rangeLength = 1 + range.upperBound - range.lowerBound
+        return arc4random_uniform(rangeLength) + range.lowerBound
+    }
+}
+#endif
+
 extension Calendar {
     func intervalBetweenDateComponents(_ components: DateComponents, since olderComponents: DateComponents) -> TimeInterval? {
         let startOfDay = self.startOfDay(for: Date())
