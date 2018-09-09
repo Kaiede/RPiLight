@@ -2,8 +2,7 @@
     "user": "pi",
     "hardware": {
         "pwmMode": "hardware",
-        "freq": 960,
-        "channels": 2
+        "freq": 960
     },
 
     "lunarCycle": {
