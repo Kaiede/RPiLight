@@ -50,21 +50,15 @@ class HardwarePWM: Module, CustomStringConvertible {
 
     let frequency: Int
 
-    init(board: BoardType, channelCount: Int, frequency: Int, gamma: Double) throws {
+    init(board: BoardType, frequency: Int, gamma: Double) throws {
         guard board != .desktop else {
             throw ModuleInitError.invalidBoardType(actual: board.rawValue)
-        }
-        guard let pwms = SingleBoard.raspberryPi.pwm else {
-            throw ModuleInitError.noHardwareAccess
-        }
-        guard channelCount > 0 && channelCount <= pwms.count else {
-            throw ModuleInitError.invalidChannelCount(min: 1, max: 2, actual: channelCount)
         }
         guard frequency <= 16000 else {
             throw ModuleInitError.invalidFrequency(min: 480, max: 16000, actual: frequency)
         }
 
-        self.pwms = pwms
+        self.pwms = SingleBoard.raspberryPi.pwm
         self.frequency = frequency
         self.gamma = gamma
     }
