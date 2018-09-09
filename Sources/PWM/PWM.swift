@@ -90,14 +90,14 @@ public enum ModuleType: String {
     case hardware = "Hardware GPIO"
     case pca9685 = "PCA9685 Bonnet"
 
-    public func createModule(board: BoardType, channelCount: Int, frequency: Int, gamma: Double) throws -> Module {
+    public func createModule(board: BoardType, frequency: Int, gamma: Double) throws -> Module {
         switch self {
         case .simulated:
-            return try SimulatedPWM(channelCount: channelCount, frequency: frequency, gamma: gamma)
+            return try SimulatedPWM(frequency: frequency, gamma: gamma)
         case .hardware:
-            return try HardwarePWM(board: board, channelCount: channelCount, frequency: frequency, gamma: gamma)
+            return try HardwarePWM(board: board, frequency: frequency, gamma: gamma)
         case .pca9685:
-            return try ExpansionPWM(board: board, channelCount: channelCount, frequency: frequency, gamma: gamma)
+            return try ExpansionPWM(board: board, frequency: frequency, gamma: gamma)
         }
     }
 }
@@ -125,7 +125,6 @@ extension ModuleType: RawRepresentable {
 public enum ModuleInitError: Error {
     case noHardwareAccess
     case invalidBoardType(actual: String)
-    case invalidChannelCount(min: Int, max: Int, actual: Int)
     case invalidFrequency(min: Int, max: Int, actual: Int)
 }
 

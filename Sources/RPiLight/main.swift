@@ -107,9 +107,6 @@ do {
 } catch ModuleInitError.invalidBoardType(let board){
     Log.error("PWM Module Doesn't Support Board: \(board)")
     exit(-1)
-} catch ModuleInitError.invalidChannelCount(let min, let max, let actual) {
-    Log.error("Channel Count \(actual) must be between \(min) and \(max)")
-    exit(-1)
 } catch ModuleInitError.invalidFrequency(let min, let max, let actual) {
     Log.error("PWM Module expects frequency \(actual) to be between \(min) and \(max)")
     exit(-1)

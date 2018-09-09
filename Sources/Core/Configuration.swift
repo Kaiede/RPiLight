@@ -67,7 +67,7 @@ public struct Configuration {
 
         let fixedKeys = Set(["hardware", "user", "lunarCycle", "logging"])
         let channelKeys = Set(keys).subtracting(fixedKeys)
-        guard hardware.channelCount == channelKeys.count else {
+        guard channelKeys.count <= 16 else {
             throw ConfigurationError.nodeMissing("channel", message: "Channel count mismatches channel configurations")
         }
 
@@ -87,7 +87,6 @@ public struct Configuration {
 public struct HardwareConfig {
     public let type: ModuleType
     public let board: BoardType
-    public let channelCount: Int
     public let frequency: Int
     public let gamma: Double
 
@@ -99,22 +98,20 @@ public struct HardwareConfig {
         let boardType = try HardwareConfig.getBoardType(json: json["board"])
         
         let frequency = json["freq"].number?.intValue ?? 480
-        let channelCount = json["channels"].number?.intValue ?? 1
         let gamma = json["gamma"].number?.doubleValue ?? 1.8
 
-        self.init(type: moduleType, board: boardType, channelCount: channelCount, frequency: frequency, gamma: gamma)
+        self.init(type: moduleType, board: boardType, frequency: frequency, gamma: gamma)
     }
 
-    init(type: ModuleType, board: BoardType, channelCount: Int, frequency: Int, gamma: Double) {
+    init(type: ModuleType, board: BoardType, frequency: Int, gamma: Double) {
         self.type = type
         self.board = board
-        self.channelCount = channelCount
         self.frequency = frequency
         self.gamma = gamma
     }
 
     public func createModule() throws -> Module {
-        return try self.type.createModule(board: self.board, channelCount: Int(self.channelCount), frequency: Int(self.frequency), gamma: gamma)
+        return try self.type.createModule(board: self.board, frequency: Int(self.frequency), gamma: gamma)
     }
 
     private static func getBoardType(json: JSON) throws -> BoardType {

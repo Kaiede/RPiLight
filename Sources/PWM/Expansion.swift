@@ -46,30 +46,25 @@ class ExpansionPWM: Module, CustomStringConvertible {
 
     func calculateAvailableChannels() -> [String: UInt8] {
         var channels: [String: UInt8] = [:]
-        for index in 0..<self.channelCount {
+        for index in 0...15 {
             channels[String(format: "PWM%02d", index)] = UInt8(index)
         }
 
         return channels
     }
 
-    private let channelCount: Int
     private let controller: PCA9685
 
-    init(board: BoardType, channelCount: Int, frequency: Int, gamma: Double) throws {
+    init(board: BoardType, frequency: Int, gamma: Double) throws {
         guard board != .desktop else {
             throw ModuleInitError.invalidBoardType(actual: board.rawValue)
-        }
-        guard channelCount > 0 && channelCount <= 16 else {
-            throw ModuleInitError.invalidChannelCount(min: 1, max: 16, actual: channelCount)
         }
         guard frequency <= 1500 else {
             throw ModuleInitError.invalidFrequency(min: 480, max: 1500, actual: frequency)
         }
 
-        self.channelCount = channelCount
         self.gamma = gamma
-        self.controller = PCA9685(controller: SingleBoard.raspberryPi.i2c![1]!)
+        self.controller = PCA9685(i2cBus: SingleBoard.raspberryPi.i2cMainBus)
         self.controller.frequency = UInt(frequency)
     }
 

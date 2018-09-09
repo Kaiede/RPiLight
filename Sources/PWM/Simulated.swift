@@ -31,8 +31,7 @@ import Logging
 
 class SimulatedPWM: Module, CustomStringConvertible {
     private let gamma: Double
-    private let channelCount: Int
-    
+
     private(set) lazy var availableChannels: [String] = {
         [unowned self] in
         return self.calculateAvailableChannels()
@@ -41,22 +40,18 @@ class SimulatedPWM: Module, CustomStringConvertible {
     func calculateAvailableChannels() -> [String] {
         var channels: [String] = []
 
-        for index in 0..<self.channelCount {
+        for index in 0...15 {
             channels.append(String(format: "SIM%02d", index))
         }
 
         return channels
     }
 
-    init(channelCount: Int, frequency: Int, gamma: Double) throws {
-        guard channelCount > 0 && channelCount <= 16 else {
-            throw ModuleInitError.invalidChannelCount(min: 1, max: 16, actual: channelCount)
-        }
+    init(frequency: Int, gamma: Double) throws {
         guard frequency % 480 == 0 && frequency <= 480 else {
             throw ModuleInitError.invalidFrequency(min: 480, max: 480, actual: frequency)
         }
 
-        self.channelCount = channelCount
         self.gamma = gamma
     }
 
