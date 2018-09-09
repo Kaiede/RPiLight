@@ -1,8 +1,7 @@
 {
     "user": "pi",
     "hardware": {
-        "pwmMode": "simulated",
-        "channels": 1
+        "pwmMode": "simulated"
     },
 
     "lunarCycle": {

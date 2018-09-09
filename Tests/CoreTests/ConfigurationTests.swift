@@ -28,16 +28,6 @@ import PWM
 import SwiftyJSON
 @testable import Core
 
-/*
- "hardware" :{
- "board": "PiZero",
- "pwmMode": "simulated",
- "channels": 1
- },
- */
-
-
-
 class ConfigurationTests: XCTestCase {
     func testEmptyHardwareConfig() {
         let jsonData: JsonDict = [:]
@@ -62,7 +52,6 @@ class ConfigurationTests: XCTestCase {
             XCTAssertEqual(testHardware.type, .simulated)
 
             // Optional
-            XCTAssertEqual(testHardware.channelCount, 1)
             XCTAssertEqual(testHardware.board, BoardType.bestGuess())
             XCTAssertEqual(testHardware.frequency, 480)
             XCTAssertEqual(testHardware.gamma, 1.8)
@@ -75,7 +64,6 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [
             "board": "PiZero",
             "pwmMode": "simulated",
-            "channels": 2,
             "freq": 960,
             "gamma": 2.2
         ]
@@ -84,7 +72,6 @@ class ConfigurationTests: XCTestCase {
             let testHardware = try HardwareConfig(json: JSON(jsonData))
             XCTAssertEqual(testHardware.board, .raspberryPiV6)
             XCTAssertEqual(testHardware.type, .simulated)
-            XCTAssertEqual(testHardware.channelCount, 2)
             XCTAssertEqual(testHardware.frequency, 960)
             XCTAssertEqual(testHardware.gamma, 2.2)
         } catch {
@@ -290,7 +277,6 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [
             "hardware": [
                 "pwmMode": "simulated",
-                "channels": 2
             ]
         ]
 
@@ -306,7 +292,6 @@ class ConfigurationTests: XCTestCase {
         let jsonData: JsonDict = [
             "hardware": [
                 "pwmMode": "simulated",
-                "channels": 2
             ],
             "SIM00": [
                 "minIntensity": 0.0025,
@@ -333,7 +318,6 @@ class ConfigurationTests: XCTestCase {
             "user": "pi",
             "hardware": [
                 "pwmMode": "simulated",
-                "channels": 2
             ],
             "SIM00": [
                 "minIntensity": 0.0025,
@@ -371,7 +355,6 @@ class ConfigurationTests: XCTestCase {
             "user": "pi",
             "hardware": [
                 "pwmMode": "simulated",
-                "channels": 2
             ],
             "lunarCycle": [
                 "start": "21:00:00",
