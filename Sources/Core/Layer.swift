@@ -58,7 +58,7 @@ class Layer: ChannelLayer {
     }
     
     func lightLevel(forDate now: Date) -> Double {
-        if now > self.activeSegment.endDate || now < self.activeSegment.startDate {
+        if now >= self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
             Log.withInfo {
                 let formatter = Log.timeFormatter

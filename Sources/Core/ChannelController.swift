@@ -178,6 +178,7 @@ public class ChannelController: BehaviorChannel {
     public func update(forDate date: Date) {
         let activeLayers = self.activeLayers
         guard activeLayers.count > 0 else {
+            Log.warn("No Active Layers in Channel")
             self.channel.setting = .intensity(0.0)
             return
         }
@@ -194,6 +195,7 @@ public class ChannelController: BehaviorChannel {
 
         self.channel.setting = .brightness(channelBrightness)
         if shouldInvalidate {
+            Log.debug("Invalidating Refresh Because of Channel: \(self.channel.token)")
             self.rootController?.invalidateRefreshTimer()
         }
     }
