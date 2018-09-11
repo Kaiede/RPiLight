@@ -26,8 +26,6 @@
 import Logging
 import SingleBoard
 
-typealias OutputPair = (low: PWMOutput, high: PWMOutput)
-
 class HardwarePWM: Module, CustomStringConvertible {
     private let gamma: Double
 
@@ -73,7 +71,7 @@ class HardwarePWM: Module, CustomStringConvertible {
         let NANOSECONDS = 1_000_000_000
         let period = UInt(NANOSECONDS / self.frequency)
         Log.debug("Channel \(token) created with period of \(period) ns")
-        return HardwarePWMChannel(token: token, gamma: self.gamma, output: output.low, highOutput: output.high, period: period)
+        return HardwarePWMChannel(token: token, gamma: self.gamma, output: output, period: period)
     }
 }
 
