@@ -1,5 +1,8 @@
 import XCTest
+import Logging
 @testable import CoreTests
+
+Log.setLoggingLevel(.warn)
 
 XCTMain([
     testCase(SwiftExtensionsTests.allTests),
