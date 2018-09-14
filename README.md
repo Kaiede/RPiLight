@@ -2,18 +2,20 @@
 
 [![Build Status](https://travis-ci.org/Kaiede/RPiLight.svg?branch=master)](https://travis-ci.org/Kaiede/RPiLight)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-![Swift](https://img.shields.io/badge/Swift%203-Supported-brightgreen.svg)
-![Swift](https://img.shields.io/badge/Swift%204-Compatible-yellow.svg)
+![Swift](https://img.shields.io/badge/Swift-3.1.1-brightgreen.svg)
+![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
 
 An Aquarium Light Controller for the Raspberry Pi
 
 ### Hardware / OS
 
-![Supported](https://img.shields.io/badge/-Supported-brightgreen.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift%203--brightgreen.svg)
-* Pi 3B or 3B+ ![Recommended](https://img.shields.io/badge/-Recommended-blue.svg)
+![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-3.1.1-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
+* Pi 3B or 3B+
+
+![Supported](https://img.shields.io/badge/-Supported-yellow.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-3.1.1-brightgreen.svg)
 * Pi Zero
 
-![Supported](https://img.shields.io/badge/-Experimental-yellow.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian%20Buster-yellow.svg) ![Swift](https://img.shields.io/badge/Swift%204--yellow.svg)
+![Experimental](https://img.shields.io/badge/-Experimental-orange.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian%20Buster-orange.svg) ![Swift](https://img.shields.io/badge/Swift-4.1-brightgreen.svg)
 * Pi 3B 
 
 ## Getting Started
