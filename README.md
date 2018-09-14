@@ -10,9 +10,11 @@ An Aquarium Light Controller for the Raspberry Pi
 ### Hardware / OS
 
 ![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-3.1.1-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
+* Pi 2
 * Pi 3B or 3B+
 
 ![Supported](https://img.shields.io/badge/-Supported-yellow.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-3.1.1-brightgreen.svg)
+* Pi 1
 * Pi Zero
 
 ![Experimental](https://img.shields.io/badge/-Experimental-orange.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian%20Buster-orange.svg) ![Swift](https://img.shields.io/badge/Swift-4.1-brightgreen.svg)
