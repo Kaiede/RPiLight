@@ -42,6 +42,12 @@ class MockBehavior: Behavior {
         }
         controller.invalidateRefreshTimer()
     }
+
+    func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
+        // Disable watchdog for these behaviors.
+        let mockSegment = MockChannelSegment(startBrightness: 0.0, endBrightness: 1.0, startDate: Date.distantPast, endDate: Date.distantFuture)
+        return LightBehaviorSegment(segment: mockSegment, update: self.nextUpdate(forController: controller, forDate: date))
+    }
     
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
         if self.shouldStop {
@@ -63,6 +69,12 @@ class MockOneShotBehavior: Behavior {
     
     func refresh(controller: BehaviorController, forDate date: Date) {
         self.refreshCount += 1
+    }
+
+    func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
+        // Disable watchdog for these behaviors.
+        let mockSegment = MockChannelSegment(startBrightness: 0.0, endBrightness: 1.0, startDate: Date.distantPast, endDate: Date.distantFuture)
+        return LightBehaviorSegment(segment: mockSegment, update: self.nextUpdate(forController: controller, forDate: date))
     }
     
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
