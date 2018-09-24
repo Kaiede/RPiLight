@@ -95,6 +95,23 @@ extension Sequence {
 //
 // MARK: Dispatch Extensions
 //
+extension DispatchTimeInterval {
+    func toTimeInterval() -> TimeInterval {
+        switch self {
+        case .never:
+            return TimeInterval.infinity
+        case .seconds(let seconds):
+            return TimeInterval(seconds)
+        case .milliseconds(let milliseconds):
+            return TimeInterval(milliseconds) * 1_000.0
+        case .microseconds(let microseconds):
+            return TimeInterval(microseconds) * 1_000_000.0
+        case .nanoseconds(let nanoseconds):
+            return TimeInterval(nanoseconds) * 1_000_000_000.0
+        }
+    }
+}
+
 extension DispatchWallTime {
     init(date: Date) {
         let NSEC_IN_SEC: UInt64 = 1_000_000_000
