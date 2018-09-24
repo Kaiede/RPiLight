@@ -73,7 +73,10 @@ public class LightController: BehaviorController {
     private let queue: DispatchQueue
     private var refreshTimer: DispatchSourceTimer?
     private var eventTimer: DispatchSourceTimer?
+
     private var watchdogTimer: DispatchSourceTimer?
+    private var watchdogInterval: TimeInterval
+    private var watchdogLastRefresh: Date
 
     private var behavior: Behavior
     private var isRunning: Bool
@@ -96,6 +99,8 @@ public class LightController: BehaviorController {
         self.refreshTimer = nil
 
         self.watchdogTimer = nil
+        self.watchdogInterval = TimeInterval.infinity
+        self.watchdogLastRefresh = Date.distantPast
 
         self.eventTimer = nil
         self.nextEvent = nil
@@ -133,7 +138,7 @@ public class LightController: BehaviorController {
             let controller = ChannelController(channel: channel)
             channelControllers[channelConfig.token] = controller
             
-            let points = channelConfig.schedule.map({ ChannelPoint(channel: channel, event: $0 )})
+            let points = channelConfig.schedule.map({ ChannelPoint(channel: channel, event: $0 ) })
             let layer = Layer(identifier: "Schedule", points: points, startTime: now)
             controller.set(layer: layer)
         }
@@ -161,6 +166,7 @@ public class LightController: BehaviorController {
     
     public func start() {
         self.queue.async {
+            Log.info("Starting Light Controller")
             self.isRunning = true
             self.isRefreshOneShot = true
             self.refresh()
@@ -200,6 +206,13 @@ public class LightController: BehaviorController {
     private func fireWatchdog() {
         let now = Date()
         Log.info("Watchdog Timer Fired: \(Log.dateFormatter.string(from: now))")
+
+        let interval = now.timeIntervalSince(self.watchdogLastRefresh)
+        if interval > self.watchdogInterval {
+            let expectedRefresh = self.watchdogLastRefresh.addingTimeInterval(self.watchdogInterval)
+            Log.warn("Late Refresh Detected. Expected Refresh @ \(Log.dateFormatter.string(from: expectedRefresh))")
+        }
+
         self.invalidateRefreshTimer()
     }
 
@@ -220,15 +233,18 @@ public class LightController: BehaviorController {
     }
 
     private func refresh() {
+        Log.debug("Light Controller Refresh")
         let now = Date()
         self.behavior.refresh(controller: self, forDate: now)
         
         if self.isRefreshOneShot {
+            Log.debug("Light Controller One Shot Rescheduling")
             self.scheduleRefresh(forDate: now)
         }
     }
     
     private func stopInternal() {
+        Log.info("Stopping Light Controller")
         if self.isRunning {
             self.isRunning = false
             if let oldTimer = self.refreshTimer {
@@ -241,6 +257,8 @@ public class LightController: BehaviorController {
                     controller.stopClosure?(controller)
                 }
             }
+        } else {
+            Log.warn("Light Controller Stopped While Not Running")
         }
     }
 
@@ -273,12 +291,18 @@ public class LightController: BehaviorController {
             self.refreshTimer = refreshTimer
             self.isRefreshOneShot = true
             Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate))")
+
+            self.watchdogInterval = restartDate.timeIntervalSince(now)
+            self.watchdogLastRefresh = now
         case .repeating(let restartDate, let updateInterval):
             let refreshTimer = DispatchSource.makeTimerSource(flags: [], queue: self.queue)
             refreshTimer.schedulePrecise(forDate: restartDate, repeating: updateInterval)
             self.refreshTimer = refreshTimer
             self.isRefreshOneShot = false
-            Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(updateInterval) ms")
+            Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(updateInterval)")
+
+            self.watchdogInterval = updateInterval.toTimeInterval()
+            self.watchdogLastRefresh = now
         }
 
         if segment.endDate != Date.distantFuture {
