@@ -40,6 +40,18 @@ public enum LightBehaviorUpdate {
     case repeating(Date, DispatchTimeInterval)
 }
 
+public struct LightBehaviorSegment {
+    let startDate: Date
+    let endDate: Date
+    let nextUpdate: LightBehaviorUpdate
+
+    init(segment: ChannelSegment, update: LightBehaviorUpdate) {
+        self.startDate = segment.startDate
+        self.endDate = segment.endDate
+        self.nextUpdate = update
+    }
+}
+
 public protocol BehaviorChannel {
     var channelGamma: Double { get }
     var rootController: BehaviorController? { get set }
@@ -57,6 +69,7 @@ public protocol BehaviorController {
 
 public protocol Behavior {
     func refresh(controller: BehaviorController, forDate date: Date)
+    func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate
 }
 
@@ -86,7 +99,22 @@ public struct PreviewLightBehavior: Behavior {
         }
     }
     
-    
+    public func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
+        let secondsSinceStart = date.timeIntervalSince(self.startDate)
+        let acceleratedInterval = secondsSinceStart * PreviewLightBehavior.speedFactor
+
+        let now = self.midnight.addingTimeInterval(acceleratedInterval)
+
+        // Use 'now' to generate the merged segment
+        var mergedSegment: ChannelControllerSegment = ChannelControllerSegment()
+        for channelController in controller.channelControllers.values {
+            let channelSegment = channelController.segment(forDate: now)
+            mergedSegment.unionByChannel(withSegment: channelSegment)
+        }
+
+        return LightBehaviorSegment(segment: mergedSegment, update: self.nextUpdate(forController: controller, forDate: date))
+    }
+
     public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
         let secondsSinceStart = date.timeIntervalSince(self.startDate)
         
@@ -106,26 +134,32 @@ public struct DefaultLightBehavior: Behavior {
             channelController.update(forDate: date)
         }
     }
-    
-    public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
+
+    public func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
         let minChange: Double = 0.0001
         let targetChanges: Double = 4096
-        
+
         var mergedSegment: ChannelControllerSegment = ChannelControllerSegment()
         for channelController in controller.channelControllers.values {
             let channelSegment = channelController.segment(forDate: date)
             mergedSegment.unionByChannel(withSegment: channelSegment)
         }
-        
+
         let shouldSleep = mergedSegment.totalBrightnessChange < minChange
         if shouldSleep {
-            return .oneShot(mergedSegment.endDate)
+            return LightBehaviorSegment(segment: mergedSegment, update: .oneShot(mergedSegment.endDate))
         }
 
         let desiredChanges = (mergedSegment.totalBrightnessChange * targetChanges).rounded(.awayFromZero)
         let desiredInterval = mergedSegment.duration / max(1.0, desiredChanges)
         let interval = min(mergedSegment.duration, max(0.010, desiredInterval))
         let finalInterval: DispatchTimeInterval = interval < 1000.0 ? .microseconds(Int(interval * 1_000_000.0)) : .milliseconds(Int(interval * 1_000.0))
-        return .repeating(mergedSegment.startDate, finalInterval)
+
+        return LightBehaviorSegment(segment: mergedSegment, update: .repeating(mergedSegment.startDate, finalInterval))
+    }
+
+    public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
+        let segment = self.segment(forController: controller, date: date)
+        return segment.nextUpdate
     }
 }

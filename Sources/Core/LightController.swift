@@ -73,6 +73,7 @@ public class LightController: BehaviorController {
     private let queue: DispatchQueue
     private var refreshTimer: DispatchSourceTimer?
     private var eventTimer: DispatchSourceTimer?
+    private var watchdogTimer: DispatchSourceTimer?
 
     private var behavior: Behavior
     private var isRunning: Bool
@@ -93,6 +94,8 @@ public class LightController: BehaviorController {
         self.isRunning = false
         self.isRefreshOneShot = false
         self.refreshTimer = nil
+
+        self.watchdogTimer = nil
 
         self.eventTimer = nil
         self.nextEvent = nil
@@ -194,6 +197,12 @@ public class LightController: BehaviorController {
         }
     }
 
+    private func fireWatchdog() {
+        let now = Date()
+        Log.info("Watchdog Timer Fired: \(Log.dateFormatter.string(from: now))")
+        self.invalidateRefreshTimer()
+    }
+
     private func fireEvent() {
         guard let eventToken = self.nextEvent else {
             Log.warn("Event handler fired without an event token")
@@ -245,14 +254,19 @@ public class LightController: BehaviorController {
     private func scheduleRefresh(forDate now: Date) {
         if let oldTimer = self.refreshTimer {
             oldTimer.cancel()
+            self.refreshTimer = nil
         }
-        
-        let update = self.behavior.nextUpdate(forController: self, forDate: now)
-        switch update {
+
+        if let oldTimer = self.watchdogTimer {
+            oldTimer.cancel()
+            self.watchdogTimer = nil
+        }
+
+        let segment = self.behavior.segment(forController: self, date: now)
+        switch segment.nextUpdate {
         case .stop:
             Log.info("Stopping Light Controller")
             self.stopInternal()
-            return
         case .oneShot(let restartDate):
             let refreshTimer = DispatchSource.makeTimerSource(flags: [], queue: self.queue)
             refreshTimer.schedulePrecise(forDate: restartDate)
@@ -266,12 +280,27 @@ public class LightController: BehaviorController {
             self.isRefreshOneShot = false
             Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(updateInterval) ms")
         }
-        
-        self.refreshTimer?.setEventHandler {
-            [weak self] in
-            self?.refresh()
+
+        if segment.endDate != Date.distantFuture {
+            Log.info("New Watchdog Timer: \(Log.dateFormatter.string(from: segment.endDate))")
+            let watchdogTimer = DispatchSource.makeTimerSource(flags: [], queue: self.queue)
+            watchdogTimer.schedulePrecise(forDate: segment.endDate)
+            watchdogTimer.setEventHandler {
+                [weak self] in
+                self?.invalidateRefreshTimer()
+            }
+            watchdogTimer.resume()
+            self.watchdogTimer = watchdogTimer
         }
-        self.refreshTimer?.resume()
+
+
+        if let refreshTimer = self.refreshTimer {
+            refreshTimer.setEventHandler {
+                [weak self] in
+                self?.refresh()
+            }
+            refreshTimer.resume()
+        }
     }
 
     private func scheduleEvent(forDate now: Date) {
