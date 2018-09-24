@@ -98,8 +98,6 @@ extension Sequence {
 extension DispatchTimeInterval {
     func toTimeInterval() -> TimeInterval {
         switch self {
-        case .never:
-            return TimeInterval.infinity
         case .seconds(let seconds):
             return TimeInterval(seconds)
         case .milliseconds(let milliseconds):
@@ -108,6 +106,10 @@ extension DispatchTimeInterval {
             return TimeInterval(microseconds) * 1_000_000.0
         case .nanoseconds(let nanoseconds):
             return TimeInterval(nanoseconds) * 1_000_000_000.0
+        #if swift(>=4.0)
+        case .never:
+            return TimeInterval.infinity
+        #endif
         }
     }
 }
