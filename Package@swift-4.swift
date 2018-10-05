@@ -34,6 +34,9 @@ let package = Package(
         .target(name: "Logging"),
 
         // Test Targets
-        .testTarget(name: "CoreTests")
+        .testTarget(
+            name: "CoreTests",
+            dependencies: ["Core"]
+        )
     ]
 )
