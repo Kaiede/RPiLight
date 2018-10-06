@@ -139,6 +139,7 @@ struct ChannelControllerSegment: ChannelSegment {
 public enum ChannelLayerType: Int {
     case schedule
     case lunar
+    case storm
 }
 
 public class ChannelController: BehaviorChannel {

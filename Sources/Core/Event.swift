@@ -100,43 +100,17 @@ public class LunarCycleController: EventController {
         Log.info("Calculated Lunar Light: \(illuminationStart.fraction) -> \(illuminationEnd.fraction)")
 
         for channelController in controller.channelControllers.values {
+            let desiredTransitionTime: TimeInterval = 60.0 * 5.0
             let gamma = channelController.channelGamma
-            let layer = Layer(nightStart: nightStart,
+            let layer = Layer(identifier: "Lunar",
+                              dimmingStart: nightStart,
                               end: nightEnd,
                               brightnessFactorStart: intensityFactorStart.asBrightness(withGamma: gamma),
-                              end: intensityFactorEnd.asBrightness(withGamma: gamma))
+                              end: intensityFactorEnd.asBrightness(withGamma: gamma),
+                              transitionTime: desiredTransitionTime)
 
             channelController.set(layer: layer, forType: .lunar)
         }
-    }
-}
-
-struct LunarPoint: LayerPoint {
-    let time: DateComponents
-    let brightness: Double
-}
-
-extension Layer {
-    convenience init(nightStart: Date, end nightEnd: Date, brightnessFactorStart brightnessStart: Double, end brightnessEnd: Double) {
-        let desiredTransitionTime: TimeInterval = 60.0 * 5.0
-        let nightInterval = nightEnd.timeIntervalSince(nightStart)
-        let transitionInterval: TimeInterval = nightInterval > desiredTransitionTime * 2 ? desiredTransitionTime : nightInterval / 2.0
-
-        let nightFullStart = nightStart.addingTimeInterval(transitionInterval)
-        let nightFullEnd = nightEnd.addingTimeInterval(-transitionInterval)
-
-        let calendar = Calendar.current
-        let nightStartPoint = calendar.dateComponents([.hour, .minute, .second], from: nightStart)
-        let nightFullStartPoint = calendar.dateComponents([.hour, .minute, .second], from: nightFullStart)
-        let nightFullEndPoint = calendar.dateComponents([.hour, .minute, .second], from: nightFullEnd)
-        let nightEndPoint = calendar.dateComponents([.hour, .minute, .second], from: nightEnd)
-
-        var layerPoints: [LunarPoint] = []
-        layerPoints.append(LunarPoint(time: nightStartPoint, brightness: 1.0))
-        layerPoints.append(LunarPoint(time: nightFullStartPoint, brightness: brightnessStart))
-        layerPoints.append(LunarPoint(time: nightFullEndPoint, brightness: brightnessEnd))
-        layerPoints.append(LunarPoint(time: nightEndPoint, brightness: 1.0))
-        self.init(identifier: "Lunar", points: layerPoints, startTime: nightStart)
     }
 }
 
@@ -177,6 +151,68 @@ public class StormEventController: EventController {
             return
         }
         
-        Log.warn("Skies are dark. But Not Yet Currently Implemented.")
+        Log.info("Skies are dark. Incoming Storm.")
+        Log.warn("Implementation Not Complete.")
+
+        // Provide dimming, similar to lunar cycle
+        guard let stormStart = time.calcNextDate(after: date, direction: .backward) else {
+            Log.error("Unable to calculate when lunar night begins")
+            return
+        }
+        guard let stormEnd = endTime.calcNextDate(after: stormStart) else {
+            Log.error("Unable to calculate when lunar night ends")
+            return
+        }
+
+        let intensityFactor: ChannelSetting = .intensity(0.5)
+        for channelController in controller.channelControllers.values {
+            let desiredTransitionTime: TimeInterval = 60.0 * 1.5
+            let brightnessFactor = intensityFactor.asBrightness(withGamma: channelController.channelGamma)
+            let stormLayer = Layer(identifier: "Storm",
+                                   dimmingStart: stormStart,
+                                   end: stormEnd,
+                                   brightnessFactor: brightnessFactor,
+                                   transitionTime: desiredTransitionTime)
+
+            channelController.set(layer: stormLayer, forType: .storm)
+        }
+
+        // TODO: Configure the behavior that provides the lightning.
+    }
+}
+
+//
+// MARK: Dimming Layer Creation
+//
+
+struct SimpleLayerPoint: LayerPoint {
+    let time: DateComponents
+    let brightness: Double
+}
+
+extension Layer {
+    convenience init(identifier: String, dimmingStart: Date, end dimmingEnd: Date, brightnessFactorStart brightnessStart: Double, end brightnessEnd: Double, transitionTime: TimeInterval) {
+        let dimmingInterval = dimmingEnd.timeIntervalSince(dimmingStart)
+        let transitionInterval: TimeInterval = dimmingInterval > transitionTime * 2 ? transitionTime : dimmingInterval / 2.0
+
+        let dimmingFullStart = dimmingStart.addingTimeInterval(transitionInterval)
+        let dimmingFullEnd = dimmingEnd.addingTimeInterval(-transitionInterval)
+
+        let calendar = Calendar.current
+        let dimStartPoint = calendar.dateComponents([.hour, .minute, .second], from: dimmingStart)
+        let dimFullStartPoint = calendar.dateComponents([.hour, .minute, .second], from: dimmingFullStart)
+        let dimFullEndPoint = calendar.dateComponents([.hour, .minute, .second], from: dimmingFullEnd)
+        let dimEndPoint = calendar.dateComponents([.hour, .minute, .second], from: dimmingEnd)
+
+        var layerPoints: [SimpleLayerPoint] = []
+        layerPoints.append(SimpleLayerPoint(time: dimStartPoint, brightness: 1.0))
+        layerPoints.append(SimpleLayerPoint(time: dimFullStartPoint, brightness: brightnessStart))
+        layerPoints.append(SimpleLayerPoint(time: dimFullEndPoint, brightness: brightnessEnd))
+        layerPoints.append(SimpleLayerPoint(time: dimEndPoint, brightness: 1.0))
+        self.init(identifier: identifier, points: layerPoints, startTime: dimmingStart)
+    }
+
+    convenience init(identifier: String, dimmingStart: Date, end dimmingEnd: Date, brightnessFactor: Double, transitionTime: TimeInterval) {
+        self.init(identifier: identifier, dimmingStart: dimmingStart, end: dimmingEnd, brightnessFactorStart: brightnessFactor, end: brightnessFactor, transitionTime: transitionTime)
     }
 }
