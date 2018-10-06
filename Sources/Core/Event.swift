@@ -101,7 +101,7 @@ public class LunarCycleController: EventController {
 
         for channelController in controller.channelControllers.values {
             let desiredTransitionTime: TimeInterval = 60.0 * 5.0
-            let gamma = channelController.channelGamma
+            let gamma = channelController.gamma
             let layer = Layer(identifier: "Lunar",
                               dimmingStart: nightStart,
                               end: nightEnd,
@@ -167,7 +167,7 @@ public class StormEventController: EventController {
         let intensityFactor: ChannelSetting = .intensity(0.5)
         for channelController in controller.channelControllers.values {
             let desiredTransitionTime: TimeInterval = 60.0 * 1.5
-            let brightnessFactor = intensityFactor.asBrightness(withGamma: channelController.channelGamma)
+            let brightnessFactor = intensityFactor.asBrightness(withGamma: channelController.gamma)
             let stormLayer = Layer(identifier: "Storm",
                                    dimmingStart: stormStart,
                                    end: stormEnd,

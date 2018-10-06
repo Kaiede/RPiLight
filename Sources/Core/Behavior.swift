@@ -53,7 +53,8 @@ public struct LightBehaviorSegment {
 }
 
 public protocol BehaviorChannel {
-    var channelGamma: Double { get }
+    var gamma: Double { get }
+    var setting: ChannelSetting { get set }
     var rootController: BehaviorController? { get set }
 
     func set(layer: ChannelLayer, forType type: ChannelLayerType)
@@ -68,9 +69,39 @@ public protocol BehaviorController {
 }
 
 public protocol Behavior {
-    func refresh(controller: BehaviorController, forDate date: Date)
+    mutating func refresh(controller: BehaviorController, forDate date: Date)
     func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate
+}
+
+extension Behavior {
+    public func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
+        let minChange: Double = 0.0001
+        let targetChanges: Double = 4096
+
+        var mergedSegment: ChannelControllerSegment = ChannelControllerSegment()
+        for channelController in controller.channelControllers.values {
+            let channelSegment = channelController.segment(forDate: date)
+            mergedSegment.unionByChannel(withSegment: channelSegment)
+        }
+
+        let shouldSleep = mergedSegment.totalBrightnessChange < minChange
+        if shouldSleep {
+            return LightBehaviorSegment(segment: mergedSegment, update: .oneShot(mergedSegment.endDate))
+        }
+
+        let desiredChanges = (mergedSegment.totalBrightnessChange * targetChanges).rounded(.awayFromZero)
+        let desiredInterval = mergedSegment.duration / max(1.0, desiredChanges)
+        let interval = min(mergedSegment.duration, max(0.010, desiredInterval))
+        let finalInterval: DispatchTimeInterval = interval < 1000.0 ? .microseconds(Int(interval * 1_000_000.0)) : .milliseconds(Int(interval * 1_000.0))
+
+        return LightBehaviorSegment(segment: mergedSegment, update: .repeating(mergedSegment.startDate, finalInterval))
+    }
+
+    public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
+        let segment = self.segment(forController: controller, date: date)
+        return segment.nextUpdate
+    }
 }
 
 public struct PreviewLightBehavior: Behavior {
@@ -85,7 +116,7 @@ public struct PreviewLightBehavior: Behavior {
         self.midnight = Calendar.current.startOfDay(for: self.startDate)
     }
     
-    public func refresh(controller: BehaviorController, forDate date: Date) {
+    public mutating func refresh(controller: BehaviorController, forDate date: Date) {
         let secondsSinceStart = date.timeIntervalSince(self.startDate)
         let acceleratedInterval = secondsSinceStart * PreviewLightBehavior.speedFactor
         
@@ -129,37 +160,88 @@ public struct PreviewLightBehavior: Behavior {
 public struct DefaultLightBehavior: Behavior {
     public init() {}
     
-    public func refresh(controller: BehaviorController, forDate date: Date) {
+    public mutating func refresh(controller: BehaviorController, forDate date: Date) {
         for (_, channelController) in controller.channelControllers {
             channelController.update(forDate: date)
         }
     }
+}
 
-    public func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
-        let minChange: Double = 0.0001
-        let targetChanges: Double = 4096
+public struct StormLightBehavior: Behavior {
+    private let fadeTime: UInt32 = 100 // ms
+    private var lastStrike: Date
+    private var nextStrike: Date
+    private let strength: Double
 
-        var mergedSegment: ChannelControllerSegment = ChannelControllerSegment()
-        for channelController in controller.channelControllers.values {
-            let channelSegment = channelController.segment(forDate: date)
-            mergedSegment.unionByChannel(withSegment: channelSegment)
-        }
 
-        let shouldSleep = mergedSegment.totalBrightnessChange < minChange
-        if shouldSleep {
-            return LightBehaviorSegment(segment: mergedSegment, update: .oneShot(mergedSegment.endDate))
-        }
-
-        let desiredChanges = (mergedSegment.totalBrightnessChange * targetChanges).rounded(.awayFromZero)
-        let desiredInterval = mergedSegment.duration / max(1.0, desiredChanges)
-        let interval = min(mergedSegment.duration, max(0.010, desiredInterval))
-        let finalInterval: DispatchTimeInterval = interval < 1000.0 ? .microseconds(Int(interval * 1_000_000.0)) : .milliseconds(Int(interval * 1_000.0))
-
-        return LightBehaviorSegment(segment: mergedSegment, update: .repeating(mergedSegment.startDate, finalInterval))
+    public init(strength: Double, stormStart: Date) {
+        self.strength = strength
+        self.lastStrike = stormStart
+        self.nextStrike = stormStart
+        calcNextStrike()
     }
 
-    public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
-        let segment = self.segment(forController: controller, date: date)
-        return segment.nextUpdate
+    public mutating func refresh(controller: BehaviorController, forDate date: Date) {
+        for (_, channelController) in controller.channelControllers {
+            channelController.update(forDate: date)
+        }
+
+        // TODO: Calculate If We Flash
+        if date >= nextStrike {
+            let flashes = UInt32.random(in: 3...6)
+            Log.info("Starting Flash: \(flashes) flashes")
+            doFlashesWithFade(controller: controller, count: flashes)
+
+            lastStrike = date
+            calcNextStrike()
+        }
+    }
+
+    private mutating func calcNextStrike() {
+        // Strikes happen anywhere between 15 - 60 seconds at full strength.
+        // Strikes happen anywhere between 2.5 - 10 minutes at minimum strength.
+        let strikeFactor: Double = 1.0 + 9.0*(1.0 - strength)
+        let minStrikeInterval: Double = 15.0 * strikeFactor
+        let maxStrikeInterval: Double = 60.0 * strikeFactor
+        let nextStrikeInterval: TimeInterval = Double.random(in: minStrikeInterval...maxStrikeInterval)
+
+        self.nextStrike = self.lastStrike.addingTimeInterval(nextStrikeInterval)
+    }
+
+    private func doFlashesWithFade(controller: BehaviorController, count: UInt32) {
+        let channelIntensities = controller.channelControllers.mapValues({ $0.setting.asIntensity(withGamma: $0.gamma) })
+        guard let minIntensity = channelIntensities.values.max() else {
+            Log.error("Unable to calculate storm intensity")
+            return
+        }
+
+        let burstIntensity = Double.random(in: minIntensity...1.0)
+        Log.debug("Burst Intensity: \(burstIntensity)")
+        for index in 1...count {
+            // Start Flash
+            for var channel in controller.channelControllers.values {
+                channel.setting = .intensity(burstIntensity)
+            }
+
+            // Wait for burst to finish
+            let burstTime = UInt32.random(in: 5...20)
+            usleep(burstTime * 1000)
+
+            // Fade
+            let steps = index == count ? fadeTime : UInt32.random(in: 40...125)
+            for step in 1...steps {
+                let currentBrightness = max(0.0, burstIntensity - (Double(step) / Double(fadeTime)))
+                let currentBrightnessSetting = ChannelSetting.brightness(currentBrightness)
+
+                for (token, var channel) in controller.channelControllers {
+                    guard let baseIntensity = channelIntensities[token] else {
+                        Log.error("Channel not found: \(token)")
+                        continue
+                    }
+                    channel.setting = .intensity(max(currentBrightnessSetting.asIntensity(withGamma: 2.5), baseIntensity))
+                }
+                usleep(1000)
+            }
+        }
     }
 }

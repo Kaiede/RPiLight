@@ -147,8 +147,13 @@ public class ChannelController: BehaviorChannel {
     var channel: Channel
     var layers: [ChannelLayer?]
 
-    public var channelGamma: Double {
+    public var gamma: Double {
         return channel.gamma
+    }
+
+    public var setting: ChannelSetting {
+        get { return channel.setting }
+        set { channel.setting = newValue }
     }
 
     var activeLayers: [ChannelLayer] {

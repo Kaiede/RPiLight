@@ -48,6 +48,18 @@ extension UInt32 {
         return arc4random_uniform(rangeLength) + range.lowerBound
     }
 }
+
+extension Double {
+    static func random(in range: Range<Double>) -> Double {
+        let rangeLength = range.upperBound - range.lowerBound
+        return (drand48() * rangeLength) + range.lowerBound
+    }
+
+    static func random(in range: ClosedRange<Double>) -> Double {
+        let rangeLength = Double.ulpOfOne + range.upperBound - range.lowerBound
+        return (drand48() * rangeLength) + range.lowerBound
+    }
+}
 #endif
 
 extension Calendar {

@@ -63,7 +63,7 @@ class MockBehaviorController: BehaviorController {
 }
 
 class MockBehaviorChannel: BehaviorChannel {
-    var channelGamma: Double = 1.8
+    var gamma: Double = 1.8
     var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
     var brightnessDelta: Double = 1.0
