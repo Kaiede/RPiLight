@@ -117,7 +117,19 @@ extension Sequence {
         return try flatMap(transform)
     }
 }
+
+extension Dictionary {
+    func mapValues<T>(_ transform: (Value)->T) -> Dictionary<Key,T> {
+        var resultDict = [Key: T]()
+        for (k, v) in self {
+            resultDict[k] = transform(v)
+        }
+        return resultDict
+    }
+}
 #endif
+
+
 
 //
 // MARK: Dispatch Extensions

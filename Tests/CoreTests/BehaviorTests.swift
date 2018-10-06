@@ -25,6 +25,7 @@
 
 import XCTest
 import Dispatch
+import PWM
 @testable import Core
 
 extension DispatchTimeInterval {
@@ -63,6 +64,7 @@ class MockBehaviorController: BehaviorController {
 }
 
 class MockBehaviorChannel: BehaviorChannel {
+    var setting: ChannelSetting = .intensity(0.0)
     var gamma: Double = 1.8
     var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
@@ -86,7 +88,7 @@ class MockBehaviorChannel: BehaviorChannel {
 
 class BehaviorTests: XCTestCase {
     func testDefaultRefresh() {
-        let testBehavior = DefaultLightBehavior()
+        var testBehavior = DefaultLightBehavior()
 
         let mockController = MockBehaviorController(channelCount: 4)
         
@@ -202,7 +204,7 @@ class BehaviorTests: XCTestCase {
     
     func testPreviewRefresh() {
         let startDate = Date()
-        let testBehavior = PreviewLightBehavior(startDate: startDate)
+        var testBehavior = PreviewLightBehavior(startDate: startDate)
         
         let mockController = MockBehaviorController(channelCount: 4)
         
