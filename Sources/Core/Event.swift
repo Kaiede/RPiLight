@@ -177,7 +177,9 @@ public class StormEventController: EventController {
             channelController.set(layer: stormLayer, forType: .storm)
         }
 
-        // TODO: Configure the behavior that provides the lightning.
+        // Configure the behavior that provides the lightning.
+        let behavior = StormLightBehavior(strength: self.lightningStrength, stormStart: stormStart, end: stormEnd)
+        controller.push(behavior: behavior)
     }
 }
 

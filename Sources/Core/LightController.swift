@@ -85,14 +85,14 @@ public class LightController: BehaviorController {
     private var watchdogInterval: TimeInterval
     private var watchdogLastRefresh: Date
 
-    private var behavior: Behavior
+    private var behavior: [Behavior]
     private var isRunning: Bool
     private var isRefreshOneShot: Bool
     private var stopClosure: StopClosure?
 
     init(channelControllers: [String: BehaviorChannel], behavior: Behavior) {
         // Set the initial behavior
-        self.behavior = behavior
+        self.behavior = [behavior]
         self.stopClosure = nil
 
         // Configure Dispatch Queue
@@ -160,6 +160,23 @@ public class LightController: BehaviorController {
     
     deinit {
         self.stopInternal()
+    }
+
+    public func push(behavior: Behavior) {
+        // TODO: We should add something to avoid multiple pushes
+        self.behavior.append(behavior)
+        self.invalidateRefreshTimer()
+    }
+
+    public func pop(behavior: Behavior) {
+        // TODO: This should be a bit better about popping unexpected behaviors
+        guard self.behavior.count > 1 else {
+            Log.warn("Attempted to remove the primary behavior from the Light Controller")
+            return
+        }
+
+        self.behavior.removeLast()
+        self.invalidateRefreshTimer()
     }
 
     public func setEvent(controller: EventController) {
@@ -247,7 +264,11 @@ public class LightController: BehaviorController {
     private func fireRefresh() {
         Log.debug("Light Controller Refresh")
         let now = Date()
-        self.behavior.refresh(controller: self, forDate: now)
+        guard var currentBehavior = self.behavior.last else {
+            Log.error("There must be at least one active behavior in the Light Controller")
+            return
+        }
+        currentBehavior.refresh(controller: self, forDate: now)
         
         if self.isRefreshOneShot {
             Log.debug("Light Controller One Shot Rescheduling")
@@ -276,7 +297,12 @@ public class LightController: BehaviorController {
     }
     
     private func scheduleRefresh(forDate now: Date) {
-        let segment = self.behavior.segment(forController: self, date: now)
+        guard let currentBehavior = self.behavior.last else {
+            Log.error("There must be at least one active behavior in the Light Controller")
+            return
+        }
+
+        let segment = currentBehavior.segment(forController: self, date: now)
         switch segment.nextUpdate {
         case .stop:
             Log.info("Stopping Light Controller")

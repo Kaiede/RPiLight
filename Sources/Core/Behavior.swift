@@ -62,10 +62,12 @@ public protocol BehaviorChannel {
     func segment(forDate date: Date) -> ChannelSegment
 }
 
-public protocol BehaviorController {
+public protocol BehaviorController: class {
     var channelControllers: [String: BehaviorChannel] { get }
     
     func invalidateRefreshTimer()
+    func push(behavior: Behavior)
+    func pop(behavior: Behavior)
 }
 
 public protocol Behavior {
@@ -172,12 +174,13 @@ public struct StormLightBehavior: Behavior {
     private var lastStrike: Date
     private var nextStrike: Date
     private let strength: Double
+    private let endDate: Date
 
-
-    public init(strength: Double, stormStart: Date) {
+    public init(strength: Double, stormStart: Date, end stormEnd: Date) {
         self.strength = strength
         self.lastStrike = stormStart
         self.nextStrike = stormStart
+        self.endDate = stormEnd
         calcNextStrike()
     }
 
@@ -186,7 +189,7 @@ public struct StormLightBehavior: Behavior {
             channelController.update(forDate: date)
         }
 
-        // TODO: Calculate If We Flash
+        // Is it time for a lightning strike?
         if date >= nextStrike {
             let flashes = UInt32.random(in: 3...6)
             Log.info("Starting Flash: \(flashes) flashes")
@@ -194,6 +197,32 @@ public struct StormLightBehavior: Behavior {
 
             lastStrike = date
             calcNextStrike()
+        }
+
+        if date >= endDate {
+            controller.pop(behavior: self)
+        }
+    }
+
+    public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
+        let segment = self.segment(forController: controller, date: date)
+        let segmentUpdate = segment.nextUpdate
+
+        // Update at a max of once per second, otherwise we won't be able to trigger lightning properly.
+        // If the segment wants to update faster than that, go ahead and let it.
+        let maxUpdate = LightBehaviorUpdate.repeating(segment.startDate, .seconds(1))
+
+        switch segmentUpdate {
+        case .stop:
+            fallthrough
+        case .oneShot(_):
+            return maxUpdate
+        case .repeating(_, let interval):
+            if interval.toTimeInterval() > 1.0 {
+                return maxUpdate
+            }
+
+            return segmentUpdate
         }
     }
 
