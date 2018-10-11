@@ -49,7 +49,7 @@ matrix:
       
   allow_failures:
     - os: linux
-      env: SWIFT_BRANCH=swift-4.2-release
+      env: SWIFT_BRANCH=swift-4.2-release SWIFT_VERSION=swift-4.2-RELEASE
 
 script:
   - swift package reset
