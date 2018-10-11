@@ -1,9 +1,5 @@
 
 matrix:
-  allow_failures:
-    - os: linux
-      env: SWIFT_BRANCH=swift-4.2-release
-
   include:
     - name: "Linux Swift 3.1.1"
       os: linux
@@ -50,6 +46,10 @@ matrix:
       os: osx
       osx_image: xcode10
       language: generic
+      
+  allow_failures:
+    - os: linux
+      env: SWIFT_BRANCH=swift-4.2-release
 
 script:
   - swift package reset
