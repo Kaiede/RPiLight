@@ -15,7 +15,8 @@
                 "isDefault": true
             },
             "presentation": {
-                "reveal": "always"
+                "reveal": "always",
+                "clear": true
             }
         }
     ]
