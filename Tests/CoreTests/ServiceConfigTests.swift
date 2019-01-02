@@ -38,7 +38,7 @@ extension JSONDecoder {
     }
 }
 
-class HardwareConfigTests: XCTestCase {
+class ServiceConfigTests: XCTestCase {
     func testEmptyHardwareConfiguration() {
         let jsonData: JsonDictionary = [:]
         do {
