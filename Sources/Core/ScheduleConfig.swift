@@ -25,6 +25,51 @@
 
 import Foundation
 
+fileprivate struct ScheduleFormatters {
+    static let timeOfDay: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.calendar = Calendar.current
+        return dateFormatter
+    }()
+}
+
+public struct SchedulePoint {
+    public let time: DateComponents
+    public let setting: ChannelSetting
+
+    enum CodingKeys: String, CodingKey {
+        case time
+
+        case brightness
+        case intensity
+    }
+}
+
+extension SchedulePoint: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        guard let parsedTime = ScheduleFormatters.timeOfDay.date(from: try container.decode(String.self, forKey: .time)) else {
+            throw DecodingError.dataCorruptedError(forKey: .time, in: container, debugDescription: "Invalid Time provided")
+        }
+        time = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
+
+        guard !container.contains(.brightness) || !container.contains(.intensity) else { 
+            throw DecodingError.dataCorruptedError(forKey: .brightness, in: container, debugDescription: "Only brightness *or* intensity allowed")
+        }
+
+        if container.contains(.brightness) {
+            setting = .brightness(try container.decode(Double.self, forKey: .brightness))
+        } else if container.contains(.intensity) {
+            setting = .intensity(try container.decode(Double.self, forKey: .intensity))
+        } else { 
+            throw DecodingError.dataCorruptedError(forKey: .brightness, in: container, debugDescription: "brightness *or* intensity required")
+        }
+    }
+}
+
 public enum ChannelSetting {
     case brightness(Double)
     case intensity(Double)
