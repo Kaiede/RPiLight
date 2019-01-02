@@ -8,26 +8,15 @@
             "type": "shell",
             "command": "swift",
             "args": [
-                "build"
-            ],
-            "group": "build",
-            "presentation": {
-                // Reveal the output only if unrecognized errors occur.
-                "reveal": "silent"
-            }
-        },
-        {
-            "label": "test",
-            "type": "shell",
-            "command": "swift",
-            "args": [
                 "test"
             ],
-            "group": "test",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
-                "reveal": "silent"
+                "reveal": "always"
             }
-        },
+        }
     ]
 }
