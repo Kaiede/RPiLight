@@ -79,7 +79,7 @@ class HardwarePWMChannel: Channel {
     let token: String
     let gamma: Double
     var minIntensity: Double
-    var setting: ChannelSetting {
+    var intensity: Double {
         didSet { self.onSettingChanged() }
     }
 
@@ -90,7 +90,7 @@ class HardwarePWMChannel: Channel {
         self.token = token
         self.gamma = gamma
         self.minIntensity = 0.0
-        self.setting = .intensity(0.0)
+        self.intensity = 0.0
         self.period = period
         self.output = output
 
@@ -98,7 +98,6 @@ class HardwarePWMChannel: Channel {
     }
 
     func onSettingChanged() {
-        var intensity = self.setting.asIntensity(withGamma: self.gamma)
         if intensity < self.minIntensity.nextUp {
             intensity = 0.0
         }

@@ -152,3 +152,12 @@ public func getUsername(uid: uid_t) -> String? {
     guard let name = user?.pw_name else { return nil }
     return String(cString: name)
 }
+
+//
+// MARK: Shorthand for pow() function
+//
+infix operator ** : MultiplicationPrecedence
+
+func ** (num: Double, power: Double) -> Double {
+    return pow(num, power)
+}

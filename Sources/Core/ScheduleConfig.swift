@@ -23,23 +23,37 @@
  SOFTWARE.)
  */
 
-#if os(Linux)
-    import Glibc
-#else
-    import Darwin
-#endif
-
 import Foundation
 
-//
-// Accessors to strings
-//
-extension utsname {
-    var machineString: String {
-        var machine = self.machine
-        return withUnsafeBytes(of: &machine) { (rawPtr) -> String in
-            let ptr = rawPtr.baseAddress!.assumingMemoryBound(to: CChar.self)
-            return String(cString: ptr)
+public enum ChannelSetting {
+    case brightness(Double)
+    case intensity(Double)
+
+    public static func max(_ lhs: ChannelSetting, _ rhs: ChannelSetting, withGamma gamma: Double) -> ChannelSetting {
+        switch lhs {
+        case .brightness(let brightness):
+            return .brightness(Swift.max(brightness, rhs.asBrightness(withGamma: gamma)))
+        case .intensity(let intensity):
+            return .intensity(Swift.max(intensity, rhs.asIntensity(withGamma: gamma)))
+        }
+    }
+    
+    public func asBrightness(withGamma gamma: Double) -> Double {
+        switch self {
+        case .brightness(let brightness):
+            return brightness
+        case .intensity(let intensity):
+            return intensity ** (1.0 / gamma)
+        }
+    }
+    
+    public func asIntensity(withGamma gamma: Double) -> Double {
+        switch self {
+        case .brightness(let brightness):
+            return brightness ** gamma
+        case .intensity(let intensity):
+            return intensity
         }
     }
 }
+

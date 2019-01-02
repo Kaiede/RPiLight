@@ -48,6 +48,7 @@ extension DispatchTimeInterval {
 
 class MockBehaviorController: BehaviorController {
     var channelControllers: [String : BehaviorChannel] = [:]
+    var configuration: BehaviorControllerConfig = LightControllerConfig(gamma: 1.8)
     var didInvalidate: Bool = false
     
     init(channelCount: Int) {

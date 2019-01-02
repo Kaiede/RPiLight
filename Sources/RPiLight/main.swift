@@ -195,7 +195,7 @@ Log.withDebug {
 //
 if previewMode.value {
     // Preview
-    let controller = try! LightController(channels: activeChannels, withConfig: configuration.channels, behavior: PreviewLightBehavior())
+    let controller = try! LightController(gamma: configuration.hardware.gamma, channels: activeChannels, withConfig: configuration.channels, behavior: PreviewLightBehavior())
     controller.setStopHandler { (controller) in
         Log.info("Simulation Complete")
         exit(0)
@@ -205,7 +205,7 @@ if previewMode.value {
     dispatchMain()
 } else {
     // Normal Schedule
-    let controller = try! LightController(channels: activeChannels, withConfig: configuration.channels)
+    let controller = try! LightController(gamma: configuration.hardware.gamma, channels: activeChannels, withConfig: configuration.channels)
     controller.setStopHandler { (controller) in
         Log.error("Controller unexpectedly stopped.")
         exit(1)

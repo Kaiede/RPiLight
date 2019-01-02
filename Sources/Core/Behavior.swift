@@ -61,9 +61,14 @@ public protocol BehaviorChannel {
     func segment(forDate date: Date) -> ChannelSegment
 }
 
+public protocol BehaviorControllerConfig {
+    var gamma: Double { get }
+}
+
 public protocol BehaviorController {
     var channelControllers: [String: BehaviorChannel] { get }
-    
+    var configuration: BehaviorControllerConfig { get }
+
     func invalidateRefreshTimer()
 }
 

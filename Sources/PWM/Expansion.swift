@@ -85,7 +85,7 @@ class ExpansionPWMChannel: Channel {
     let token: String
     let gamma: Double
     var minIntensity: Double
-    var setting: ChannelSetting {
+    var intensity: Double {
         didSet { self.onSettingChanged() }
     }
 
@@ -96,14 +96,13 @@ class ExpansionPWMChannel: Channel {
         self.token = token
         self.gamma = gamma
         self.minIntensity = 0.0
-        self.setting = .intensity(0.0)
+        self.intensity = 0.0
         self.channel = channel
         self.controller = controller
     }
 
     func onSettingChanged() {
-        var intensity = self.setting.asIntensity(withGamma: self.gamma)
-        if intensity < self.minIntensity.nextUp {
+        if self.intensity < self.minIntensity.nextUp {
             intensity = 0.0
         }
         

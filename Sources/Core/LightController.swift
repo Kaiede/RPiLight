@@ -49,15 +49,26 @@ struct ChannelPoint: LayerPoint {
     }
     
     var brightness: Double {
-        return self.event.setting.asBrightness(withGamma: self.channel.gamma)
+        return self.event.setting.asBrightness(withGamma: self.configuration.gamma)
     }
     
-    private let channel: Channel
+    private let configuration: BehaviorControllerConfig
     private let event: ChannelPointConfig
     
-    init(channel: Channel, event: ChannelPointConfig) {
-        self.channel = channel
+    init(configuration: BehaviorControllerConfig, event: ChannelPointConfig) {
+        self.configuration = configuration
         self.event = event
+    }
+}
+
+//
+// The Light Controller Configuration
+//
+public class LightControllerConfig: BehaviorControllerConfig {
+    public let gamma: Double
+
+    init(gamma: Double) {
+        self.gamma = gamma
     }
 }
 
@@ -73,6 +84,7 @@ public class LightController: BehaviorController {
     }
 
     public let channelControllers: [String: BehaviorChannel]
+    public let configuration: BehaviorControllerConfig
 
     private var eventControllers: [EventId: EventController]
     private var nextEvent: EventId?
@@ -90,7 +102,10 @@ public class LightController: BehaviorController {
     private var isRefreshOneShot: Bool
     private var stopClosure: StopClosure?
 
-    init(channelControllers: [String: BehaviorChannel], behavior: Behavior) {
+    init(configuration: LightControllerConfig, channelControllers: [String: BehaviorChannel], behavior: Behavior) {
+        // Set core controller state
+        self.configuration = configuration
+
         // Set the initial behavior
         self.behavior = behavior
         self.stopClosure = nil
@@ -128,7 +143,8 @@ public class LightController: BehaviorController {
         self.eventTimer.setHandler { self.fireEvent() }
     }
     
-    public convenience init(channels: [Channel],
+    public convenience init(gamma: Double,
+                            channels: [Channel],
                             withConfig config: [ChannelConfig],
                             behavior: Behavior = DefaultLightBehavior()) throws {
         
@@ -140,6 +156,7 @@ public class LightController: BehaviorController {
         }
         
         // Configure each channel
+        let configuration = LightControllerConfig(gamma: gamma)
         let now = Date()
         var channelControllers: [String: ChannelController] = [:]
         for channelConfig in config {
@@ -150,12 +167,12 @@ public class LightController: BehaviorController {
             let controller = ChannelController(channel: channel)
             channelControllers[channelConfig.token] = controller
             
-            let points = channelConfig.schedule.map({ ChannelPoint(channel: channel, event: $0 ) })
+            let points = channelConfig.schedule.map({ ChannelPoint(configuration: configuration, event: $0 ) })
             let layer = Layer(identifier: "Schedule", points: points, startTime: now)
             controller.set(layer: layer)
         }
         
-        self.init(channelControllers: channelControllers, behavior: behavior)
+        self.init(configuration: configuration, channelControllers: channelControllers, behavior: behavior)
     }
     
     deinit {

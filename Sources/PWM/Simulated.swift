@@ -72,7 +72,7 @@ class SimulatedPWMChannel: Channel {
     let token: String
     let gamma: Double
     var minIntensity: Double
-    var setting: ChannelSetting {
+    var intensity: Double {
         didSet { self.onSettingChanged() }
     }
 
@@ -80,13 +80,12 @@ class SimulatedPWMChannel: Channel {
         self.token = token
         self.gamma = gamma
         self.minIntensity = 0.0
-        self.setting = .intensity(0.0)
+        self.intensity = 0.0
     }
 
     func onSettingChanged() {
-        var intensity = self.setting.asIntensity(withGamma: self.gamma)
-        if intensity < self.minIntensity.nextUp {
-            intensity = 0.0
+        if self.intensity < self.minIntensity.nextUp {
+            self.intensity = 0.0
         }
         
         Log.debug("\(self.token): Intensity Now \(intensity * 100)")
