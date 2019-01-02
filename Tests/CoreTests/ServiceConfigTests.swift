@@ -24,7 +24,6 @@
  */
 
 import XCTest
-import PWM
 @testable import Core
 
 typealias JsonDictionary = [String: Any]
