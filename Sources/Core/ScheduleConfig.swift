@@ -25,6 +25,28 @@
 
 import Foundation
 
+// Originally Written by "Hamish Knight"
+// https://bugs.swift.org/browse/SR-7498
+fileprivate struct AnyCodingKey : CodingKey {
+  var stringValue: String
+  var intValue: Int?
+
+  init(_ codingKey: CodingKey) {
+    self.stringValue = codingKey.stringValue
+    self.intValue = codingKey.intValue
+  }
+
+  init(stringValue: String) {
+    self.stringValue = stringValue
+    self.intValue = nil
+  }
+
+  init(intValue: Int) {
+    self.stringValue = String(intValue)
+    self.intValue = intValue
+  }
+}
+
 fileprivate struct ScheduleFormatters {
     static let timeOfDay: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -33,6 +55,27 @@ fileprivate struct ScheduleFormatters {
         dateFormatter.calendar = Calendar.current
         return dateFormatter
     }()
+}
+
+public struct Schedule {
+    public let lunarCycle: LunarSchedule?
+    public let channels: [String:ChannelSchedule]
+}
+
+extension Schedule: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: AnyCodingKey.self)
+
+        lunarCycle = try container.decodeIfPresent(LunarSchedule.self, forKey: AnyCodingKey(stringValue: "lunarCycle"))
+
+        var decodedChannels: [String:ChannelSchedule] = [:] 
+        for codingKey in container.allKeys {
+            guard codingKey.stringValue != "lunarCycle" else { continue }
+
+            decodedChannels[codingKey.stringValue] = try container.decode(ChannelSchedule.self, forKey: codingKey)
+        }
+        channels = decodedChannels
+    }
 }
 
 public struct LunarSchedule {
@@ -58,6 +101,24 @@ extension LunarSchedule: Decodable {
             throw DecodingError.dataCorruptedError(forKey: .endTime, in: container, debugDescription: "Invalid End Time provided")
         }
         endTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedEnd)
+    }
+}
+
+public struct ChannelSchedule {
+    public let minIntensity: Double
+    public let schedule: [SchedulePoint]
+
+    enum CodingKeys: String, CodingKey {
+        case minIntensity
+        case schedule
+    }
+}
+
+extension ChannelSchedule: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        minIntensity = try container.decodeIfPresent(Double.self, forKey: .minIntensity) ?? 0.0
+        schedule = try container.decode([SchedulePoint].self, forKey: .schedule)
     }
 }
 
