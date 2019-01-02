@@ -35,6 +35,32 @@ fileprivate struct ScheduleFormatters {
     }()
 }
 
+public struct LunarSchedule {
+    public let startTime: DateComponents
+    public let endTime: DateComponents
+
+    enum CodingKeys: String, CodingKey {
+        case startTime = "start"
+        case endTime = "end"
+    }
+}
+
+extension LunarSchedule: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        guard let parsedStart = ScheduleFormatters.timeOfDay.date(from: try container.decode(String.self, forKey: .startTime)) else {
+            throw DecodingError.dataCorruptedError(forKey: .startTime, in: container, debugDescription: "Invalid Start Time provided")
+        }
+        startTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedStart)
+
+        guard let parsedEnd = ScheduleFormatters.timeOfDay.date(from: try container.decode(String.self, forKey: .endTime)) else {
+            throw DecodingError.dataCorruptedError(forKey: .endTime, in: container, debugDescription: "Invalid End Time provided")
+        }
+        endTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedEnd)
+    }
+}
+
 public struct SchedulePoint {
     public let time: DateComponents
     public let setting: ChannelSetting

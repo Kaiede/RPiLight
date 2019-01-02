@@ -38,6 +38,51 @@ class ScheduleConfigTests: XCTestCase {
     //     }
     }
 
+    func testLunarSchedule_Empty() {
+        let jsonData: JsonDictionary = [:]
+        do {
+            let decoder = JSONDecoder()
+            let _ = try decoder.decode(LunarSchedule.self, from: jsonData)
+            XCTFail("Empty is invalid")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testLunarSchedule_Partial() {
+        let jsonData: JsonDictionary = [
+            "start": "20:30:00"
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let _ = try decoder.decode(LunarSchedule.self, from: jsonData)
+            XCTFail("Partial is invalid")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testLunarSchedule_Complete() {
+        let jsonData: JsonDictionary = [
+            "start": "20:30:00",
+            "end": "07:30:00"
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let lunarSchedule = try decoder.decode(LunarSchedule.self, from: jsonData)
+            
+            XCTAssertEqual(lunarSchedule.startTime.hour, 20)
+            XCTAssertEqual(lunarSchedule.startTime.minute, 30)
+            XCTAssertEqual(lunarSchedule.startTime.second, 0)
+
+            XCTAssertEqual(lunarSchedule.endTime.hour, 7)
+            XCTAssertEqual(lunarSchedule.endTime.minute, 30)
+            XCTAssertEqual(lunarSchedule.endTime.second, 0)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
     func testSchedulePoint_Empty() {
         let jsonData: JsonDictionary = [:]
         do {
@@ -51,7 +96,7 @@ class ScheduleConfigTests: XCTestCase {
 
     func testSchedulePoint_TooManySecrets() {
         let jsonData: JsonDictionary = [
-            "time": "08:00:00",
+            "time": "08:30:25",
             "intensity": 0.25,
             "brightness": 0.3
         ]
@@ -66,13 +111,16 @@ class ScheduleConfigTests: XCTestCase {
 
     func testSchedulePoint_Brightness() {
         let jsonData: JsonDictionary = [
-            "time": "08:00:00",
+            "time": "08:30:25",
             "brightness": 0.25
         ]
         do {
             let decoder = JSONDecoder()
             let point = try decoder.decode(SchedulePoint.self, from: jsonData)
-            //XCTAssertEqual(point.time, "test_user")
+            XCTAssertEqual(point.time.hour, 8)
+            XCTAssertEqual(point.time.minute, 30)
+            XCTAssertEqual(point.time.second, 25)
+
             switch(point.setting) {
             case .brightness(let brightness):
                 XCTAssertEqual(brightness, 0.25)
@@ -86,13 +134,16 @@ class ScheduleConfigTests: XCTestCase {
 
     func testSchedulePoint_Intensity() {
         let jsonData: JsonDictionary = [
-            "time": "08:00:00",
+            "time": "08:30:25",
             "intensity": 0.25
         ]
         do {
             let decoder = JSONDecoder()
             let point = try decoder.decode(SchedulePoint.self, from: jsonData)
-            //XCTAssertEqual(point.time, "test_user")
+            XCTAssertEqual(point.time.hour, 8)
+            XCTAssertEqual(point.time.minute, 30)
+            XCTAssertEqual(point.time.second, 25)
+
             switch(point.setting) {
             case .brightness(_):
                 XCTFail("Didn't expect brightness")
@@ -106,6 +157,9 @@ class ScheduleConfigTests: XCTestCase {
 
     static var allTests = [
         ("testEmptyScheduleConfiguration", testEmptyScheduleConfiguration),
+        ("testLunarSchedule_Empty", testLunarSchedule_Empty),
+        ("testLunarSchedule_Partial", testLunarSchedule_Partial),
+        ("testLunarSchedule_Complete", testLunarSchedule_Complete),
         ("testSchedulePoint_Empty", testSchedulePoint_Empty),
         ("testSchedulePoint_TooManySecrets", testSchedulePoint_TooManySecrets),
         ("testSchedulePoint_Brightness", testSchedulePoint_Brightness),
