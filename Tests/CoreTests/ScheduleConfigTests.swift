@@ -27,17 +27,6 @@ import XCTest
 @testable import Core
 
 class ScheduleConfigTests: XCTestCase {
-    func testEmptyScheduleConfiguration() {
-    //     let jsonData: JsonDictionary = [:]
-    //     do {
-    //         let decoder = JSONDecoder()
-    //         let _ = try decoder.decode(ScheduleConfiguration.self, from: jsonData)
-    //         XCTFail("Empty configuration should throw, because of missing properties: user, pwmMode, board")
-    //     } catch {
-    //         // Pass
-    //     }
-    }
-
     func testLunarSchedule_Empty() {
         let jsonData: JsonDictionary = [:]
         do {
@@ -78,6 +67,70 @@ class ScheduleConfigTests: XCTestCase {
             XCTAssertEqual(lunarSchedule.endTime.hour, 7)
             XCTAssertEqual(lunarSchedule.endTime.minute, 30)
             XCTAssertEqual(lunarSchedule.endTime.second, 0)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testChannelSchedule_Empty() {
+        let jsonData: JsonDictionary = [:]
+        do {
+            let decoder = JSONDecoder()
+            let _ = try decoder.decode(ChannelSchedule.self, from: jsonData)
+            XCTFail("Empty is invalid")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testChannelSchedule_OptionalIntensity() {
+        let jsonData: JsonDictionary = [
+            "schedule": [[
+                "time": "10:30:00",
+                "brightness": 0.30
+            ],[
+                "time": "11:30:00",
+                "brightness": 0.50
+            ]]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let channelSchedule = try decoder.decode(ChannelSchedule.self, from: jsonData)
+    
+            // Channel Specific Settings
+            XCTAssertEqual(channelSchedule.minIntensity, 0.0)
+
+            // Sanity Check the Schedule Itself
+            XCTAssertEqual(channelSchedule.schedule.count, 2)
+            XCTAssertEqual(channelSchedule.schedule[0].setting.asBrightness(withGamma: 1.8), 0.30)
+            XCTAssertEqual(channelSchedule.schedule[1].setting.asBrightness(withGamma: 1.8), 0.50)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testChannelSchedule_Complete() {
+        let jsonData: JsonDictionary = [
+            "minIntensity": 0.0025,
+            "schedule": [[
+                "time": "10:30:00",
+                "brightness": 0.30
+            ],[
+                "time": "11:30:00",
+                "brightness": 0.50
+            ]]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let channelSchedule = try decoder.decode(ChannelSchedule.self, from: jsonData)
+    
+            // Channel Specific Settings
+            XCTAssertEqual(channelSchedule.minIntensity, 0.0025)
+
+            // Sanity Check the Schedule Itself
+            XCTAssertEqual(channelSchedule.schedule.count, 2)
+            XCTAssertEqual(channelSchedule.schedule[0].setting.asBrightness(withGamma: 1.8), 0.30)
+            XCTAssertEqual(channelSchedule.schedule[1].setting.asBrightness(withGamma: 1.8), 0.50)
         } catch {
             XCTFail("\(error)")
         }
@@ -155,14 +208,82 @@ class ScheduleConfigTests: XCTestCase {
         }
     }
 
+    func testCompleteSchedule_Empty() {
+        let jsonData: JsonDictionary = [:]
+        do {
+            let decoder = JSONDecoder()
+            let schedule = try decoder.decode(Schedule.self, from: jsonData)
+
+            // Empty Schedule is Empty
+            XCTAssertEqual(schedule.channels.count, 0)
+            XCTAssertNil(schedule.lunarCycle)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testCompleteSchedule() {
+        let jsonData: JsonDictionary = [
+            "lunarCycle": [
+                "start": "21:00:00",
+                "end": "07:00:00"
+            ],
+            "SIM00": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                    ],[
+                        "time": "11:30:00",
+                        "brightness": 0.50
+                    ]]
+            ],
+            "SIM01": [
+                "minIntensity": 0.0025,
+                "schedule": [[
+                    "time": "10:30:00",
+                    "brightness": 0.30
+                    ],[
+                        "time": "11:30:00",
+                        "brightness": 0.50
+                    ]]
+            ]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let schedule = try decoder.decode(Schedule.self, from: jsonData)
+
+            // Sanity Check the Channels
+            XCTAssertEqual(schedule.channels.count, 2)
+            XCTAssertEqual(schedule.channels["SIM00"]?.minIntensity, 0.0025)
+            XCTAssertEqual(schedule.channels["SIM00"]?.schedule.count, 2)
+            XCTAssertEqual(schedule.channels["SIM01"]?.minIntensity, 0.0025)
+            XCTAssertEqual(schedule.channels["SIM01"]?.schedule.count, 2)
+
+            // Sanity Check the Lunar Schedule
+            XCTAssertNotNil(schedule.lunarCycle)
+            XCTAssertEqual(schedule.lunarCycle?.startTime.hour, 21)
+            XCTAssertEqual(schedule.lunarCycle?.startTime.minute, 0)
+            XCTAssertEqual(schedule.lunarCycle?.startTime.second, 0)
+            XCTAssertEqual(schedule.lunarCycle?.endTime.hour, 7)
+            XCTAssertEqual(schedule.lunarCycle?.endTime.minute, 0)
+            XCTAssertEqual(schedule.lunarCycle?.endTime.second, 0)
+
+            // Did the Channel Schedules Parse?
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
     static var allTests = [
-        ("testEmptyScheduleConfiguration", testEmptyScheduleConfiguration),
         ("testLunarSchedule_Empty", testLunarSchedule_Empty),
         ("testLunarSchedule_Partial", testLunarSchedule_Partial),
         ("testLunarSchedule_Complete", testLunarSchedule_Complete),
         ("testSchedulePoint_Empty", testSchedulePoint_Empty),
         ("testSchedulePoint_TooManySecrets", testSchedulePoint_TooManySecrets),
         ("testSchedulePoint_Brightness", testSchedulePoint_Brightness),
-        ("testSchedulePoint_Intensity", testSchedulePoint_Intensity)
+        ("testSchedulePoint_Intensity", testSchedulePoint_Intensity),
+        ("testCompleteSchedule_Empty", testCompleteSchedule_Empty),
+        ("testCompleteSchedule", testCompleteSchedule)
     ]
 }
