@@ -59,6 +59,16 @@ class MockBehavior: Behavior {
     }
 }
 
+struct MockChannelPoint: ChannelPoint {
+    var time: DateComponents
+    var setting: ChannelSetting
+
+    init(time: DateComponents, setting: ChannelSetting) {
+        self.time = time
+        self.setting = setting
+    }
+}
+
 class MockOneShotBehavior: Behavior {
     var refreshCount: Int = 0
     var updateCount: Int = 0
@@ -96,7 +106,7 @@ class LightControllerTests: XCTestCase {
 
         let eventDate = LightControllerTests.dateFormatter.date(from: "08:00:00")!
         let eventComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: eventDate)
-        let eventConfig = ChannelPointConfig(time: eventComponents, setting: .intensity(0.5))
+        let eventConfig = MockChannelPoint(time: eventComponents, setting: .intensity(0.5))
         
         let testEvent = ChannelPointWrapper(configuration: mockConfiguration, event: eventConfig)
         

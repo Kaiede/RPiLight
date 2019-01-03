@@ -48,7 +48,6 @@ protocol ChannelPoint {
     var setting: ChannelSetting { get }
 }
 
-extension ChannelPointConfig: ChannelPoint {}
 extension SchedulePoint: ChannelPoint {}
 
 struct ChannelPointWrapper: LayerPoint {
@@ -149,38 +148,6 @@ public class LightController: BehaviorController {
         self.refreshTimer.setHandler { self.fireRefresh() }
         self.watchdogTimer.setHandler { self.fireWatchdog() }
         self.eventTimer.setHandler { self.fireEvent() }
-    }
-    
-    public convenience init(gamma: Double,
-                            channels: [Channel],
-                            withConfig config: [ChannelConfig],
-                            behavior: Behavior = DefaultLightBehavior()) throws {
-        
-        // Convert the array into a lookup
-        let channelDict = channels.reduce([String: Channel]()) { (dict, channel) -> [String: Channel] in
-            var dict = dict
-            dict[channel.token] = channel
-            return dict
-        }
-        
-        // Configure each channel
-        let configuration = LightControllerConfig(gamma: gamma)
-        let now = Date()
-        var channelControllers: [String: ChannelController] = [:]
-        for channelConfig in config {
-            guard let channel = channelDict[channelConfig.token] else {
-                throw LightControllerError.missingToken(channelConfig.token)
-            }
-            
-            let controller = ChannelController(channel: channel)
-            channelControllers[channelConfig.token] = controller
-            
-            let points = channelConfig.schedule.map({ ChannelPointWrapper(configuration: configuration, event: $0 ) })
-            let layer = Layer(identifier: "Schedule", points: points, startTime: now)
-            controller.set(layer: layer)
-        }
-        
-        self.init(configuration: configuration, channelControllers: channelControllers, behavior: behavior)
     }
 
     public convenience init(gamma: Double,
