@@ -55,6 +55,10 @@ public class LunarCycleController: EventController {
         self.init(startTime: config.startTime, endTime: config.endTime)
     }
 
+    public convenience init(schedule: LunarSchedule) {
+        self.init(startTime: schedule.startTime, endTime: schedule.endTime)
+    }
+
     init(startTime: DateComponents, endTime: DateComponents) {
         self.time = startTime
         self.endTime = endTime

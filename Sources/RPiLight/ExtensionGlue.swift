@@ -23,48 +23,24 @@
  SOFTWARE.)
  */
 
-import Dispatch
 import Foundation
-import Moderator
-
-#if os(Linux)
-    import Glibc
-#else
-    import Darwin
-#endif
 
 import Core
 import Logging
-import PWM
 
-//
-// MARK: Process Arguments
-//
-var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
-let verbose = moderator.add(.option("v","verbose", description: "Provide Additional Logging"))
-let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
-let configFile = moderator.add(Argument<String>
-                    .singleArgument(name: "config file", description: "Configuration file to load")
-                    .default("config.json"))
-let scheduleFile = moderator.add(Argument<String>
-                    .singleArgument(name: "schedule file", description: "Schedule file to load")
-                    .default("schedule.json"))
+extension JSONDecoder {
+    // Helper to decode files directly
+    func decode<T>(_ type: T.Type, fromFile file: URL) throws -> T where T : Decodable {
+        let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
+        let configUrl = configDir.appendingPathComponent(configFile.value)
 
-do {
-    try moderator.parse()
-} catch {
-    print(error)
-    exit(-1)
+        let data = try Data(contentsOf: configUrl)
+        return try self.decode(type, from: data)
+    }
 }
 
-if verbose.value {
-    Log.setLoggingLevel(.debug)
+extension LogLevel {
+    init(_ serviceLevel: ServiceLoggingLevel) {
+        self.init(fromString: serviceLevel.rawValue)
+    }
 }
-
-let service = LightService(configFile: configFile.value, scheduleFile: scheduleFile.value)
-
-if !verbose.value {
-    service.applyLoggingLevel()
-}
-
-service.run(withPreview: previewMode.value)

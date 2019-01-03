@@ -98,7 +98,7 @@ class LightControllerTests: XCTestCase {
         let eventComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: eventDate)
         let eventConfig = ChannelPointConfig(time: eventComponents, setting: .intensity(0.5))
         
-        let testEvent = ChannelPoint(configuration: mockConfiguration, event: eventConfig)
+        let testEvent = ChannelPointWrapper(configuration: mockConfiguration, event: eventConfig)
         
         XCTAssertEqual(testEvent.time, eventComponents)
         XCTAssertEqual(testEvent.brightness, pow(0.5, (1/mockConfiguration.gamma)))

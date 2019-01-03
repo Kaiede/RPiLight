@@ -43,7 +43,15 @@ public enum LightControllerError: Error {
 //
 // Wrapper for Configuration that's compatible with Layers
 //
-struct ChannelPoint: LayerPoint {
+protocol ChannelPoint {
+    var time: DateComponents { get }
+    var setting: ChannelSetting { get }
+}
+
+extension ChannelPointConfig: ChannelPoint {}
+extension SchedulePoint: ChannelPoint {}
+
+struct ChannelPointWrapper: LayerPoint {
     var time: DateComponents {
         return self.event.time
     }
@@ -53,9 +61,9 @@ struct ChannelPoint: LayerPoint {
     }
     
     private let configuration: BehaviorControllerConfig
-    private let event: ChannelPointConfig
+    private let event: ChannelPoint
     
-    init(configuration: BehaviorControllerConfig, event: ChannelPointConfig) {
+    init(configuration: BehaviorControllerConfig, event: ChannelPoint) {
         self.configuration = configuration
         self.event = event
     }
@@ -167,7 +175,39 @@ public class LightController: BehaviorController {
             let controller = ChannelController(channel: channel)
             channelControllers[channelConfig.token] = controller
             
-            let points = channelConfig.schedule.map({ ChannelPoint(configuration: configuration, event: $0 ) })
+            let points = channelConfig.schedule.map({ ChannelPointWrapper(configuration: configuration, event: $0 ) })
+            let layer = Layer(identifier: "Schedule", points: points, startTime: now)
+            controller.set(layer: layer)
+        }
+        
+        self.init(configuration: configuration, channelControllers: channelControllers, behavior: behavior)
+    }
+
+    public convenience init(gamma: Double,
+                            channels: [Channel],
+                            withSchedule schedule: [String: ChannelSchedule],
+                            behavior: Behavior = DefaultLightBehavior()) throws {
+        
+        // Convert the array into a lookup
+        let channelDict = channels.reduce([String: Channel]()) { (dict, channel) -> [String: Channel] in
+            var dict = dict
+            dict[channel.token] = channel
+            return dict
+        }
+        
+        // Configure each channel
+        let configuration = LightControllerConfig(gamma: gamma)
+        let now = Date()
+        var channelControllers: [String: ChannelController] = [:]
+        for (token, channelSchedule) in schedule {
+            guard let channel = channelDict[token] else {
+                throw LightControllerError.missingToken(token)
+            }
+            
+            let controller = ChannelController(channel: channel)
+            channelControllers[token] = controller
+            
+            let points = channelSchedule.schedule.map({ ChannelPointWrapper(configuration: configuration, event: $0 ) })
             let layer = Layer(identifier: "Schedule", points: points, startTime: now)
             controller.set(layer: layer)
         }

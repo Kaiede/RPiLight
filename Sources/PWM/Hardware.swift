@@ -42,8 +42,8 @@ class HardwarePWM: Module, CustomStringConvertible {
 
     func calculateAvailableChannels() -> [String: BoardPWMChannel] {
         var channels: [String: BoardPWMChannel] = [:]
-        channels["PWM00"] = self.pwms[0]
-        channels["PWM01"] = self.pwms[1]
+        channels["CHA00"] = self.pwms[0]
+        channels["CHA01"] = self.pwms[1]
 
         return channels
     }
