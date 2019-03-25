@@ -1,0 +1,16 @@
+{
+    "user": "pi",
+    "board": "raspberryPi",
+
+    "hardware": [
+        {
+            "pwmMode": "raspberryPwm",
+            "freq": 1440,
+            "gamma": 2.2,
+            "channels": {
+                "primary": 0,
+                "secondary": 1
+            }
+        }
+    ]
+}
