@@ -23,19 +23,19 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "RPiLight",
-            dependencies: ["Core", "Moderator"]),
+            dependencies: ["Service", "Moderator"]),
         .target(
-            name: "Core",
-            dependencies: ["PWM", "Logging", "Ephemeris"]),
+            name: "Service",
+            dependencies: ["LED", "Logging", "Ephemeris"]),
         .target(
-            name: "PWM",
+            name: "LED",
             dependencies: ["Logging", "PCA9685", "SingleBoard"]),
         .target(name: "Logging"),
 
         // Test Targets
         .testTarget(
-            name: "CoreTests",
-            dependencies: ["Core"]
+            name: "ServiceTests",
+            dependencies: ["Service"]
         )
     ]
 )
