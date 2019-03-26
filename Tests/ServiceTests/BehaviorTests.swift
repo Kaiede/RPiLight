@@ -25,7 +25,7 @@
 
 import XCTest
 import Dispatch
-@testable import Core
+@testable import Service
 
 extension DispatchTimeInterval {
     func asMicroseconds() -> Int {

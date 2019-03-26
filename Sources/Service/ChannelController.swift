@@ -26,7 +26,7 @@
 import Foundation
 
 import Logging
-import PWM
+import LED
 
 public protocol ChannelSegment {
     var startBrightness: Double { get }

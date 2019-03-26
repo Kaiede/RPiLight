@@ -33,9 +33,9 @@ import Moderator
     import Darwin
 #endif
 
-import Core
+import Service
 import Logging
-import PWM
+import LED
 
 //
 // MARK: Process Arguments

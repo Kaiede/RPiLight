@@ -25,9 +25,9 @@
 
 import Foundation
 
-import Core
+import Service
 import Logging
-import PWM
+import LED
 
 extension LEDBoardType {
     init(configType: ServiceBoardType) {

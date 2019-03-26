@@ -24,8 +24,8 @@
  */
 
 import XCTest
-import PWM
-@testable import Core
+import LED
+@testable import Service
 
 class MockChannel: Channel {
     var token: String = ""

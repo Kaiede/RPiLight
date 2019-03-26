@@ -27,7 +27,7 @@ import Dispatch
 import Foundation
 
 import Logging
-import PWM
+import LED
 
 public enum LightBehaviorUpdate {
     // Stop the controller

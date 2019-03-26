@@ -24,7 +24,7 @@
  */
 
 import XCTest
-@testable import Core
+@testable import Service
 
 class ScheduleConfigTests: XCTestCase {
     func testLunarSchedule_Empty() {

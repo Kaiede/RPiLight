@@ -24,7 +24,7 @@
  */
 
 import XCTest
-@testable import Core
+@testable import Service
 
 class MockBehavior: Behavior {
     var refreshCount: Int = 0

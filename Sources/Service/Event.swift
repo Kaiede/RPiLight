@@ -27,7 +27,7 @@ import Foundation
 
 import Ephemeris
 import Logging
-import PWM
+import LED
 
 public enum EventId: Equatable {
     case lunar

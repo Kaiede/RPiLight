@@ -25,7 +25,7 @@
 
 import Foundation
 
-import Core
+import Service
 import Logging
 
 extension JSONDecoder {

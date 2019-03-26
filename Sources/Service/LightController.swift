@@ -26,7 +26,7 @@
 import Dispatch
 import Foundation
 import Logging
-import PWM
+import LED
 
 #if os(Linux)
     import Glibc
