@@ -26,22 +26,12 @@
 import Foundation
 
 //
-// Simulated PWM Module
+// Module Implementation
+//
+// What's required for the public-facing LEDModule to operate.
 //
 
-internal class SimulatedPWM: LEDModuleImpl {
-    internal let channelMap: [String: Int]
-
-    init(configuration: LEDModuleConfig) {
-        var channelMap: [String: Int] = [:]
-        for (token, index) in configuration.channels {
-            channelMap[token] = index
-        }
-
-        self.channelMap = channelMap
-    }
-
-    internal func applyIntensity(_ intensity: Double, toChannel channel: Int) {
-        // TODO: Do we do anything here in the simulated module?
-    }
+internal protocol LEDModuleImpl {
+    func applyIntensity(_ intensity: Double, toChannel channel: Int)
+    var channelMap: [String: Int] { get }
 }

@@ -29,21 +29,43 @@ import Core
 import Logging
 import PWM
 
+extension LEDBoardType {
+    init(configType: ServiceBoardType) {
+        switch configType {
+        case .raspberryPi: self = .raspberryPi
+        }
+    }
+}
+
+extension LEDModuleType {
+    init(configType: ServiceControllerType) {
+        switch configType {
+        case .simulated: self = .simulated
+        case .pca9685: self = .pca9685
+        case .raspberryPwm: self = .hardware
+        case .mcp4725: self = .mcp4725
+        }
+    }
+}
+
+extension ServiceControllerConfiguration: LEDModuleConfig {}
+
+extension LEDChannel: Channel {}
+
 class LightService {
     let configuration: ServiceConfiguration
-    var module: Module
+    var channels: LEDChannelSet
     var schedule: Schedule
-    var channels: [String: Channel]
 
     init(configFile: String, scheduleFile: String) {
         let configuration = LightService.loadConfiguration(file: configFile)
-        let schedule = LightService.loadSchedule(file: configFile)
-        let module = LightService.createModule(withConfiguration: configuration)
-        let channels = LightService.configureChannels(withModule: module, schedule: schedule)
+        let schedule = LightService.loadSchedule(file: scheduleFile)
+        let channels = LightService.createChannelSet(withConfig: configuration)
+
+        LightService.configureChannelSet(channels, schedule: schedule)
 
         self.configuration = configuration
         self.schedule = schedule
-        self.module = module
         self.channels = channels
     }
 
@@ -58,18 +80,28 @@ class LightService {
         Log.info("Startup User: \(getUsername(uid: originalUid) ?? "Unknown")")
         Log.info("Final User: \(configuration.username)")
         Log.info("Configured Board: \(configuration.board.rawValue)")
-        Log.info("Configured PWM Module: \(configuration.type.rawValue)")
-        Log.info("Configured PWM Frequency: \(configuration.frequency) Hz")
         Log.info("Configured Gamma: \(configuration.gamma)")
-        for (token, channel) in channels {
-            Log.info("  Channel \(token): Min Intensity = \(channel.minIntensity)")
+        for controller in configuration.controllers {
+            Log.info("Controller \(controller.type):")
+            if let address = controller.address {
+                Log.info("  Address: \(address)")
+            }
+            if let frequency = controller.frequency {
+                Log.info("  Frequency: \(frequency) Hz")
+            }
+
+            Log.info("  Channels: ")
+            for (token, index) in controller.channels {
+                Log.info("    \(token): Channel \(index)")
+            }
         }
 
         //
         // MARK: Initialize Light Controller and Run
         //
         let behavior: Behavior = withPreview ? PreviewLightBehavior() : DefaultLightBehavior()
-        let controller = try! LightController(gamma: configuration.gamma, channels: Array(channels.values), withSchedule: schedule.channels, behavior: behavior)
+
+        let controller = try! LightController(gamma: configuration.gamma, channels: channels.asArray(), withSchedule: schedule.channels, behavior: behavior)
         controller.setStopHandler { (controller) in
             if withPreview {
                 Log.info("Simulation Complete")
@@ -107,21 +139,43 @@ class LightService {
         return originalUid
     }
 
-    static private func createModule(withConfiguration configuration: ServiceConfiguration) -> Module {
-        do {
-            let moduleType: ModuleType = .simulated
-            let boardType: BoardType = BoardType.bestGuess() ?? .desktop
-            let module = try moduleType.createModule(board: boardType, frequency: Int(configuration.frequency), gamma: configuration.gamma)
+    static private func createChannelSet(withConfig configuration: ServiceConfiguration) -> LEDChannelSet {
+        let channels = LEDChannelSet()
 
+        for controllerConfig in configuration.controllers {
+            do {
+                let module = LightService.createModule(withConfig: controllerConfig, boardType: configuration.board)
+                try channels.add(module: module)
+            } catch {
+                Log.error("Unable to create modules")
+                exit(-1)
+            }
+        }
+
+        return channels
+    }
+
+    static private func createModule(withConfig configuration: ServiceControllerConfiguration, boardType: ServiceBoardType) -> LEDModule {
+        do {
+            let moduleType = LEDModuleType(configType: configuration.type)
+            let moduleBoardType = LEDBoardType(configType: boardType)
+
+            let module = try moduleType.createModule(board: moduleBoardType, configuration: configuration)
             return module
-        } catch ModuleInitError.noHardwareAccess {
-            Log.error("Unable to Access Hardware")
+        } catch LEDModuleError.noImplementationAvailable {
+            Log.error("No implementation available for: \(configuration.type)")
             exit(-1)
-        } catch ModuleInitError.invalidBoardType(let board){
-            Log.error("PWM Module Doesn't Support Board: \(board)")
+        } catch LEDModuleError.noHardwareAccess {
+            Log.error("Unable to Access Hardware for: \(configuration.type)")
             exit(-1)
-        } catch ModuleInitError.invalidFrequency(let min, let max, let actual) {
-            Log.error("PWM Module expects frequency \(actual) to be between \(min) and \(max)")
+        } catch LEDModuleError.invalidBoardType(let board) {
+            Log.error("Module \"\(configuration.type)\" Doesn't Support Board: \(board)")
+            exit(-1)
+        } catch LEDModuleError.missingFrequency {
+            Log.error("Frequency must be specified for: \(configuration.type)")
+            exit(-1)
+        } catch LEDModuleError.invalidFrequency(let min, let max, let actual) {
+            Log.error("Module \"\(configuration.type)\" expects frequency \(actual) to be between \(min) and \(max)")
             exit(-1)
         } catch {
             Log.error(error)
@@ -129,35 +183,14 @@ class LightService {
         }
     }
 
-    static private func configureChannels(withModule module: Module, schedule: Schedule) -> [String: Channel] {
-        // Process Channels
-        let activeChannels = module.availableChannels.map { (token : String) -> Channel in
-            do {
-               return try module.createChannel(with: token)
-            } catch {
-                Log.error("Unable to create channel \(token)")
-                exit(-1)
-            }
-        }
-
-        let activeChannelDict = activeChannels.reduce([String: Channel]()) { (dict, channel) -> [String: Channel] in
-            var dict = dict
-            dict[channel.token] = channel
-            return dict
-        }
-
-        //
-        // MARK: Configure Channels
-        //
+    static private func configureChannelSet(_ channelSet: LEDChannelSet, schedule: Schedule) {
         for (token, channelSchedule) in schedule.channels {
-            guard var channel = activeChannelDict[token] else {
+            guard let channel = channelSet[token] else {
                 fatalError("Attempted to configure unknown channel '\(token)")
             }
     
             channel.minIntensity = channelSchedule.minIntensity
         }
-
-        return activeChannelDict
     }
 
     static private func loadConfiguration(file: String) -> ServiceConfiguration {

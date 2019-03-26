@@ -25,9 +25,10 @@
 
 import Foundation
 
+// TODO: Needs a more central location
 // Originally Written by "Hamish Knight"
 // https://bugs.swift.org/browse/SR-7498
-fileprivate struct AnyCodingKey : CodingKey {
+struct AnyCodingKey : CodingKey {
   var stringValue: String
   var intValue: Int?
 

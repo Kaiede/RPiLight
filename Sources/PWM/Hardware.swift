@@ -26,86 +26,51 @@
 import Logging
 import SingleBoard
 
-class HardwarePWM: Module, CustomStringConvertible {
-    private let gamma: Double
+class RaspberryPWM: LEDModuleImpl {
+    internal let channelMap: [String : Int]
 
-    private(set) lazy var availableChannels: [String] = {
-        [unowned self] in
-        return Array(self.availableChannelMap.keys)
-        }()
+    private var arePinsEnabled: [Bool]
+    private let pwm: BoardPWM
+    private let period: UInt
 
-    let pwms: BoardPWM
-    private(set) lazy var availableChannelMap: [String: BoardPWMChannel] = {
-        [unowned self] in
-        return self.calculateAvailableChannels()
-        }()
-
-    func calculateAvailableChannels() -> [String: BoardPWMChannel] {
-        var channels: [String: BoardPWMChannel] = [:]
-        channels["CHA00"] = self.pwms[0]
-        channels["CHA01"] = self.pwms[1]
-
-        return channels
-    }
-
-    let frequency: Int
-
-    init(board: BoardType, frequency: Int, gamma: Double) throws {
-        guard board != .desktop else {
-            throw ModuleInitError.invalidBoardType(actual: board.rawValue)
-        }
-        guard frequency <= 16000 else {
-            throw ModuleInitError.invalidFrequency(min: 480, max: 16000, actual: frequency)
+    init(configuration: LEDModuleConfig, board: LEDBoardType) throws {
+        guard board == .raspberryPi else {
+            throw LEDModuleError.invalidBoardType(actual: board.rawValue)
         }
 
-        self.pwms = SingleBoard.raspberryPi.pwm
-        self.frequency = frequency
-        self.gamma = gamma
-    }
+        let pwm = SingleBoard.raspberryPi.pwm
+        self.arePinsEnabled = Array(repeating: false, count: pwm.count)
 
-    func createChannel(with token: String) throws -> Channel {
-        guard let output = self.availableChannelMap[token] else {
-            throw ChannelInitError.invalidToken
+        // Configure Channels
+        var channelMap: [String: Int] = [:]
+        for (token, index) in configuration.channels where index >= 0 && index < pwm.count {
+            channelMap[token] = index
         }
 
+        self.channelMap = channelMap
+        self.pwm = pwm
+
+        // Calculate Period
+        let frequency = configuration.frequency ?? 480
         let NANOSECONDS = 1_000_000_000
-        let period = UInt(NANOSECONDS / self.frequency)
-        Log.debug("Channel \(token) created with period of \(period) ns")
-        return HardwarePWMChannel(token: token, gamma: self.gamma, output: output, period: period)
-    }
-}
-
-class HardwarePWMChannel: Channel {
-    let token: String
-    let gamma: Double
-    var minIntensity: Double
-    var intensity: Double {
-        didSet { self.onSettingChanged() }
+        self.period = UInt(NANOSECONDS / frequency)
     }
 
-    let period: UInt // nanoseconds
-    let output: BoardPWMChannel
-
-    init(token: String, gamma: Double, output: BoardPWMChannel, period: UInt) {
-        self.token = token
-        self.gamma = gamma
-        self.minIntensity = 0.0
-        self.intensity = 0.0
-        self.period = period
-        self.output = output
-
-        self.output.enable(pins: self.output.pins)
-    }
-
-    func onSettingChanged() {
-        if intensity < self.minIntensity.nextUp {
-            intensity = 0.0
+    func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+        guard channel < self.pwm.count else {
+            Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
+            return
         }
-        
+
+        let output = self.pwm[channel]
+        if !self.arePinsEnabled[channel] {
+            output.enable(pins: output.pins)
+            self.arePinsEnabled[channel] = true
+        }
+
         let maxValue = 100.0
         let targetIntensity = Float(intensity * maxValue)
-        Log.debug("\(self.token): Intensity Now \(targetIntensity)")
-        
-        self.output.start(period: self.period, dutyCycle: targetIntensity)
+
+        output.start(period: self.period, dutyCycle: targetIntensity)
     }
 }

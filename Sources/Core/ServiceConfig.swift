@@ -36,6 +36,33 @@ public enum ServiceControllerType: String, Codable {
     case simulated
     case raspberryPwm
     case pca9685
+    case mcp4725
+}
+
+extension ServiceControllerType {
+    var hasAddress: Bool {
+        get {
+            switch(self) {
+            case .pca9685: fallthrough
+            case .mcp4725:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+
+    var hasFrequency: Bool {
+        get {
+            switch(self) {
+            case .raspberryPwm: fallthrough
+            case .pca9685:
+                return true
+            default:
+                return false
+            }
+        }
+    }
 }
 
 public enum ServiceBoardType: String, Codable {
@@ -48,10 +75,9 @@ public struct ServiceConfiguration {
     public let logLevel: ServiceLoggingLevel
 
     // LED Controller Settings
-    public let type: ServiceControllerType
     public let board: ServiceBoardType
-    public let frequency: Int
     public let gamma: Double
+    public let controllers: [ServiceControllerConfiguration]
 
     // TODO: MQTT Broker Config
 
@@ -59,11 +85,9 @@ public struct ServiceConfiguration {
         case username = "user"
         case logLevel = "logging"
 
-        case controllerType = "pwmMode"
         case boardType = "board"
-
-        case frequency = "freq"
-        case gamma
+        case gamma = "gamma"
+        case controllers = "controllers"
     }
 }
 
@@ -79,19 +103,10 @@ extension ServiceConfiguration: Decodable {
             logLevel = .info
         }
  
-        type = try container.decode(ServiceControllerType.self, forKey: .controllerType)
         board = try container.decode(ServiceBoardType.self, forKey: .boardType)
+        controllers = try container.decode([ServiceControllerConfiguration].self, forKey: .controllers)
 
-        let minimumFrequency = 120
-        let defaultFrequency = 480
-        let maximumFrequency = 2000
-        if container.contains(.frequency) {
-            let decodedFrequency = try container.decode(Int.self, forKey: .frequency)
-            frequency = decodedFrequency <= 0 ? defaultFrequency : max(min(decodedFrequency, maximumFrequency), minimumFrequency)
-        } else {
-            frequency = defaultFrequency
-        }
-
+        // Controller Gamma
         let minimumGamma = 1.0
         let defaultGamma = 1.8
         let maximumGamma = 3.0
@@ -100,6 +115,68 @@ extension ServiceConfiguration: Decodable {
             gamma = decodedGamma <= 0 ? defaultGamma : max(min(decodedGamma, maximumGamma), minimumGamma)
         } else {
             gamma = 1.8
+        }
+    }
+}
+
+//
+// Service Controller Configuration
+//
+// Configuration for a single LED controller
+//
+
+public struct ServiceControllerConfiguration {
+    // Required Controller Settings
+    public let type: ServiceControllerType
+    public let channels: [String : Int]
+
+    // Conditional Controller Settings
+    public let frequency: Int?
+    public let address: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case channels
+
+        case frequency
+        case address
+    }
+}
+
+extension ServiceControllerConfiguration: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Controller Type
+        type = try container.decode(ServiceControllerType.self, forKey: .type)
+
+        let channelContainer = try container.nestedContainer(keyedBy: AnyCodingKey.self, forKey: .channels)
+        var decodedChannels: [String:Int] = [:]
+        for codingKey in channelContainer.allKeys {
+            decodedChannels[codingKey.stringValue] = try channelContainer.decode(Int.self, forKey: codingKey)
+        }
+        channels = decodedChannels
+
+        // Conditional: Address
+        if type.hasAddress {
+            address = try container.decode(Int.self, forKey: .address)
+        } else {
+            address = nil
+        }
+
+        // Conditional: Frequency
+        if type.hasFrequency {
+            let minimumFrequency = 120
+            let defaultFrequency = 480
+            let maximumFrequency = 2000
+            if container.contains(.frequency) {
+                let decodedFrequency = try container.decode(Int.self, forKey: .frequency)
+                frequency = decodedFrequency <= 0 ? defaultFrequency : max(min(decodedFrequency, maximumFrequency), minimumFrequency)
+            } else {
+                frequency = defaultFrequency
+            }
+        } else {
+            frequency = nil
         }
     }
 }

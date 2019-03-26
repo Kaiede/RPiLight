@@ -141,6 +141,12 @@ public enum ChannelLayerType: Int {
     case lunar
 }
 
+public protocol Channel {
+    var token: String { get }
+    var minIntensity: Double { get set }
+    var intensity: Double { get set }
+}
+
 public class ChannelController: BehaviorChannel {
     public var rootController: BehaviorController?
     var channel: Channel

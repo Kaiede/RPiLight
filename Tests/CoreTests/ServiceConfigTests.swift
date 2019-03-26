@@ -38,55 +38,161 @@ extension JSONDecoder {
 }
 
 class ServiceConfigTests: XCTestCase {
-    func testEmptyHardwareConfiguration() {
+    func testEmptyControllerConfiguration() {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(ServiceConfiguration.self, from: jsonData)
-            XCTFail("Empty configuration should throw, because of missing properties: user, pwmMode, board")
+            let _ = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
+            XCTFail("Empty configuration should throw, because of missing properties")
         } catch {
             // Pass
         }
     }
-    
-    func testMinimumHardwareConfiguration() {
+
+    /*
+    public let type: ServiceControllerType
+    public let gamma: Double
+    public let channels: [String : Int]
+
+    // Conditional Controller Settings
+    public let frequency: Int?
+    public let address: Int?
+    */
+
+    func testSimulatorControllerConfiguration() {
         let jsonData: JsonDictionary = [
-            "user": "test_user",
-            "board": "raspberryPi",
-            "pwmMode": "simulated"
+            "type": "simulated",
+            "channels": [
+                "primary": 0,
+                "secondary": 1
+            ]
         ]
         do {
             let decoder = JSONDecoder()
-            let config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
-            XCTAssertEqual(config.username, "test_user")
-            XCTAssertEqual(config.logLevel, .info)
-            XCTAssertEqual(config.type, .simulated)
-            XCTAssertEqual(config.board, .raspberryPi)
-            XCTAssertEqual(config.frequency, 480)
-            XCTAssertEqual(config.gamma, 1.8)
+            let controller = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
+            XCTAssertEqual(controller.type, .simulated)
+            XCTAssertEqual(controller.channels.count, 2)
+            XCTAssertNil(controller.address)
+            XCTAssertNil(controller.frequency)
         } catch {
             XCTFail("\(error)")
         }
     }
 
-    func testFullHardwareConfiguration() {
+    func testPca9685ControllerConfiguration_Incomplete() {
         let jsonData: JsonDictionary = [
-            "user": "test_user",
-            "logging": "warn",
-            "board": "raspberryPi",
-            "pwmMode": "raspberryPwm",
-            "freq": 1440,
-            "gamma": 2.2
+            "type": "pca9685",
+            "channels": [
+                "primary": 0,
+                "secondary": 1
+            ]
         ]
         do {
             let decoder = JSONDecoder()
-            let config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
-            XCTAssertEqual(config.username, "test_user")
-            XCTAssertEqual(config.logLevel, .warn)
-            XCTAssertEqual(config.type, .raspberryPwm)
-            XCTAssertEqual(config.board, .raspberryPi)
-            XCTAssertEqual(config.frequency, 1440)
-            XCTAssertEqual(config.gamma, 2.2)
+            let _ = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
+            XCTFail("Incomplete configuration should throw, because of missing properties")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testPca9685ControllerConfiguration_Complete() {
+        let jsonData: JsonDictionary = [
+            "type": "pca9685",
+            "frequency": 960,
+            "address": 0x68,
+            "channels": [
+                "primary": 0,
+                "secondary": 1
+            ]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let controller = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
+            XCTAssertEqual(controller.type, .pca9685)
+            XCTAssertEqual(controller.channels.count, 2)
+            XCTAssertEqual(controller.frequency, 960)
+            XCTAssertEqual(controller.address, 0x68)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testRaspberryPwmControllerConfiguration_Minimum() {
+        let jsonData: JsonDictionary = [
+            "type": "raspberryPwm",
+            "channels": [
+                "primary": 0,
+                "secondary": 1
+            ]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let controller = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
+            XCTAssertEqual(controller.type, .raspberryPwm)
+            XCTAssertEqual(controller.channels.count, 2)
+            XCTAssertNil(controller.address)
+            XCTAssertNotNil(controller.frequency)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testRaspberryPwmControllerConfiguration_Complete() {
+        let jsonData: JsonDictionary = [
+            "type": "raspberryPwm",
+            "frequency": 960,
+            "address": 0x68,
+            "channels": [
+                "primary": 0,
+                "secondary": 1
+            ]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let controller = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
+            XCTAssertEqual(controller.type, .raspberryPwm)
+            XCTAssertEqual(controller.channels.count, 2)
+            XCTAssertEqual(controller.frequency, 960)
+            XCTAssertNil(controller.address)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testMcp4725ControllerConfiguration_Incomplete() {
+        let jsonData: JsonDictionary = [
+            "type": "mcp4725",
+            "channels": [
+                "primary": 0,
+                "secondary": 1
+            ]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let _ = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
+            XCTFail("Incomplete configuration should throw, because of missing properties")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testMcp4725ControllerConfiguration_Complete() {
+        let jsonData: JsonDictionary = [
+            "type": "mcp4725",
+            "address": 0x68,
+            "channels": [
+                "primary": 0,
+                "secondary": 1
+            ]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let controller = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
+            XCTAssertEqual(controller.type, .mcp4725)
+            XCTAssertEqual(controller.channels.count, 2)
+            XCTAssertNil(controller.frequency)
+            XCTAssertEqual(controller.address, 0x68)
         } catch {
             XCTFail("\(error)")
         }
@@ -94,35 +200,34 @@ class ServiceConfigTests: XCTestCase {
 
     func testFrequencyBounds() {
         var jsonData: JsonDictionary = [
-            "user": "test_user",
-            "board": "raspberryPi",
-            "pwmMode": "simulated",
+            "type": "raspberryPwm",
+            "channels": [:]
         ]
         do {
             let decoder = JSONDecoder()
 
-            jsonData["freq"] = -480
-            var config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            jsonData["frequency"] = -480
+            var config = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
             XCTAssertEqual(config.frequency, 480)
 
-            jsonData["freq"] = 0
-            config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            jsonData["frequency"] = 0
+            config = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
             XCTAssertEqual(config.frequency, 480)
 
-            jsonData["freq"] = 120
-            config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            jsonData["frequency"] = 120
+            config = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
             XCTAssertEqual(config.frequency, 120)
 
-            jsonData["freq"] = 960
-            config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            jsonData["frequency"] = 960
+            config = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
             XCTAssertEqual(config.frequency, 960)
 
-            jsonData["freq"] = 1440
-            config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            jsonData["frequency"] = 1440
+            config = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
             XCTAssertEqual(config.frequency, 1440)
 
-            jsonData["freq"] = 2500
-            config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            jsonData["frequency"] = 2500
+            config = try decoder.decode(ServiceControllerConfiguration.self, from: jsonData)
             XCTAssertEqual(config.frequency, 2000)
         } catch {
             XCTFail("\(error)")
@@ -133,7 +238,14 @@ class ServiceConfigTests: XCTestCase {
         var jsonData: JsonDictionary = [
             "user": "test_user",
             "board": "raspberryPi",
-            "pwmMode": "simulated",
+            "controllers": [[
+                "type": "mcp4725",
+                "address": 0x68,
+                "channels": [
+                    "primary": 0,
+                    "secondary": 1
+                ]
+                ]]
         ]
         do {
             let decoder = JSONDecoder()
@@ -166,11 +278,70 @@ class ServiceConfigTests: XCTestCase {
         }
     }
 
+    func testHardwareConfiguration_Empty() {
+        let jsonData: JsonDictionary = [:]
+        do {
+            let decoder = JSONDecoder()
+            let _ = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            XCTFail("Empty configuration should throw, because of missing properties")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testHardwareConfiguration_Incomplete() {
+        let jsonData: JsonDictionary = [
+            "user": "test_user",
+            "board": "raspberryPi",
+            "controllers": [:]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let _ = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            XCTFail("Incomplete configuration (missing controllers) should throw an exception")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testHardwareConfiguration_Complete() {
+        let jsonData: JsonDictionary = [
+            "user": "test_user",
+            "board": "raspberryPi",
+            "controllers": [[
+                "type": "mcp4725",
+                "address": 0x68,
+                "channels": [
+                    "primary": 0,
+                    "secondary": 1
+                ]
+            ]]
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            XCTAssertEqual(config.username, "test_user")
+            XCTAssertEqual(config.board, .raspberryPi)
+            XCTAssertEqual(config.controllers.count, 1)
+            XCTAssertEqual(config.controllers[0].type, .mcp4725)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
     static var allTests = [
-        ("testEmptyHardwareConfiguration", testEmptyHardwareConfiguration),
-        ("testMinimumHardwareConfiguration", testMinimumHardwareConfiguration),
-        ("testFullHardwareConfiguration", testFullHardwareConfiguration),
+        ("testEmptyControllerConfiguration", testEmptyControllerConfiguration),
+        ("testSimulatorControllerConfiguration", testSimulatorControllerConfiguration),
+        ("testPca9685ControllerConfiguration_Incomplete", testPca9685ControllerConfiguration_Incomplete),
+        ("testPca9685ControllerConfiguration_Complete", testPca9685ControllerConfiguration_Complete),
+        ("testRaspberryPwmControllerConfiguration_Minimum", testRaspberryPwmControllerConfiguration_Minimum),
+        ("testRaspberryPwmControllerConfiguration_Complete", testRaspberryPwmControllerConfiguration_Complete),
+        ("testMcp4725ControllerConfiguration_Incomplete", testMcp4725ControllerConfiguration_Incomplete),
+        ("testMcp4725ControllerConfiguration_Complete", testMcp4725ControllerConfiguration_Complete),
         ("testFrequencyBounds", testFrequencyBounds),
-        ("testGammaBounds", testGammaBounds)
+        ("testGammaBounds", testGammaBounds),
+        ("testHardwareConfiguration_Empty", testHardwareConfiguration_Empty),
+        ("testHardwareConfiguration_Incomplete", testHardwareConfiguration_Incomplete),
+        ("testHardwareConfiguration_Complete", testHardwareConfiguration_Complete),
     ]
 }

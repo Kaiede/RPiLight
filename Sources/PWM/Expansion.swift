@@ -31,84 +31,46 @@ import SingleBoard
 // Expansion PWM Module (PCA 9685)
 //
 
-class ExpansionPWM: Module, CustomStringConvertible {
-    private let gamma: Double
-
-    private(set) lazy var availableChannels: [String] = {
-        [unowned self] in
-        return Array(self.availableChannelMap.keys)
-        }()
-
-    private(set) lazy var availableChannelMap: [String: UInt8] = {
-        [unowned self] in
-        return self.calculateAvailableChannels()
-        }()
-
-    func calculateAvailableChannels() -> [String: UInt8] {
-        var channels: [String: UInt8] = [:]
-        for index in 0...15 {
-            channels[String(format: "CHA%02d", index)] = UInt8(index)
-        }
-
-        return channels
-    }
-
+class ExpansionPWM: LEDModuleImpl {
     private let controller: PCA9685
+    internal let channelMap: [String: Int]
 
-    init(board: BoardType, frequency: Int, gamma: Double) throws {
-        guard board != .desktop else {
-            throw ModuleInitError.invalidBoardType(actual: board.rawValue)
+    init(configuration: LEDModuleConfig, board: LEDBoardType) throws {
+        guard board == .raspberryPi else {
+            throw LEDModuleError.invalidBoardType(actual: board.rawValue)
         }
-        guard frequency <= 1500 else {
-            throw ModuleInitError.invalidFrequency(min: 480, max: 1500, actual: frequency)
+        guard let frequency = configuration.frequency else {
+            throw LEDModuleError.missingFrequency
+        }
+        guard frequency >= 480 && frequency <= 1500 else {
+            throw LEDModuleError.invalidFrequency(min: 480, max: 1500, actual: frequency)
         }
 
-        self.gamma = gamma
+        // TODO: Support I2C Address Configuration Here
+        // TODO: Needs fixes to the PCA9685 Library
         self.controller = PCA9685(i2cBus: SingleBoard.raspberryPi.i2cMainBus)
         self.controller.frequency = UInt(frequency)
-    }
 
-    func createChannel(with token: String) throws -> Channel {
-        guard let channel = self.availableChannelMap[token] else {
-            throw ChannelInitError.invalidToken
+        var channelMap: [String: Int] = [:]
+        for (token, index) in configuration.channels where index < 16 {
+            channelMap[token] = index
         }
 
-        return ExpansionPWMChannel(token: token, gamma: self.gamma, channel: channel, controller: self.controller)
-    }
-}
-
-//
-// Simulated PWM Channel
-//
-
-class ExpansionPWMChannel: Channel {
-    let token: String
-    let gamma: Double
-    var minIntensity: Double
-    var intensity: Double {
-        didSet { self.onSettingChanged() }
+        self.channelMap = channelMap
     }
 
-    private let controller: PCA9685
-    private let channel: UInt8
-
-    init(token: String, gamma: Double, channel: UInt8, controller: PCA9685) {
-        self.token = token
-        self.gamma = gamma
-        self.minIntensity = 0.0
-        self.intensity = 0.0
-        self.channel = channel
-        self.controller = controller
-    }
-
-    func onSettingChanged() {
-        if self.intensity < self.minIntensity.nextUp {
-            intensity = 0.0
+    internal func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+        guard channel < 16 else {
+            Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
+            return
         }
-        
+
+        let controllerChannel = UInt8(channel)
         let maxIntensity: Double = 4095
         let steps = UInt16(intensity * maxIntensity)
-        Log.debug("[\(self.token)] PWM Width \(steps)/4095")
-        self.controller.setChannel(self.channel, onStep: 0, offStep: steps)
+
+        // TODO: We probably want to be able to log information about the steps
+        // Log.debug("[\(self.token)] PWM Width \(steps)/4095")
+        self.controller.setChannel(controllerChannel, onStep: 0, offStep: steps)
     }
 }

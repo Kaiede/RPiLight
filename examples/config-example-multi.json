@@ -2,7 +2,7 @@
     "user": "pi",
     "board": "raspberryPi",
 
-    "hardware": [
+    "controllers": [
         {
             "pwmMode": "raspberryPwm",
             "freq": 1440,
