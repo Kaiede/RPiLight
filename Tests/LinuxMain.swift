@@ -1,6 +1,6 @@
 import XCTest
 import Logging
-@testable import CoreTests
+@testable import ServiceTests
 
 Log.setLoggingLevel(.warn)
 
