@@ -35,3 +35,17 @@ internal protocol LEDModuleImpl {
     func applyIntensity(_ intensity: Double, toChannel channel: Int)
     var channelMap: [String: Int] { get }
 }
+
+//
+// Extensions
+//
+
+extension LEDModuleConfig {
+    var addressAsI2C: UInt8? {
+        if let address = self.address {
+            return UInt8(address)
+        }
+
+        return nil
+    }
+}

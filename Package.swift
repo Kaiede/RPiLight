@@ -15,7 +15,7 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/Kaiede/Ephemeris.git", from: "1.0.0"),
         .package(url: "https://github.com/kareman/Moderator.git", from: "0.5.0"),
-        .package(url: "https://github.com/Kaiede/PCA9685.git", from: "2.0.0"),
+        .package(url: "https://github.com/Kaiede/PCA9685.git", from: "2.0.3"),
         .package(url: "https://github.com/Kaiede/SingleBoard.git", from: "0.2.0")
     ],
     targets: [

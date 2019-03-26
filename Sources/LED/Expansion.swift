@@ -46,9 +46,11 @@ class ExpansionPWM: LEDModuleImpl {
             throw LEDModuleError.invalidFrequency(min: 480, max: 1500, actual: frequency)
         }
 
+        let address: UInt8 = configuration.addressAsI2C ?? PCA9685.defaultAdafruitAddress
+
         // TODO: Support I2C Address Configuration Here
         // TODO: Needs fixes to the PCA9685 Library
-        self.controller = PCA9685(i2cBus: SingleBoard.raspberryPi.i2cMainBus)
+        self.controller = PCA9685(i2cBus: SingleBoard.raspberryPi.i2cMainBus, address: address)
         self.controller.frequency = UInt(frequency)
 
         var channelMap: [String: Int] = [:]
