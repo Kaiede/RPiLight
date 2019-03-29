@@ -24,53 +24,55 @@
  */
 
 import Logging
+import PCA9685
 import SingleBoard
 
-class RaspberryPWM: LEDModuleImpl {
-    internal let channelMap: [String : Int]
+//
+// PWM via PCA9685
+//
 
-    private var arePinsEnabled: [Bool]
-    private let pwm: BoardPWM
-    private let period: UInt
+class PwmViaPCA9685: LEDModuleImpl {
+    private let controller: PCA9685
+    internal let channelMap: [String: Int]
 
     init(configuration: LEDModuleConfig, board: LEDBoardType) throws {
         guard board == .raspberryPi else {
             throw LEDModuleError.invalidBoardType(actual: board.rawValue)
         }
+        guard let frequency = configuration.frequency else {
+            throw LEDModuleError.missingFrequency
+        }
+        guard frequency >= 480 && frequency <= 1500 else {
+            throw LEDModuleError.invalidFrequency(min: 480, max: 1500, actual: frequency)
+        }
 
-        let pwm = SingleBoard.raspberryPi.pwm
-        self.arePinsEnabled = Array(repeating: false, count: pwm.count)
+        let address: UInt8 = configuration.addressAsI2C ?? PCA9685.defaultAdafruitAddress
 
-        // Configure Channels
+        // TODO: Support I2C Address Configuration Here
+        // TODO: Needs fixes to the PCA9685 Library
+        self.controller = PCA9685(i2cBus: SingleBoard.raspberryPi.i2cMainBus, address: address)
+        self.controller.frequency = UInt(frequency)
+
         var channelMap: [String: Int] = [:]
-        for (token, index) in configuration.channels where index >= 0 && index < pwm.count {
+        for (token, index) in configuration.channels where index < 16 {
             channelMap[token] = index
         }
 
         self.channelMap = channelMap
-        self.pwm = pwm
-
-        // Calculate Period
-        let frequency = configuration.frequency ?? 480
-        let NANOSECONDS = 1_000_000_000
-        self.period = UInt(NANOSECONDS / frequency)
     }
 
-    func applyIntensity(_ intensity: Double, toChannel channel: Int) {
-        guard channel < self.pwm.count else {
+    internal func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+        guard channel < 16 else {
             Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
             return
         }
 
-        let output = self.pwm[channel]
-        if !self.arePinsEnabled[channel] {
-            output.enable(pins: output.pins)
-            self.arePinsEnabled[channel] = true
-        }
+        let controllerChannel = UInt8(channel)
+        let maxIntensity: Double = 4095
+        let steps = UInt16(intensity * maxIntensity)
 
-        let maxValue = 100.0
-        let targetIntensity = Float(intensity * maxValue)
-
-        output.start(period: self.period, dutyCycle: targetIntensity)
+        // TODO: We probably want to be able to log information about the steps
+        // Log.debug("[\(self.token)] PWM Width \(steps)/4095")
+        self.controller.setChannel(controllerChannel, onStep: 0, offStep: steps)
     }
 }

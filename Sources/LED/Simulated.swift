@@ -26,10 +26,10 @@
 import Foundation
 
 //
-// Simulated PWM Module
+// Simulated Implementation
 //
 
-internal class SimulatedPWM: LEDModuleImpl {
+internal class SimulatedImpl: LEDModuleImpl {
     internal let channelMap: [String: Int]
 
     init(configuration: LEDModuleConfig) {

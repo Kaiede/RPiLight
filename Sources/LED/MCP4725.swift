@@ -24,37 +24,35 @@
  */
 
 import Logging
-import PCA9685
+import MCP4725
 import SingleBoard
 
 //
-// Expansion PWM Module (PCA 9685)
+// DAC (0-10V) Output via MCP4725
 //
 
-class ExpansionPWM: LEDModuleImpl {
-    private let controller: PCA9685
+class DacViaMCP4725: LEDModuleImpl {
+    private let controller: MCP4725
     internal let channelMap: [String: Int]
 
     init(configuration: LEDModuleConfig, board: LEDBoardType) throws {
         guard board == .raspberryPi else {
             throw LEDModuleError.invalidBoardType(actual: board.rawValue)
         }
-        guard let frequency = configuration.frequency else {
-            throw LEDModuleError.missingFrequency
-        }
-        guard frequency >= 480 && frequency <= 1500 else {
-            throw LEDModuleError.invalidFrequency(min: 480, max: 1500, actual: frequency)
-        }
 
-        let address: UInt8 = configuration.addressAsI2C ?? PCA9685.defaultAdafruitAddress
+        let address: UInt8 = configuration.addressAsI2C ?? MCP4725.defaultAddress
 
-        // TODO: Support I2C Address Configuration Here
-        // TODO: Needs fixes to the PCA9685 Library
-        self.controller = PCA9685(i2cBus: SingleBoard.raspberryPi.i2cMainBus, address: address)
-        self.controller.frequency = UInt(frequency)
+        self.controller = MCP4725(i2cBus: SingleBoard.raspberryPi.i2cMainBus, address: address)
 
+        // Since we are taking this controller over, we can get away with updating the EEPROM default
+        // to off for now like other modules. In the future, this can probably be made a little more 
+        // configurable. 
+        self.controller.setDefault(voltage: 0, mode: .normal)
+
+        // TODO: There's bound to be a slightly less weird way to implement this for single-channel
+        // modules like this one.
         var channelMap: [String: Int] = [:]
-        for (token, index) in configuration.channels where index < 16 {
+        for (token, index) in configuration.channels where index < 1 {
             channelMap[token] = index
         }
 
@@ -62,17 +60,13 @@ class ExpansionPWM: LEDModuleImpl {
     }
 
     internal func applyIntensity(_ intensity: Double, toChannel channel: Int) {
-        guard channel < 16 else {
+        guard channel < 1 else {
             Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
             return
         }
 
-        let controllerChannel = UInt8(channel)
         let maxIntensity: Double = 4095
         let steps = UInt16(intensity * maxIntensity)
-
-        // TODO: We probably want to be able to log information about the steps
-        // Log.debug("[\(self.token)] PWM Width \(steps)/4095")
-        self.controller.setChannel(controllerChannel, onStep: 0, offStep: steps)
+        self.controller.set(voltage: steps)
     }
 }

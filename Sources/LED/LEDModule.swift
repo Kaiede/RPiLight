@@ -96,14 +96,13 @@ extension LEDModuleType {
     private func implForModule(board: LEDBoardType, configuration: LEDModuleConfig) throws -> LEDModuleImpl? {
         switch self {
         case .simulated:
-            return SimulatedPWM(configuration: configuration)
+            return SimulatedImpl(configuration: configuration)
         case .hardware:
-            return try RaspberryPWM(configuration: configuration, board: board)
+            return try PwmViaRaspberryPi(configuration: configuration, board: board)
         case .pca9685:
-            return try ExpansionPWM(configuration: configuration, board: board)
+            return try PwmViaPCA9685(configuration: configuration, board: board)
         case .mcp4725:
-            // TODO: Need an implementation of the MCP4725 DAC Output
-            return nil
+            return try DacViaMCP4725(configuration: configuration, board: board)
         }
     }
 }
