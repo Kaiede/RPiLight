@@ -30,17 +30,19 @@ matrix:
         - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1404/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04.tar.gz -s | tar -xz -C swift
         - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04/usr/bin:$PATH"
 
-    - name: "Mac Xcode 9"
+    - name: "Mac Xcode 9 (Swift 4.1)"
       os: osx
       osx_image: xcode9.4
       
-    - name: "Mac Xcode 10"
+    - name: "Mac Xcode 10 (Swift 4.2)"
+      os: osx
+      osx_image: xcode10
+      
+    - name: "Mac Xcode 10.2 (Swift 5)"
       os: osx
       osx_image: xcode10
       
   allow_failures:
-    - os: linux
-      env: SWIFT_VERSION=4.2.3
     - os: linux
       env: SWIFT_VERSION=5.0
 
