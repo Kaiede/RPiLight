@@ -46,12 +46,16 @@ extension Calendar {
 }
 
 public extension DateComponents {
+    func asTimeOfDay() -> DateComponents {
+        return DateComponents(calendar: self.calendar, timeZone: self.timeZone, hour: self.hour, minute: self.minute, second: self.second, nanosecond: self.nanosecond)
+    }
+
     // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
     // but may not be very relevant for any other package.
     func calcNextDateCustom(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
-        var copyOfSelf = self
+        var copyOfSelf = self.asTimeOfDay()
         guard let targetDate = calendar.date(byAdding: copyOfSelf, to: startOfDay) else { return nil }
         switch direction {
         case .forward:
