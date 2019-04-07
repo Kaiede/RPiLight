@@ -63,7 +63,7 @@ public extension DateComponents {
         return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
     }
 
-    public func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
+    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
         #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
             return Calendar.current.nextDate(after: date,
                                              matching: self,
@@ -79,7 +79,7 @@ public extension DateComponents {
 }
 
 public extension FileManager {
-    public var currentDirectoryUrl: URL {
+    var currentDirectoryUrl: URL {
         return URL(fileURLWithPath: self.currentDirectoryPath)
     }
 }
