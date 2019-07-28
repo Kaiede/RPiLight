@@ -195,7 +195,7 @@ class LightService {
 
     static private func loadConfiguration(file: String) -> ServiceConfiguration {
         let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
-        let configUrl = configDir.appendingPathComponent(configFile.value)
+        let configUrl = configDir.appendingPathComponent(file.value)
         Log.debug("Opening Configuration: \(configUrl.absoluteString)")
 
         do {
@@ -210,7 +210,7 @@ class LightService {
 
     static private func loadSchedule(file: String) -> Schedule {
         let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
-        let configUrl = configDir.appendingPathComponent(configFile.value)
+        let configUrl = configDir.appendingPathComponent(file.value)
         Log.debug("Opening Schedule: \(configUrl.absoluteString)")
 
         do {

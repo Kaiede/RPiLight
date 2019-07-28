@@ -31,10 +31,12 @@ import Logging
 extension JSONDecoder {
     // Helper to decode files directly
     func decode<T>(_ type: T.Type, fromFile file: URL) throws -> T where T : Decodable {
-        let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
-        let configUrl = configDir.appendingPathComponent(configFile.value)
-
-        let data = try Data(contentsOf: configUrl)
+        let data = try Data(contentsOf: file)
+        Log.withDebug {
+            guard let content = String(data: data, encoding: .utf8) else { return }
+            Log.debug("Json From: \(file.absoluteString)")
+            Log.debug(content)
+        }
         return try self.decode(type, from: data)
     }
 }
