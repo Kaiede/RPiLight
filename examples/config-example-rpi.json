@@ -4,8 +4,8 @@
 
     "controllers": [
         {
-            "pwmMode": "raspberryPwm",
-            "freq": 1440,
+            "type": "raspberryPwm",
+            "frequency": 1440,
             "gamma": 2.2,
             "channels": {
                 "primary": 0,

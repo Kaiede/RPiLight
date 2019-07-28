@@ -275,15 +275,82 @@ class ScheduleConfigTests: XCTestCase {
         }
     }
 
+    func testCompleteSchedule_Example() {
+        let jsonString = """
+        {
+            "lunarCycle": {
+                "start": "21:00:00",
+                "end": "07:00:00"
+            },
+
+            "primary": {
+                "minIntensity": 0.0025,
+                "schedule": [
+                    { "time": "08:00:00", "brightness": 0.0 },
+                    { "time": "08:30:00", "brightness": 0.25 },
+                    { "time": "12:00:00", "brightness": 0.25 },
+                    { "time": "14:00:00", "brightness": 0.50 },
+                    { "time": "18:00:00", "brightness": 0.50 },
+                    { "time": "20:00:00", "brightness": 0.10 },
+                    { "time": "22:30:00", "brightness": 0.10 },
+                    { "time": "23:00:00", "brightness": 0.0 }
+                ]
+            },
+
+            "secondary": {
+                "minIntensity": 0.0025,
+                "schedule": [
+                    { "time": "08:00:00", "brightness": 0.0 },
+                    { "time": "08:30:00", "brightness": 0.30 },
+                    { "time": "18:00:00", "brightness": 0.30 },
+                    { "time": "20:00:00", "brightness": 0.15 },
+                    { "time": "22:30:00", "brightness": 0.15 },
+                    { "time": "23:00:00", "brightness": 0.0 }
+                ]
+            }
+        }
+        """
+
+        let jsonData = jsonString.data(using: .utf8)!
+        do {
+            let decoder = JSONDecoder()
+            let schedule = try decoder.decode(Schedule.self, from: jsonData)
+
+            // Sanity Check the Channels
+            XCTAssertEqual(schedule.channels.count, 2)
+            XCTAssertEqual(schedule.channels["primary"]?.minIntensity, 0.0025)
+            XCTAssertEqual(schedule.channels["primary"]?.schedule.count, 8)
+            XCTAssertEqual(schedule.channels["secondary"]?.minIntensity, 0.0025)
+            XCTAssertEqual(schedule.channels["secondary"]?.schedule.count, 6)
+
+            // Sanity Check the Lunar Schedule
+            XCTAssertNotNil(schedule.lunarCycle)
+            XCTAssertEqual(schedule.lunarCycle?.startTime.hour, 21)
+            XCTAssertEqual(schedule.lunarCycle?.startTime.minute, 0)
+            XCTAssertEqual(schedule.lunarCycle?.startTime.second, 0)
+            XCTAssertEqual(schedule.lunarCycle?.endTime.hour, 7)
+            XCTAssertEqual(schedule.lunarCycle?.endTime.minute, 0)
+            XCTAssertEqual(schedule.lunarCycle?.endTime.second, 0)
+
+            // Did the Channel Schedules Parse?
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
     static var allTests = [
         ("testLunarSchedule_Empty", testLunarSchedule_Empty),
         ("testLunarSchedule_Partial", testLunarSchedule_Partial),
         ("testLunarSchedule_Complete", testLunarSchedule_Complete),
+        ("testChannelSchedule_Empty", testChannelSchedule_Empty),
+        ("testChannelSchedule_OptionalIntensity", testChannelSchedule_OptionalIntensity),
+        ("testChannelSchedule_Complete", testChannelSchedule_Complete),
         ("testSchedulePoint_Empty", testSchedulePoint_Empty),
         ("testSchedulePoint_TooManySecrets", testSchedulePoint_TooManySecrets),
         ("testSchedulePoint_Brightness", testSchedulePoint_Brightness),
         ("testSchedulePoint_Intensity", testSchedulePoint_Intensity),
         ("testCompleteSchedule_Empty", testCompleteSchedule_Empty),
-        ("testCompleteSchedule", testCompleteSchedule)
+        ("testCompleteSchedule", testCompleteSchedule),
+        ("testCompleteSchedule_Example", testCompleteSchedule_Example)
     ]
 }

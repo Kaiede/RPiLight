@@ -329,6 +329,39 @@ class ServiceConfigTests: XCTestCase {
         }
     }
 
+    func testHardwareConfiguration_RaspberryPiExample() {
+        let jsonString = """
+        {
+            "user": "pi",
+            "board": "raspberryPi",
+
+            "controllers": [
+                {
+                    "type": "raspberryPwm",
+                    "frequency": 1440,
+                    "gamma": 2.2,
+                    "channels": {
+                        "primary": 0,
+                        "secondary": 1
+                    }
+                }
+            ]
+        }
+        """
+
+        let jsonData = jsonString.data(using: .utf8)!
+        do {
+            let decoder = JSONDecoder()
+            let config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            XCTAssertEqual(config.username, "pi")
+            XCTAssertEqual(config.board, .raspberryPi)
+            XCTAssertEqual(config.controllers.count, 1)
+            XCTAssertEqual(config.controllers[0].type, .raspberryPwm)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
     static var allTests = [
         ("testEmptyControllerConfiguration", testEmptyControllerConfiguration),
         ("testSimulatorControllerConfiguration", testSimulatorControllerConfiguration),
@@ -343,5 +376,6 @@ class ServiceConfigTests: XCTestCase {
         ("testHardwareConfiguration_Empty", testHardwareConfiguration_Empty),
         ("testHardwareConfiguration_Incomplete", testHardwareConfiguration_Incomplete),
         ("testHardwareConfiguration_Complete", testHardwareConfiguration_Complete),
+        ("testHardwareConfiguration_RaspberryPiExample", testHardwareConfiguration_RaspberryPiExample),
     ]
 }

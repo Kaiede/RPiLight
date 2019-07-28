@@ -4,8 +4,8 @@
 
     "controllers": [
         {
-            "pwmMode": "hardware",
-            "freq": 960,
+            "type": "hardware",
+            "frequency": 960,
             "gamma": 2.2,
             "channels": {
                 "primary": 0,
