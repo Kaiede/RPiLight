@@ -38,7 +38,8 @@ function update_stable_source() {
 #
 function build_rpilight() {
     echo "Building RPiLight (Release)..."
-    swift build -c release
+    # Need this to avoid causing real bad throttling on Pi.
+    swift build -c release -j 1
 }
 
 #
