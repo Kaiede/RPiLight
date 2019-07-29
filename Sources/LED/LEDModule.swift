@@ -163,12 +163,13 @@ public class LEDChannel {
     }
 
     private func onSettingChanged() {
-        if self.intensity < self.minIntensity.nextUp {
-            self.intensity = 0.0
+        var clampedIntensity = self.intensity
+        if clampedIntensity < self.minIntensity.nextUp {
+            clampedIntensity = 0.0
         }
 
-        impl.applyIntensity(self.intensity, toChannel: self.id)
-        Log.debug("\(self.token): Intensity Now \(intensity * 100)")
+        impl.applyIntensity(clampedIntensity, toChannel: self.id)
+        Log.debug("\(self.token): Intensity Now \(clampedIntensity * 100)")
     }
 }
 
