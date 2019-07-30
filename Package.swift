@@ -37,6 +37,10 @@ let package = Package(
         .testTarget(
             name: "ServiceTests",
             dependencies: ["Service"]
+        ),
+        .testTarget(
+            name: "LEDTests",
+            dependencies: ["LED"]
         )
     ]
 )
