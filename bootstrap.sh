@@ -4,104 +4,117 @@
 #
 
 #
-# Configuring Package Repositories
+# Detecting Distro
 #
-function install_swift_repo() {
-    curl -s https://packagecloud.io/install/repositories/swift-arm/debian/script.deb.sh | sudo bash
-}
-
-function install_binary_repo() {
-    curl -s https://packagecloud.io/install/repositories/Kaiede/rpilight/script.deb.sh | sudo bash
-}
-
-function install_experimental_repo() {
-    curl -s https://packagecloud.io/install/repositories/Kaiede/experimental/script.deb.sh | sudo bash
+function process_distro() {
+    . /etc/os-release
+    distro_string="$ID-$VERSION_ID"
 }
 
 #
-# Setup Pre-Requisites
+# Install Specific Versions of Swift
 #
-function install_source_dependencies() {
-    echo "Installing Source Dependencies..."
+function install_swift_tarball() {
+    swift_release="$1"
+    swift_version="5.0.2"
+    tarball_url="https://github.com/uraimo/buildSwiftOnARM/releases/download/${swift_version}/swift-${swift_version}-${swift_release}.tgz"
+    swift_filename="swift-${swift_version}-${swift_release}.tgz"
+
+    echo "Downloading ${tarball_url}"
+    pushd ~
+    curl -L -o "$swift_filename" "$tarball_url"
+    swift_filename=~/$swift_filename
+    popd
+
+    echo "Installing Swift ${swift_version} to /opt/swift"
+    echo "WARNING: This will delete any existing data at /opt/swift"
+    sudo rm -rf /opt/swift
+    sudo mkdir -p /opt/swift
+    pushd /opt/swift
+    pv "${swift_filename}" | sudo tar -zx --strip-components=1
+    popd
+
+    #
+    # TODO: Need to add /opt/swift/bin to the PATH Before we can use it.
+    #
+
+    # REVIEW: Should we delete the tarball once we know it's been installed?
+}
+
+#
+# Distro-Specific Dependencies
+#
+function install_common_dependencies() {
+    echo "Installing Common Dependencies..."
     sudo apt-get install --yes \
                     git \
                     pv
 }
 
-#
-# Install Swift
-#
-function install_swift() {
-    PROCESSOR=$(uname -m)
-
-    if [ "$arch" == "aarch64" ]; then
-        sudo apt-get install swift4
-    elif [ "$arch" == "armv6l" ]; then
-        sudo apt-get install swift3-armv6
-    else
-        sudo apt-get install swift3
-    fi
+function install_stretch_dependencies() {
+    echo "Installing Dependencies for Raspbian Stretch / Ubuntu Xenial..."
+    sudo apt-get install --yes \
+                    clang-3.8 \
+                    libicu-dev \
+                    libcurl4-nss-dev \
+    sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100
+    sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 100
 }
 
-#
-# Install Service
-#
-function install_binaries() {
-    local arch=$(uname -m)
-
-    if [ "$arch" == "armv6l" ]; then
-        sudo apt-get install rpilight-armv6
-    else
-        sudo apt-get install rpilight
-    fi
+function install_buster_dependencies() {
+    echo "Installing Dependencies for Raspbian Buster / Ubuntu Bionic..."
+    sudo apt-get install --yes \
+                    clang \
+                    libicu-dev \
+                    libcurl4-nss-dev \
+                    curl
 }
 
+function install_dependencies() {
+    install_common_dependencies
+
+    case "$distro_string" in
+        debian-9)
+            install_stretch_dependencies
+            install_swift_tarball "armv7-DebianStretch"
+            ;;
+        raspbian-9)
+            install_stretch_dependencies
+            install_swift_tarball "armv6-RPi0123-RaspbianStretch"
+            ;;
+        ubuntu-16.*)
+            install_stretch_dependencies
+            install_swift_tarball "armv7-Ubuntu1604"
+            ;;
+        debian-10)
+            install_buster_dependencies
+            install_swift_tarball "armv7-DebianBuster"
+            ;;
+        raspbian-10)
+            install_buster_dependencies
+            install_swift_tarball "armv6-RPi01234-RaspbianBuster"
+            ;;
+        ubuntu-18.*)
+            install_buster_dependencies
+            install_swift_tarball "armv7-Ubuntu1804"
+            ;;
+    esac
+}
 
 #
 # Script Flow
 #
+process_distro
 cd ~
 
-while true; do
-    read -p "Install [S]ource or [B]inary?" input
-    case $input in
-        [Ss]* ) install_type=source; break;;
-        [Bb]* ) install_type=binary; break;;
-        * ) echo "Please answer source or binary.";;
-    esac
-done
+# Install the Dependencies
+install_dependencies
 
-while true; do
-    read -p "Install [E]xperimental or [S]table Builds?" input
-    case $input in
-        [Ee]* ) build_type=latest; break;;
-        [Ss]* ) build_type=stable; break;;
-        * ) echo "Please answer experimental or stable.";;
-    esac
-done
-
-
-
-# Install the Repositories
-install_swift_repo
-install_binary_repo
-if [ "$build_type" == "latest" ]; then
-    install_experimental_repo
-fi
-
-# Install the Source or Binaries
-if [ "$install_type" == "source" ]; then
-    install_source_dependencies
-    install_swift
-
-    #
-    # Clone and Build
-    #
-    git clone https://github.com/Kaiede/RPiLight.git
-    pushd ~/RPiLight > /dev/null
-    ./build.sh $build_type install
-    popd > /dev/null
-else
-    install_binaries
-fi
-
+#
+# Clone & Build
+#
+# TODO: Experimental/Stable should determine which branch is to be checked out and built.
+git clone https://github.com/Kaiede/RPiLight.git
+pushd ~/RPiLight > /dev/null
+./build.sh $build_type install
+popd > /dev/null
