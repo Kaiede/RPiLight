@@ -21,15 +21,6 @@ matrix:
         - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1404/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04.tar.gz -s | tar -xz -C swift
         - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04/usr/bin:$PATH"
         
-    - name: "Linux Swift 5.0.1"
-      os: linux
-      dist: trusty
-      env: SWIFT_VERSION=5.0.1
-      install:
-        - mkdir swift
-        - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1404/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04.tar.gz -s | tar -xz -C swift
-        - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04/usr/bin:$PATH"
-
     - name: "Linux Swift 5.0.2"
       os: linux
       dist: trusty
@@ -50,10 +41,6 @@ matrix:
     - name: "Mac Xcode 10.2 (Swift 5)"
       os: osx
       osx_image: xcode10.2
-      
-  allow_failures:
-    - os: linux
-      env: SWIFT_VERSION=5.0.1
 
 script:
   - swift package reset
