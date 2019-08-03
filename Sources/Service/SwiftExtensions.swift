@@ -68,17 +68,26 @@ public extension DateComponents {
     }
 
     func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
-        #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
+        #if swift(>=5.0)
             return Calendar.current.nextDate(after: date,
                                              matching: self,
                                              matchingPolicy: .nextTime,
                                              repeatedTimePolicy: .first,
                                              direction: direction)
-        #elseif os(Linux)
-            return self.calcNextDateCustom(after: date, direction: direction)
         #else
-            fatalError("No Implementation Available for this OS")
+            #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
+                return Calendar.current.nextDate(after: date,
+                                                matching: self,
+                                                matchingPolicy: .nextTime,
+                                                repeatedTimePolicy: .first,
+                                                direction: direction)
+            #elseif os(Linux)
+                return self.calcNextDateCustom(after: date, direction: direction)
+            #else
+                fatalError("No Implementation Available for this OS")
+            #endif
         #endif
+
     }
 }
 
