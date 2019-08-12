@@ -38,10 +38,8 @@ extension DispatchTimeInterval {
             return microseconds
         case .nanoseconds(let nanoseconds):
             return nanoseconds / 1_000
-        #if swift(>=4.0)
         case .never:
             return Int.max
-        #endif
         }
     }
 }

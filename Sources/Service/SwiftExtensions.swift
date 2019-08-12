@@ -119,10 +119,8 @@ extension DispatchTimeInterval {
             return TimeInterval(microseconds) * 1_000_000.0
         case .nanoseconds(let nanoseconds):
             return TimeInterval(nanoseconds) * 1_000_000_000.0
-        #if swift(>=4.0)
         case .never:
             return TimeInterval.infinity
-        #endif
         }
     }
 }
@@ -138,19 +136,11 @@ extension DispatchWallTime {
 
 extension DispatchSourceTimer {
     public func schedulePrecise(forDate date: Date) {
-        #if swift(>=4.0)
         self.schedule(wallDeadline: DispatchWallTime(date: date), leeway: .milliseconds(1))
-        #else
-        self.scheduleOneshot(wallDeadline: DispatchWallTime(date: date), leeway: .milliseconds(1))
-        #endif
     }
 
     public func schedulePrecise(forDate date: Date, repeating interval: DispatchTimeInterval) {
-        #if swift(>=4.0)
         self.schedule(wallDeadline: DispatchWallTime(date: date), repeating: interval, leeway: .milliseconds(1))
-        #else
-        self.scheduleRepeating(wallDeadline: DispatchWallTime(date: date), interval: interval, leeway: .milliseconds(1))
-        #endif
     }
 }
 
