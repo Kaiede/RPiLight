@@ -73,9 +73,88 @@ class ChannelTests: XCTestCase {
         XCTAssertEqual(mockImpl.lastChannel, 1)
         XCTAssertEqual(mockImpl.lastIntensity, 0.0)
     }
+    
+    func testChannelSet_SingleModule() {
+        let mockImpl = MockModuleImpl()
+        mockImpl.channelMap = [
+            "First": 1,
+            "Second": 2
+        ]
+        let testModule = LEDModule(impl: mockImpl)
+        let testSet = LEDChannelSet()
+        
+        do {
+            try testSet.add(module: testModule)
+        } catch {
+            XCTFail("Didn't expect an error")
+        }
+        
+        XCTAssertEqual(testSet.modules.count, 1)
+        XCTAssertEqual(testSet["First"]?.token, "First")
+        XCTAssertEqual(testSet.asArray().count, 2)
+    }
+    
+    func testChannelSet_TwoModules() {
+        let firstMockImpl = MockModuleImpl()
+        firstMockImpl.channelMap = [
+            "First": 1,
+            "Second": 2
+        ]
+        
+        let secondMockImpl = MockModuleImpl()
+        secondMockImpl.channelMap = [
+            "Third": 1,
+            "Fourth": 2
+        ]
+        
+        let firstTestModule = LEDModule(impl: firstMockImpl)
+        let secondTestModule = LEDModule(impl: secondMockImpl)
+        
+        let testSet = LEDChannelSet()
+        do {
+            try testSet.add(module: firstTestModule)
+            try testSet.add(module: secondTestModule)
+        } catch {
+            XCTFail("Didn't expect an error")
+        }
+        
+        XCTAssertEqual(testSet.modules.count, 2)
+        XCTAssertEqual(testSet["First"]?.token, "First")
+        XCTAssertEqual(testSet["Third"]?.token, "Third")
+        XCTAssertEqual(testSet.asArray().count, 4)
+    }
+    
+    func testChannelSet_Collision() {
+        let firstMockImpl = MockModuleImpl()
+        firstMockImpl.channelMap = [
+            "First": 1,
+            "Second": 2
+        ]
+        
+        let secondMockImpl = MockModuleImpl()
+        secondMockImpl.channelMap = [
+            "First": 1,
+            "Fourth": 2
+        ]
+        
+        let firstTestModule = LEDModule(impl: firstMockImpl)
+        let secondTestModule = LEDModule(impl: secondMockImpl)
+        
+        let testSet = LEDChannelSet()
+        do {
+            try testSet.add(module: firstTestModule)
+            try testSet.add(module: secondTestModule)
+            XCTFail("Expected an error when adding a module that collides with another")
+        } catch {
+            // Looks good?
+        }
+    }
 
     static var allTests = [
         ("testIntensityEvent", testIntensityEvent),
-        ("testIntensityClamping", testIntensityClamping)
+        ("testIntensityClamping", testIntensityClamping),
+        ("testChannelSet_SingleModule", testChannelSet_SingleModule),
+        ("testChannelSet_TwoModules", testChannelSet_TwoModules),
+        ("testChannelSet_Collision", testChannelSet_Collision)
     ]
 }
