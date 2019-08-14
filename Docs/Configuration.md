@@ -55,6 +55,8 @@ This is an array of hardware you want to control. It's possible to have multiple
 
 `raspberryPwm` uses the two PWM channels included with the Raspberry Pi. `pca9685` uses the PCA9685 I2C PWM chip, available from Adafruit as the PCA9685 PWM/Servo Bonnet or Hat. `mcp4725` is meant for use with 0-10V boards that use the MCP4725 I2C DAC. `simulated` is used for testing.
 
+> The MCP4725 support is currently experimental. Use at your own risk.
+
 * `frequency` must be between `480` and `1500` (Hz). If `pwmMode = hardware` the max is `16000` (16 kHz). Default is `480`
 
 This is the frequency of PWM to use. Lower values produce more flicker, but not all light drivers can take higher values. Before picking a value, check to see what your LED drivers support. This setting should not be used with `simulated`, as it has no meaning.
