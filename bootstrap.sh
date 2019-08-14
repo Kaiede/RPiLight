@@ -35,8 +35,12 @@ function install_swift_tarball() {
     popd
 
     #
-    # TODO: Need to add /opt/swift/bin to the PATH Before we can use it.
+    # Need to add /opt/swift/bin to the PATH Before we can use it.
+    # This enables swift for all users on the device going forward. 
     #
+    swift_path="export PATH=\$PATH:/opt/swift/bin"
+    swift_profile="/etc/profile.d/swiftlang.sh"
+    echo $swift_path | sudo tee -a $swift_profile
 
     # REVIEW: Should we delete the tarball once we know it's been installed?
 }
@@ -70,31 +74,46 @@ function install_buster_dependencies() {
                     curl
 }
 
+function update_apt() {
+    echo "Updating apt Package Database..."
+    if [ "$1" == "1" ]; then
+        apt-get update --allow-releaseinfo-change
+    else
+        apt-get update
+    fi
+}
+
 function install_dependencies() {
     install_common_dependencies
 
     case "$distro_string" in
         debian-9)
+            update_apt 0
             install_stretch_dependencies
             install_swift_tarball "armv7-DebianStretch"
             ;;
         raspbian-9)
+            update_apt 0
             install_stretch_dependencies
             install_swift_tarball "armv6-RPi0123-RaspbianStretch"
             ;;
         ubuntu-16.*)
+            update_apt 0
             install_stretch_dependencies
             install_swift_tarball "armv7-Ubuntu1604"
             ;;
         debian-10)
+            update_apt 0
             install_buster_dependencies
             install_swift_tarball "armv7-DebianBuster"
             ;;
         raspbian-10)
+            update_apt 1
             install_buster_dependencies
             install_swift_tarball "armv6-RPi01234-RaspbianBuster"
             ;;
         ubuntu-18.*)
+            update_apt 0
             install_buster_dependencies
             install_swift_tarball "armv7-Ubuntu1804"
             ;;
@@ -113,8 +132,9 @@ install_dependencies
 #
 # Clone & Build
 #
-# TODO: Experimental/Stable should determine which branch is to be checked out and built.
 git clone https://github.com/Kaiede/RPiLight.git
 pushd ~/RPiLight > /dev/null
+
 ./build.sh $build_type install
+
 popd > /dev/null
