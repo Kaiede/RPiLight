@@ -1,20 +1,19 @@
 {
     "user": "pi",
     "board": "raspberryPi",
+    "gamma": 2.2,
 
     "controllers": [
         {
             "type": "raspberryPwm",
             "frequency": 1440,
-            "gamma": 2.2,
             "channels": {
                 "primary": 0
             }
         },
         {
-            "type": "hardware",
+            "type": "pca9685",
             "frequency": 960,
-            "gamma": 2.2,
             "channels": {
                 "secondary": 0
             }

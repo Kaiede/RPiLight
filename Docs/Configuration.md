@@ -1,89 +1,88 @@
 # Configuring the Light Schedule
 
-There are example configuration files in the [examples](https://github.com/Kaiede/RPiLight/examples) folder. These files are JSON-formatted. Let's go ahead and break down a specific example:
+There are example configuration files in the [examples](https://github.com/Kaiede/RPiLight/examples) folder. These files are JSON-formatted, and are split into two components: The hardware configuration, and the schedule.
+
+## Hardware Configuration
+
+Let's look at an example that uses a PWM HAT (config-example-pca9685.json):
 
 ```
 {
     "user": "pi",
-    "hardware" : {
-        "board": "pizero",
-        "pwmMode": "pca9685",
-        "freq": 960,
-        "channels": 8,
-        "gamma": 1.8
-    },
-    
-    "lunarCycle": {
-        "start": "21:00:00",
-        "end": "07:00:00",
-    },
+    "board": "raspberryPi",
 
-    "PWM00": {
-        "minIntensity": 0.0025
-        "schedule": [
-            { "time": "08:00:00", "brightness": 0.0 },
-            { "time": "08:30:00", "brightness": 0.25 },
-            { "time": "12:00:00", "brightness": 0.25 },
-            { "time": "14:00:00", "brightness": 0.50 },
-            { "time": "18:00:00", "brightness": 0.50 },
-            { "time": "20:00:00", "brightness": 0.10 },
-            { "time": "22:30:00", "brightness": 0.10 },
-            { "time": "23:00:00", "brightness": 0.0 }
-        ]
-    }
-    
-    <etc>
+    "controllers": [
+        {
+            "type": "hardware",
+            "frequency": 960,
+            "gamma": 2.2,
+            "channels": {
+                "primary": 0,
+                "secondary": 1
+            }
+        }
+    ]
 }
-```
-
-### Username
-
-```
-"user": "pi",
 ```
 
 * `user` can be any valid user on the OS. `pi` is recommended.
 
-This is the account to run the service as. This should **not** be `root`, as that has too many permissions. Instead, the service starts as root, and then switches to this user once it has access to the hardware.
+This is the account to run the service as. This should **not** be `root`, as that has too many permissions. Instead, the service starts as root, and then switches to this user once it has mapped in any hardware it needs extra permissions for, such as the PWM hardware.
 
-### Hardware
-
-```
-"hardware" : {
-    "board": "pizero",
-    "pwmMode": "pca9685",
-    "freq": 960,
-    "channels": 8,
-    "gamma": 1.8
-}
-```
-
-* `board` can be `pi1`, `pi2`, `pi3`, `pizero` or `desktop` 
-
-This is optional. RPiLight will attempt to detect which Raspberry Pi board you are using for you. Only set this if you are having problems. `desktop` is used for testing.
-
-* `pwmMode` can be `hardware`, `pca9685` or `simulated`
-
-`hardware` uses the two PWM channels included with the Raspberry Pi. `pca9685` uses the PCA9685 I2C PWM chip, available from Adafruit as the PCA9685 PWM/Servo Bonnet or Hat. `simulated` is used for testing.
-
-* `freq` must be between `480` and `1500` (Hz). If `pwmMode = hardware` the max is `16000` (16 kHz). Default is `480`
-
-This is the frequency of PWM to use. Lower values produce more flicker, but not all light drivers can take higher values. Before picking a value, check to see what your LED drivers support. This setting should not be used with `simulated`, as it has no meaning.
-
-> ex. Meanwell LDD drivers can only go so high (1 KHz), and so RPiLight should not use a value over `960` when driving Meanwell LDDs. 
-
-* `channels` can be `1` to `16`. If `pwmMode = hardware`, it can only be `1` to `2`.
-
-This tells RPiLight how many channels to actually control. This should match how many LED channels you have wired up.
+* `board` can currently only be `raspberryPi`. 
 
 * `gamma` can be between `1.0` and `3.0`. Default is `1.8`
 
 This controls how brightness is converted into light intensity. The human eye is closer to a gamma of around `2.5`, and most displays use a gamma of `2.2`. If using a gamma of `1.0`, then `brightness` and `intensity` are the same thing.
 
+### Controllers
+
+This is an array of hardware you want to control. It's possible to have multiple controllers handling many channels of lighting.
+
+```
+{
+    "type": "raspberryPwm",
+    "frequency": 960,
+    "address": 0x61,
+    "channels": {
+        "primary": 0,
+        "secondary": 1
+    }
+}
+```
+
+* `type` can be `raspberryPwm`, `pca9685`, `mcp4725` or `simulated`
+
+`raspberryPwm` uses the two PWM channels included with the Raspberry Pi. `pca9685` uses the PCA9685 I2C PWM chip, available from Adafruit as the PCA9685 PWM/Servo Bonnet or Hat. `mcp4725` is meant for use with 0-10V boards that use the MCP4725 I2C DAC. `simulated` is used for testing.
+
+* `frequency` must be between `480` and `1500` (Hz). If `pwmMode = hardware` the max is `16000` (16 kHz). Default is `480`
+
+This is the frequency of PWM to use. Lower values produce more flicker, but not all light drivers can take higher values. Before picking a value, check to see what your LED drivers support. This setting should not be used with `simulated`, as it has no meaning.
+
+> ex. Meanwell LDD drivers can only go so high (1 KHz), and so RPiLight should not use a value over `960` when driving Meanwell LDDs. 
+
+* `address` is used by the `pca9685` and `mcp4725` types that use I2C, if using multiple boards, or non-default I2C addresses.
+
+This doesn't normally need to be put into the configuration file. But it allows someone to use a non-default I2C address for these chips 
+
+* `channels` is a dictionary of names being mapped to channels for the controller.
+
+This is where you map numbered channels to a more friendly name you can reference in your schedule. This friendly name is also what will be used in any sort of logging or remote control, to make it easier to identify.
+
+Valid indexes are:
+* `raspberryPwm`: 0 or 1
+* `pca9685`: 0-15
+* `mcp4725`: 0
+* `simulated`: 0 and up.
+
+## Schedule
+
+The schedule.json file contains the schedule for the lighting. It doesn't contain any information related to the hardware, so it can be configured separately from the underlying hardware configuration, making it easier to share settings.
+
 ### Channel Configuration
 
 ```
-"PWM00": {
+"primary": {
         "minIntensity": 0.0025
         "schedule": [
         { "time": "08:00:00", "brightness": 0.0 },
@@ -98,15 +97,7 @@ This controls how brightness is converted into light intensity. The human eye is
 }
 ```
 
-Each channel has its settings and schedule bound to it. The channel token is used to name the settings/schedule assoicated with it, and depends on what hardware you are using.
-
-Example Channel Tokens:
-```
-PWM00 to PWM15      : Adafruit PCA9685 Channels 0-15
-PWM0-IO18           : Raspberry Pi PWM channel 0, on GPIO18
-PWM1-IO19           : Raspberry Pi PWM channel 1, on GPIO19
-SIM00 to SIM15      : Simulated Channels 0-15
-```
+Each channel has its settings and schedule bound to it. The channel name is used to name the settings/schedule assoicated with it, and depends on what you named your channels in the config.json file earlier.
 
 `minIntensity` is used to adjust the cut-off of the light, and is optional. The default is `0.0`. This will treat the channel as off at any intensity level or lower. In this example it will turn of at `0.25%` intensity. Twinstar E lights start shutting off some LEDs but not others at around `0.2%` intensity, so this example provides a generally nicer transition for the lights when turning off or on.
 
@@ -114,7 +105,7 @@ The `schedule` array is where the work really happens. It is an array of events 
 
 * `time` is a 24-hour time.
 
-This time is in the local timezone set on the Raspberry Pi. 
+This time is in the local timezone set on the Raspberry Pi.
 
 > ex. 8:15 pm would be 20:15:00.
 
@@ -146,9 +137,9 @@ The feature doesn't currently take moonrise or moonset into account.
 The `--preview` option was meant to test hardware configurations with simple ramps:
 ```
 cd /opt/rpilight
-RPiLight --preview <config.json>
+RPiLight --preview
 ```
 
-This file is expected to be in the `./config/` directory, and by default it will look for `./config/config.json`. For now, it is required to be root to copy the file to the service's config directory: `sudo cp <myfile> /opt/rpilight/config/config.json`. 
+This file is expected to be in the `./config/` directory, and by default it will look for `./config/config.json` for the hardware configuration, and `./config/schedule.json` for the schedule. For now, it is required to be root to copy either file to the service's config directory: `sudo cp <myfile> /opt/rpilight/config/config.json`. 
 
-You should first make sure the service is stopped before running previews to avoid getting weird results. See "Starting the Daemon" below.
+You should first make sure the service is stopped before running previews to avoid getting weird results.

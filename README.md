@@ -2,23 +2,24 @@
 
 [![Build Status](https://travis-ci.org/Kaiede/RPiLight.svg?branch=master)](https://travis-ci.org/Kaiede/RPiLight)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-![Swift](https://img.shields.io/badge/Swift-3.1.1-brightgreen.svg)
+![Swift](https://img.shields.io/badge/Swift-5.0.2-brightgreen.svg)
 ![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
 
 An Aquarium Light Controller for the Raspberry Pi
 
 ### Hardware / OS
 
-![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-3.1.1-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
-* Pi 2
-* Pi 3B or 3B+
+![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Buster-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-5.0.2-brightgreen.svg)
 
-![Supported](https://img.shields.io/badge/-Supported-yellow.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-3.1.1-brightgreen.svg)
-* Pi 1
-* Pi Zero
+Raspbian Buster on any supported Raspberry Pi (Zero, 1, 2, 3, or 4) is the recommended configuration. This matches up with what is used in testing.
 
-![Experimental](https://img.shields.io/badge/-Experimental-orange.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian%20Buster-orange.svg) ![Swift](https://img.shields.io/badge/Swift-4.1-brightgreen.svg)
-* Pi 3B 
+![Supported](https://img.shields.io/badge/-Supported-yellow.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
+
+Raspbian Stretch and Swift 4.1.3 should also work, but isn't tested day to day. Reported bugs will be investigated.
+
+![Experimental](https://img.shields.io/badge/-Experimental-orange.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian-orange.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian-orange.svg)
+
+Running on ARM64 Ubuntu 16.04 or 18.04, or Debian Buster is possible, but may have some issues. Generally, this means that hardware LED controllers may be more limited, and access to the PWM hardware on a Raspberry Pi is more locked down. Stick to I2C-based controllers like the PC!9685 or MCP4725 if you can.
 
 ## Getting Started
 
@@ -33,16 +34,15 @@ RPiLight includes a bootstrapping script that walks you through getting things s
 source <(curl -s https://raw.githubusercontent.com/Kaiede/RPiLight/master/bootstrap.sh)
 ```
 
-Once installed, if you installed the package, you can update using this (not supported on Pi Zero):
-```
-sudo apt-get update
-sudo apt-get install rpilight
-```
+This will grab the source from github and build it against the latest released tag. No pre-built binaries are currently available. 
 
-If updating from source:
+You can update the service by running the following from the RPiLight root directory that was grabbed from GitHub:
 ```
+git pull
 ./build.sh [stable | latest] install
 ```
+
+stable will always grab the latest tagged release, while latest will grab the latest code, which may be newer.
 
 ## Configuration
 
@@ -64,8 +64,8 @@ sudo systemctl stop rpilight
 * [Ephemeris](https://github.com/Kaiede/Ephemeris) - Calculate Moon and Sun positions in Swift.
 * [Moderator](https://github.com/kareman/Moderator) - A simple, modular command line argument parser in Swift.
 * [PCA9685](https://github.com/Kaiede/PCA9685) - PCA9685 I2C Driver for Swift.
-* [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO) [\(Fork\)](https://github.com/Kaiede/SwiftyGPIO) - Patched with improved GPIO PWM behavior.
-* [SwiftyJSON](https://github.com/SwiftyJSON/SwiftyJSON) [\(IBM-Swift Fork\)](https://github.com/IBM-Swift/SwiftyJSON) - The better way to deal with JSON data in Swift.
+* [MCP4725](https://github.com/Kaiede/MCP4725) - MCP4725 I2C Driver for Swift.
+* [SingleBoard](https://github.com/Kaiede/SingleBoard) - Type-safe GPIO Library for single board computers.
 
 ## Contributing
 
