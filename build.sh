@@ -15,6 +15,27 @@ function usage()
 }
 
 #
+# Ensures Swift is in the PATH
+#
+# Used as a catch-all if this is run in the same shell as 
+#
+
+function ensure_swift_in_path() {
+    which swift
+    swift_profile="/etc/profile.d/swiftlang.sh"
+    if [ $? -ne 0 ] && [ -e $swift_profile ]; then
+        source $swift_profile
+    fi
+
+    which swift
+    if [ $? -ne 0 ]; then
+        echo "Error: Swift doesn't appear to be installed, or isn't in the PATH."
+        echo 
+        exit 1
+    fi
+}
+
+#
 # Grab Latest Tag
 #
 function update_latest_source() {
@@ -38,7 +59,8 @@ function update_stable_source() {
 #
 function build_rpilight() {
     echo "Building RPiLight (Release)..."
-    swift build -c release
+    # Need this to avoid causing real bad throttling on Pi.
+    swift build -c release -j 1
 }
 
 #
@@ -197,6 +219,8 @@ done
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
+# This is called just to make sure we can install swift
+ensure_swift_in_path || exit $?
 
 echo "RPiLight Directory: $SCRIPT_DIR"
 if [ "$FETCH" != "0" ]; then

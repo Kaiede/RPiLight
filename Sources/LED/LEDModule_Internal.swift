@@ -23,48 +23,29 @@
  SOFTWARE.)
  */
 
-import Dispatch
 import Foundation
-import Moderator
-
-#if os(Linux)
-    import Glibc
-#else
-    import Darwin
-#endif
-
-import Service
-import Logging
-import LED
 
 //
-// MARK: Process Arguments
+// Module Implementation
 //
-var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
-let verbose = moderator.add(.option("v","verbose", description: "Provide Additional Logging"))
-let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
-let configFile = moderator.add(Argument<String>
-                    .singleArgument(name: "config file", description: "Configuration file to load")
-                    .default("config.json"))
-let scheduleFile = moderator.add(Argument<String>
-                    .singleArgument(name: "schedule file", description: "Schedule file to load")
-                    .default("schedule.json"))
+// What's required for the public-facing LEDModule to operate.
+//
 
-do {
-    try moderator.parse()
-} catch {
-    print(error)
-    exit(-1)
+internal protocol LEDModuleImpl {
+    func applyIntensity(_ intensity: Double, toChannel channel: Int)
+    var channelMap: [String: Int] { get }
 }
 
-if verbose.value {
-    Log.setLoggingLevel(.debug)
+//
+// Extensions
+//
+
+extension LEDModuleConfig {
+    var addressAsI2C: UInt8? {
+        if let address = self.address {
+            return UInt8(address)
+        }
+
+        return nil
+    }
 }
-
-let service = LightService(configFile: configFile.value, scheduleFile: scheduleFile.value)
-
-if !verbose.value {
-    service.applyLoggingLevel()
-}
-
-service.run(withPreview: previewMode.value)

@@ -23,14 +23,25 @@
  SOFTWARE.)
  */
 
-import XCTest
-@testable import Core
+import Foundation
 
-class EventTests: XCTestCase {
-    func testEmpty() {}
-    
-    static var allTests = [
-        ("testEmpty", testEmpty)
-    ]
+//
+// Simulated Implementation
+//
+
+internal class SimulatedImpl: LEDModuleImpl {
+    internal let channelMap: [String: Int]
+
+    init(configuration: LEDModuleConfig) {
+        var channelMap: [String: Int] = [:]
+        for (token, index) in configuration.channels {
+            channelMap[token] = index
+        }
+
+        self.channelMap = channelMap
+    }
+
+    internal func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+        // TODO: Do we do anything here in the simulated module?
+    }
 }
-

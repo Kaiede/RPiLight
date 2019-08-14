@@ -24,7 +24,7 @@
  */
 
 import XCTest
-@testable import Core
+@testable import Service
 
 class SwiftExtensionsTests: XCTestCase {
     func testCalcNextDateCustom() {

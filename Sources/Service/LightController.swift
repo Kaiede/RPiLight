@@ -26,7 +26,7 @@
 import Dispatch
 import Foundation
 import Logging
-import PWM
+import LED
 
 #if os(Linux)
     import Glibc
@@ -43,21 +43,39 @@ public enum LightControllerError: Error {
 //
 // Wrapper for Configuration that's compatible with Layers
 //
-struct ChannelPoint: LayerPoint {
+protocol ChannelPoint {
+    var time: DateComponents { get }
+    var setting: ChannelSetting { get }
+}
+
+extension SchedulePoint: ChannelPoint {}
+
+struct ChannelPointWrapper: LayerPoint {
     var time: DateComponents {
         return self.event.time
     }
     
     var brightness: Double {
-        return self.event.setting.asBrightness(withGamma: self.channel.gamma)
+        return self.event.setting.asBrightness(withGamma: self.configuration.gamma)
     }
     
-    private let channel: Channel
-    private let event: ChannelPointConfig
+    private let configuration: BehaviorControllerConfig
+    private let event: ChannelPoint
     
-    init(channel: Channel, event: ChannelPointConfig) {
-        self.channel = channel
+    init(configuration: BehaviorControllerConfig, event: ChannelPoint) {
+        self.configuration = configuration
         self.event = event
+    }
+}
+
+//
+// The Light Controller Configuration
+//
+public class LightControllerConfig: BehaviorControllerConfig {
+    public let gamma: Double
+
+    init(gamma: Double) {
+        self.gamma = gamma
     }
 }
 
@@ -73,6 +91,7 @@ public class LightController: BehaviorController {
     }
 
     public let channelControllers: [String: BehaviorChannel]
+    public let configuration: BehaviorControllerConfig
 
     private var eventControllers: [EventId: EventController]
     private var nextEvent: EventId?
@@ -90,7 +109,10 @@ public class LightController: BehaviorController {
     private var isRefreshOneShot: Bool
     private var stopClosure: StopClosure?
 
-    init(channelControllers: [String: BehaviorChannel], behavior: Behavior) {
+    init(configuration: LightControllerConfig, channelControllers: [String: BehaviorChannel], behavior: Behavior) {
+        // Set core controller state
+        self.configuration = configuration
+
         // Set the initial behavior
         self.behavior = behavior
         self.stopClosure = nil
@@ -127,9 +149,10 @@ public class LightController: BehaviorController {
         self.watchdogTimer.setHandler { self.fireWatchdog() }
         self.eventTimer.setHandler { self.fireEvent() }
     }
-    
-    public convenience init(channels: [Channel],
-                            withConfig config: [ChannelConfig],
+
+    public convenience init(gamma: Double,
+                            channels: [Channel],
+                            withSchedule schedule: [String: ChannelSchedule],
                             behavior: Behavior = DefaultLightBehavior()) throws {
         
         // Convert the array into a lookup
@@ -140,22 +163,23 @@ public class LightController: BehaviorController {
         }
         
         // Configure each channel
+        let configuration = LightControllerConfig(gamma: gamma)
         let now = Date()
         var channelControllers: [String: ChannelController] = [:]
-        for channelConfig in config {
-            guard let channel = channelDict[channelConfig.token] else {
-                throw LightControllerError.missingToken(channelConfig.token)
+        for (token, channelSchedule) in schedule {
+            guard let channel = channelDict[token] else {
+                throw LightControllerError.missingToken(token)
             }
             
             let controller = ChannelController(channel: channel)
-            channelControllers[channelConfig.token] = controller
+            channelControllers[token] = controller
             
-            let points = channelConfig.schedule.map({ ChannelPoint(channel: channel, event: $0 ) })
+            let points = channelSchedule.schedule.map({ ChannelPointWrapper(configuration: configuration, event: $0 ) })
             let layer = Layer(identifier: "Schedule", points: points, startTime: now)
             controller.set(layer: layer)
         }
         
-        self.init(channelControllers: channelControllers, behavior: behavior)
+        self.init(configuration: configuration, channelControllers: channelControllers, behavior: behavior)
     }
     
     deinit {

@@ -26,7 +26,7 @@
 import Foundation
 
 import Logging
-import PWM
+import LED
 
 protocol LayerPoint {
     var time: DateComponents { get }

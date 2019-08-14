@@ -26,7 +26,7 @@
 import Foundation
 
 import Logging
-import PWM
+import LED
 
 public protocol ChannelSegment {
     var startBrightness: Double { get }
@@ -141,13 +141,19 @@ public enum ChannelLayerType: Int {
     case lunar
 }
 
+public protocol Channel {
+    var token: String { get }
+    var minIntensity: Double { get set }
+    var intensity: Double { get set }
+}
+
 public class ChannelController: BehaviorChannel {
     public var rootController: BehaviorController?
     var channel: Channel
     var layers: [ChannelLayer?]
 
     public var channelGamma: Double {
-        return channel.gamma
+        return rootController?.configuration.gamma ?? 1.8
     }
 
     var activeLayers: [ChannelLayer] {
@@ -179,7 +185,7 @@ public class ChannelController: BehaviorChannel {
         let activeLayers = self.activeLayers
         guard activeLayers.count > 0 else {
             Log.warn("No Active Layers in Channel")
-            self.channel.setting = .intensity(0.0)
+            self.channel.intensity = 0.0
             return
         }
         
@@ -193,7 +199,8 @@ public class ChannelController: BehaviorChannel {
             shouldInvalidate = shouldInvalidate || (oldIndex != layer.activeIndex)
         }
 
-        self.channel.setting = .brightness(channelBrightness)
+        let setting = ChannelSetting.brightness(channelBrightness)
+        self.channel.intensity = setting.asIntensity(withGamma: self.channelGamma)
         if shouldInvalidate {
             Log.debug("Invalidating Refresh Because of Channel: \(self.channel.token)")
             self.rootController?.invalidateRefreshTimer()

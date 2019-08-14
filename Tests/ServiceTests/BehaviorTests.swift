@@ -25,7 +25,7 @@
 
 import XCTest
 import Dispatch
-@testable import Core
+@testable import Service
 
 extension DispatchTimeInterval {
     func asMicroseconds() -> Int {
@@ -38,16 +38,15 @@ extension DispatchTimeInterval {
             return microseconds
         case .nanoseconds(let nanoseconds):
             return nanoseconds / 1_000
-        #if swift(>=4.0)
         case .never:
             return Int.max
-        #endif
         }
     }
 }
 
 class MockBehaviorController: BehaviorController {
     var channelControllers: [String : BehaviorChannel] = [:]
+    var configuration: BehaviorControllerConfig = LightControllerConfig(gamma: 1.8)
     var didInvalidate: Bool = false
     
     init(channelCount: Int) {

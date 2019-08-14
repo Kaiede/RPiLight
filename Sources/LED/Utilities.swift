@@ -23,48 +23,23 @@
  SOFTWARE.)
  */
 
-import Dispatch
-import Foundation
-import Moderator
-
 #if os(Linux)
     import Glibc
 #else
     import Darwin
 #endif
 
-import Service
-import Logging
-import LED
+import Foundation
 
 //
-// MARK: Process Arguments
+// Accessors to strings
 //
-var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
-let verbose = moderator.add(.option("v","verbose", description: "Provide Additional Logging"))
-let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
-let configFile = moderator.add(Argument<String>
-                    .singleArgument(name: "config file", description: "Configuration file to load")
-                    .default("config.json"))
-let scheduleFile = moderator.add(Argument<String>
-                    .singleArgument(name: "schedule file", description: "Schedule file to load")
-                    .default("schedule.json"))
-
-do {
-    try moderator.parse()
-} catch {
-    print(error)
-    exit(-1)
+extension utsname {
+    var machineString: String {
+        var machine = self.machine
+        return withUnsafeBytes(of: &machine) { (rawPtr) -> String in
+            let ptr = rawPtr.baseAddress!.assumingMemoryBound(to: CChar.self)
+            return String(cString: ptr)
+        }
+    }
 }
-
-if verbose.value {
-    Log.setLoggingLevel(.debug)
-}
-
-let service = LightService(configFile: configFile.value, scheduleFile: scheduleFile.value)
-
-if !verbose.value {
-    service.applyLoggingLevel()
-}
-
-service.run(withPreview: previewMode.value)

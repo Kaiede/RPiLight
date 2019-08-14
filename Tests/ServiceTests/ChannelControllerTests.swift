@@ -24,15 +24,14 @@
  */
 
 import XCTest
-import PWM
-@testable import Core
+import LED
+@testable import Service
 
 class MockChannel: Channel {
     var token: String = ""
-    var gamma: Double = 1.0
     var minIntensity: Double = 0.0
 
-    var setting: ChannelSetting = .intensity(0.0)
+    var intensity: Double = 0.0
 }
 
 class MockChannelSegment: ChannelSegment {
@@ -90,17 +89,19 @@ class ChannelControllerTests: XCTestCase {
         let testChannel = MockChannel()
         let testController = ChannelController(channel: testChannel)
 
-        testChannel.setting = .brightness(1.0)
+        testChannel.intensity = 1.0
 
         testController.update(forDate: Date())
-        let channelSetting = testChannel.setting.asBrightness(withGamma: testChannel.gamma)
-        XCTAssertEqual(channelSetting, 0.0)
+        XCTAssertEqual(testChannel.intensity, 0.0)
     }
 
     func testChannelUpdate() {
+        let mockBehaviorController = MockBehaviorController(channelCount: 4)
+        mockBehaviorController.configuration = LightControllerConfig(gamma: 1.0)
         let testChannel = MockChannel()
         let testLayer = MockLayer()
         let testController = ChannelController(channel: testChannel)
+        testController.rootController = mockBehaviorController
 
         testController.set(layer: testLayer)
 
@@ -109,8 +110,7 @@ class ChannelControllerTests: XCTestCase {
             testLayer.lightLevel = testValue
             testController.update(forDate: Date())
 
-            let channelSetting = testChannel.setting.asBrightness(withGamma: testChannel.gamma)
-            XCTAssertEqual(channelSetting, testValue)
+            XCTAssertEqual(testChannel.intensity, testValue)
         }
     }
     

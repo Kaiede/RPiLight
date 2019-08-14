@@ -46,12 +46,16 @@ extension Calendar {
 }
 
 public extension DateComponents {
+    func asTimeOfDay() -> DateComponents {
+        return DateComponents(calendar: self.calendar, timeZone: self.timeZone, hour: self.hour, minute: self.minute, second: self.second, nanosecond: self.nanosecond)
+    }
+
     // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
     // but may not be very relevant for any other package.
     func calcNextDateCustom(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
-        var copyOfSelf = self
+        var copyOfSelf = self.asTimeOfDay()
         guard let targetDate = calendar.date(byAdding: copyOfSelf, to: startOfDay) else { return nil }
         switch direction {
         case .forward:
@@ -63,23 +67,32 @@ public extension DateComponents {
         return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
     }
 
-    public func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
-        #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
+    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
+        #if swift(>=5.0)
             return Calendar.current.nextDate(after: date,
                                              matching: self,
                                              matchingPolicy: .nextTime,
                                              repeatedTimePolicy: .first,
                                              direction: direction)
-        #elseif os(Linux)
-            return self.calcNextDateCustom(after: date, direction: direction)
         #else
-            fatalError("No Implementation Available for this OS")
+            #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
+                return Calendar.current.nextDate(after: date,
+                                                matching: self,
+                                                matchingPolicy: .nextTime,
+                                                repeatedTimePolicy: .first,
+                                                direction: direction)
+            #elseif os(Linux)
+                return self.calcNextDateCustom(after: date, direction: direction)
+            #else
+                fatalError("No Implementation Available for this OS")
+            #endif
         #endif
+
     }
 }
 
 public extension FileManager {
-    public var currentDirectoryUrl: URL {
+    var currentDirectoryUrl: URL {
         return URL(fileURLWithPath: self.currentDirectoryPath)
     }
 }
@@ -106,10 +119,8 @@ extension DispatchTimeInterval {
             return TimeInterval(microseconds) * 1_000_000.0
         case .nanoseconds(let nanoseconds):
             return TimeInterval(nanoseconds) * 1_000_000_000.0
-        #if swift(>=4.0)
         case .never:
             return TimeInterval.infinity
-        #endif
         }
     }
 }
@@ -125,19 +136,11 @@ extension DispatchWallTime {
 
 extension DispatchSourceTimer {
     public func schedulePrecise(forDate date: Date) {
-        #if swift(>=4.0)
         self.schedule(wallDeadline: DispatchWallTime(date: date), leeway: .milliseconds(1))
-        #else
-        self.scheduleOneshot(wallDeadline: DispatchWallTime(date: date), leeway: .milliseconds(1))
-        #endif
     }
 
     public func schedulePrecise(forDate date: Date, repeating interval: DispatchTimeInterval) {
-        #if swift(>=4.0)
         self.schedule(wallDeadline: DispatchWallTime(date: date), repeating: interval, leeway: .milliseconds(1))
-        #else
-        self.scheduleRepeating(wallDeadline: DispatchWallTime(date: date), interval: interval, leeway: .milliseconds(1))
-        #endif
     }
 }
 
@@ -151,4 +154,13 @@ public func getUsername(uid: uid_t) -> String? {
     let user = getpwuid(uid)?.pointee
     guard let name = user?.pw_name else { return nil }
     return String(cString: name)
+}
+
+//
+// MARK: Shorthand for pow() function
+//
+infix operator ** : MultiplicationPrecedence
+
+func ** (num: Double, power: Double) -> Double {
+    return pow(num, power)
 }

@@ -23,32 +23,14 @@
  SOFTWARE.)
  */
 
-#if os(Linux)
-    import Glibc
-#else
-    import Darwin
-#endif
+import XCTest
+@testable import Service
 
-import Foundation
-
-//
-// Accessors to strings
-//
-extension utsname {
-    var machineString: String {
-        var machine = self.machine
-        return withUnsafeBytes(of: &machine) { (rawPtr) -> String in
-            let ptr = rawPtr.baseAddress!.assumingMemoryBound(to: CChar.self)
-            return String(cString: ptr)
-        }
-    }
+class EventTests: XCTestCase {
+    func testEmpty() {}
+    
+    static var allTests = [
+        ("testEmpty", testEmpty)
+    ]
 }
 
-//
-// Shorthand for pow() function
-//
-infix operator ** : MultiplicationPrecedence
-
-func ** (num: Double, power: Double) -> Double {
-    return pow(num, power)
-}
