@@ -60,18 +60,22 @@ fileprivate struct ScheduleFormatters {
 
 public struct Schedule {
     public let lunarCycle: LunarSchedule?
+    public let stormEvents: [StormEvent]?
     public let channels: [String:ChannelSchedule]
 }
 
 extension Schedule: Decodable {
     public init(from decoder: Decoder) throws {
+        let specialKeys: Set = ["lunarCycle", "storms"]
         let container = try decoder.container(keyedBy: AnyCodingKey.self)
 
         lunarCycle = try container.decodeIfPresent(LunarSchedule.self, forKey: AnyCodingKey(stringValue: "lunarCycle"))
 
+        stormEvents = try container.decodeIfPresent([StormEvent].self, forKey: AnyCodingKey(stringValue: "storms"))
+
         var decodedChannels: [String:ChannelSchedule] = [:] 
         for codingKey in container.allKeys {
-            guard codingKey.stringValue != "lunarCycle" else { continue }
+            guard !specialKeys.contains(codingKey.stringValue) else { continue }
 
             decodedChannels[codingKey.stringValue] = try container.decode(ChannelSchedule.self, forKey: codingKey)
         }
@@ -102,6 +106,40 @@ extension LunarSchedule: Decodable {
             throw DecodingError.dataCorruptedError(forKey: .endTime, in: container, debugDescription: "Invalid End Time provided")
         }
         endTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedEnd)
+    }
+}
+
+public struct StormEvent {
+    public let startTime: DateComponents
+    public let endTime: DateComponents
+    public let lightningStrength: Double
+    public let chance: Double
+
+    enum CodingKeys: String, CodingKey {
+        case startTime = "start"
+        case endTime = "end"
+
+        case lightningStrength
+        case chance
+    }
+}
+
+extension StormEvent: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        guard let parsedStart = ScheduleFormatters.timeOfDay.date(from: try container.decode(String.self, forKey: .startTime)) else {
+            throw DecodingError.dataCorruptedError(forKey: .startTime, in: container, debugDescription: "Invalid Start Time provided")
+        }
+        startTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedStart)
+
+        guard let parsedEnd = ScheduleFormatters.timeOfDay.date(from: try container.decode(String.self, forKey: .endTime)) else {
+            throw DecodingError.dataCorruptedError(forKey: .endTime, in: container, debugDescription: "Invalid End Time provided")
+        }
+        endTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedEnd)
+
+        lightningStrength = try container.decode(Double.self, forKey: .lightningStrength)
+        chance = try container.decode(Double.self, forKey: .chance)
     }
 }
 

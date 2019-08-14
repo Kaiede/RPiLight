@@ -72,6 +72,57 @@ class ScheduleConfigTests: XCTestCase {
         }
     }
 
+    func testStormEvent_Empty() {
+        let jsonData: JsonDictionary = [:]
+        do {
+            let decoder = JSONDecoder()
+            let _ = try decoder.decode(StormEvent.self, from: jsonData)
+            XCTFail("Empty is invalid")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testStormEvent_Partial() {
+        let jsonData: JsonDictionary = [
+            "start": "20:30:00",
+            "end": "20:45:00"
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let _ = try decoder.decode(StormEvent.self, from: jsonData)
+            XCTFail("Partial is invalid")
+        } catch {
+            // Pass
+        }
+    }
+
+    func testStormEvent_Complete() {
+        let jsonData: JsonDictionary = [
+            "start": "20:30:00",
+            "end": "07:30:00",
+            "lightningStrength": 1.0,
+            "chance": 0.5
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let stormEvent = try decoder.decode(StormEvent.self, from: jsonData)
+            
+            XCTAssertEqual(stormEvent.startTime.hour, 20)
+            XCTAssertEqual(stormEvent.startTime.minute, 30)
+            XCTAssertEqual(stormEvent.startTime.second, 0)
+
+            XCTAssertEqual(stormEvent.endTime.hour, 7)
+            XCTAssertEqual(stormEvent.endTime.minute, 30)
+            XCTAssertEqual(stormEvent.endTime.second, 0)
+
+            XCTAssertEqual(stormEvent.chance, 0.5)
+            XCTAssertEqual(stormEvent.lightningStrength, 1.0)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
     func testChannelSchedule_Empty() {
         let jsonData: JsonDictionary = [:]
         do {
@@ -283,6 +334,15 @@ class ScheduleConfigTests: XCTestCase {
                 "end": "07:00:00"
             },
 
+            "storms": [
+                {
+                    "start": "21:00:00",
+                    "end": "07:00:00",
+                    "lightningStrength": 1.0,
+                    "chance": 0.5 
+                }
+            ],
+
             "primary": {
                 "minIntensity": 0.0025,
                 "schedule": [
@@ -332,6 +392,18 @@ class ScheduleConfigTests: XCTestCase {
             XCTAssertEqual(schedule.lunarCycle?.endTime.minute, 0)
             XCTAssertEqual(schedule.lunarCycle?.endTime.second, 0)
 
+            // Sanity Check the Storms
+            XCTAssertNotNil(schedule.stormEvents)
+            XCTAssertEqual(schedule.stormEvents?.count, 1)
+            XCTAssertEqual(schedule.stormEvents?[0].startTime.hour, 21)
+            XCTAssertEqual(schedule.stormEvents?[0].startTime.minute, 0)
+            XCTAssertEqual(schedule.stormEvents?[0].startTime.second, 0)
+            XCTAssertEqual(schedule.stormEvents?[0].endTime.hour, 7)
+            XCTAssertEqual(schedule.stormEvents?[0].endTime.minute, 0)
+            XCTAssertEqual(schedule.stormEvents?[0].endTime.second, 0)
+            XCTAssertEqual(schedule.stormEvents?[0].lightningStrength, 1.0)
+            XCTAssertEqual(schedule.stormEvents?[0].chance, 0.5)
+
             // Did the Channel Schedules Parse?
         } catch {
             XCTFail("\(error)")
@@ -342,6 +414,9 @@ class ScheduleConfigTests: XCTestCase {
         ("testLunarSchedule_Empty", testLunarSchedule_Empty),
         ("testLunarSchedule_Partial", testLunarSchedule_Partial),
         ("testLunarSchedule_Complete", testLunarSchedule_Complete),
+        ("testStormEvent_Empty", testLunarSchedule_Empty),
+        ("testStormEvent_Partial", testLunarSchedule_Partial),
+        ("testStormEvent_Complete", testLunarSchedule_Complete),
         ("testChannelSchedule_Empty", testChannelSchedule_Empty),
         ("testChannelSchedule_OptionalIntensity", testChannelSchedule_OptionalIntensity),
         ("testChannelSchedule_Complete", testChannelSchedule_Complete),
