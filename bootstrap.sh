@@ -135,6 +135,6 @@ install_dependencies
 git clone https://github.com/Kaiede/RPiLight.git
 pushd ~/RPiLight > /dev/null
 
-./build.sh $build_type install
+./build.sh stable install
 
 popd > /dev/null
