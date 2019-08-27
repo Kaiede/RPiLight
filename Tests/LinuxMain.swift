@@ -8,6 +8,7 @@ Log.setLoggingLevel(.warn)
 XCTMain([
     // LED Tests
     testCase(ChannelTests.allTests),
+    testCase(ModuleTests.allTests),
     // Service Tests
     testCase(SwiftExtensionsTests.allTests),
     testCase(BehaviorTests.allTests),
