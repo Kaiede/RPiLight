@@ -19,7 +19,7 @@ let package = Package(
 
         // Service Dependencies
         .package(url: "https://github.com/Kaiede/Ephemeris.git", from: "1.0.2"),
-        .package(url: "https://github.com/PerfectlySoft/Perfect-Mosquitto.git", from: "3.1.0"),
+        .package(url: "https://github.com/PerfectlySoft/Perfect-Mosquitto.git", from: "3.0.0"),
 
         // Command Line Dependencies
         .package(url: "https://github.com/Kaiede/Moderator.git", .branch("swift5compat")) // Need merging
