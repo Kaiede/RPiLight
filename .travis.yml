@@ -39,15 +39,6 @@ matrix:
         - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift
         - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04/usr/bin:$PATH"
 
-    - name: "Mac Xcode 9 (Swift 4.1)"
-      os: osx
-      osx_image: xcode9.4
-      before_install:
-        - brew update
-        - brew install mosquitto
-      install:
-        - ld -v -lmosquitto -arch x86_64 || echo Ignoring Error...
-        
     - name: "Mac Xcode 10 (Swift 4.2)"
       os: osx
       osx_image: xcode10
