@@ -52,6 +52,8 @@ matrix:
       before_install:
         - brew update
         - brew install mosquitto
+      install:
+        - ld -v -lmosquitto -arch x86_64 || echo Ignoring Error...
 
     - name: "Mac Xcode 10.2 (Swift 5)"
       os: osx
