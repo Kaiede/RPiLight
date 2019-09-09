@@ -16,7 +16,7 @@ function process_distro() {
 #
 function install_swift_tarball() {
     swift_release="$1"
-    swift_version="5.0.2"
+    swift_version="5.0.3"
     tarball_url="https://github.com/uraimo/buildSwiftOnARM/releases/download/${swift_version}/swift-${swift_version}-${swift_release}.tgz"
     swift_filename="swift-${swift_version}-${swift_release}.tgz"
 
