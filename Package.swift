@@ -28,24 +28,31 @@ let package = Package(
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
-            name: "RPiLight",
-            dependencies: ["Service", "Moderator"]),
-        .target(
-            name: "Service",
-            dependencies: ["LED", "Logging", "Ephemeris", "PerfectMosquitto"]),
-        .target(
             name: "LED",
             dependencies: ["Logging", "MCP4725", "PCA9685", "SingleBoard"]),
         .target(name: "Logging"),
+        .target(
+            name: "Network",
+            dependencies: ["PerfectMosquitto"]),
+        .target(
+            name: "Service",
+            dependencies: ["LED", "Logging", "Ephemeris", "Network"]),
+        .target(
+            name: "RPiLight",
+            dependencies: ["Service", "Moderator"]),
 
         // Test Targets
         .testTarget(
-            name: "ServiceTests",
-            dependencies: ["Service"]
-        ),
-        .testTarget(
             name: "LEDTests",
             dependencies: ["LED"]
+        ),
+        .testTarget(
+            name: "NetworkTests",
+            dependencies: ["Network"]
+        ),
+        .testTarget(
+            name: "ServiceTests",
+            dependencies: ["Service"]
         )
     ]
 )

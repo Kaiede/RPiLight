@@ -1,7 +1,8 @@
 import XCTest
 import Logging
-@testable import ServiceTests
 @testable import LEDTests
+@testable import NetworkTests
+@testable import ServiceTests
 
 Log.setLoggingLevel(.warn)
 
@@ -9,6 +10,8 @@ XCTMain([
     // LED Tests
     testCase(ChannelTests.allTests),
     testCase(ModuleTests.allTests),
+    // Network Tests
+    testCase(MosquittoTests.allTests),
     // Service Tests
     testCase(SwiftExtensionsTests.allTests),
     testCase(BehaviorTests.allTests),
