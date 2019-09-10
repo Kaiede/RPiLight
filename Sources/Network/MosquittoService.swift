@@ -52,10 +52,17 @@ extension Mosquitto.Message {
             break
         case .data(let data):
             // This is goofy, because the library picked some weird type for exposing the raw bytes.
-            data.withUnsafeBytes { ptr in
-                let payloadPtr = ptr.bindMemory(to: Int8.self)
-                self.payload = Array<Int8>(payloadPtr)
-            }
+            #if swift(>=5.0)
+                self.payload = data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
+                    let payloadPtr = ptr.bindMemory(to: Int8.self)
+                    return [Int8](payloadPtr)
+                }
+            #else
+                self.payload = data.withUnsafeBytes { (ptr: UnsafePointer<Int8>) in
+                    let payloadPtr = UnsafeBufferPointer(start: ptr, count: data.count)
+                    return Array<Int8>(payloadPtr)
+                }
+            #endif
         }
     }
 }
