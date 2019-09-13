@@ -2,14 +2,14 @@
 
 [![Build Status](https://travis-ci.org/Kaiede/RPiLight.svg?branch=master)](https://travis-ci.org/Kaiede/RPiLight)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-![Swift](https://img.shields.io/badge/Swift-5.0.2-brightgreen.svg)
+![Swift](https://img.shields.io/badge/Swift-5.0.3-brightgreen.svg)
 ![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
 
 An Aquarium Light Controller for the Raspberry Pi
 
 ### Hardware / OS
 
-![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Buster-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-5.0.2-brightgreen.svg)
+![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Buster-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-5.0.3-brightgreen.svg)
 
 Raspbian Buster on any supported Raspberry Pi (Zero, 1, 2, 3, or 4) is the recommended configuration. This matches up with what is used in testing.
 
