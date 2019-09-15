@@ -153,8 +153,13 @@ public class ChannelController: BehaviorChannel {
     var channel: Channel
     var layers: [ChannelLayer?]
 
-    public var channelGamma: Double {
+    public var gamma: Double {
         return rootController?.configuration.gamma ?? 1.8
+    }
+    
+    public var intensity: Double {
+        get { return self.channel.intensity }
+        set { self.channel.intensity = newValue }
     }
 
     var activeLayers: [ChannelLayer] {
@@ -186,7 +191,7 @@ public class ChannelController: BehaviorChannel {
         let activeLayers = self.activeLayers
         guard activeLayers.count > 0 else {
             Log.warn("No Active Layers in Channel")
-            self.channel.intensity = 0.0
+            self.intensity = 0.0
             return
         }
         
@@ -201,7 +206,7 @@ public class ChannelController: BehaviorChannel {
         }
 
         let setting = ChannelSetting.brightness(channelBrightness)
-        self.channel.intensity = setting.asIntensity(withGamma: self.channelGamma)
+        self.intensity = setting.asIntensity(withGamma: self.gamma)
         if shouldInvalidate {
             Log.debug("Invalidating Refresh Because of Channel: \(self.channel.token)")
             self.rootController?.invalidateRefreshTimer()

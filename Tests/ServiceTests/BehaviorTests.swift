@@ -62,7 +62,8 @@ class MockBehaviorController: BehaviorController {
 }
 
 class MockBehaviorChannel: BehaviorChannel {
-    var channelGamma: Double = 1.8
+    var intensity: Double = 0.0
+    var gamma: Double = 1.8
     var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
     var brightnessDelta: Double = 1.0
@@ -85,7 +86,7 @@ class MockBehaviorChannel: BehaviorChannel {
 
 class BehaviorTests: XCTestCase {
     func testDefaultRefresh() {
-        let testBehavior = DefaultLightBehavior()
+        var testBehavior = DefaultLightBehavior()
 
         let mockController = MockBehaviorController(channelCount: 4)
         
@@ -201,7 +202,7 @@ class BehaviorTests: XCTestCase {
     
     func testPreviewRefresh() {
         let startDate = Date()
-        let testBehavior = PreviewLightBehavior(startDate: startDate)
+        var testBehavior = PreviewLightBehavior(startDate: startDate)
         
         let mockController = MockBehaviorController(channelCount: 4)
         
