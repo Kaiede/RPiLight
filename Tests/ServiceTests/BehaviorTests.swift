@@ -59,6 +59,14 @@ class MockBehaviorController: BehaviorController {
     func invalidateRefreshTimer() {
         self.didInvalidate = true
     }
+
+    func push(behavior: Behavior) {
+        // TODO: Test Me
+    }
+
+    func pop(behavior: Behavior) {
+        // TODO: Test Me
+    }
 }
 
 class MockBehaviorChannel: BehaviorChannel {
