@@ -12,7 +12,10 @@ let package = Package(
             targets: ["RPiLight"]),
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
+        // External Dependencies
+        .package(url: "https://github.com/rhx/CBSD.git", .branch("master")),
+
+        // Semi-Internal Dependencies
         .package(url: "https://github.com/Kaiede/Ephemeris.git", from: "1.0.2"),
         .package(url: "https://github.com/Kaiede/Moderator.git", .branch("swift5compat")), // Need merging
         .package(url: "https://github.com/Kaiede/PCA9685.git", from: "3.0.0"),
