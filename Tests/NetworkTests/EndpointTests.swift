@@ -28,15 +28,17 @@ class EndpointTests: XCTestCase {
         let mockService = MockService()
         let endpoint = Endpoint(service: mockService)
         
-        let expectation = XCTestExpectation(description: "topic/hit should be hit")
-        expectation.assertForOverFulfill = true
-        expectation.expectedFulfillmentCount = 1
+        let topicExpectation = expectation(description: "topic/hit should be hit")
+        #if swift(>=5.0) || os(macOS)
+        topicExpectation.assertForOverFulfill = true
+        topicExpectation.expectedFulfillmentCount = 1
+        #endif
         
         endpoint.message(topic: "topic/hit") { msg in
             XCTAssertEqual(msg.topic, "topic/hit")
             XCTAssertEqual(msg.id, 2)
 
-            expectation.fulfill()
+            topicExpectation.fulfill()
         }
         
         XCTAssertEqual(endpoint.topics.count, 1)
@@ -48,20 +50,26 @@ class EndpointTests: XCTestCase {
 
         endpoint.handle(message: missMessage)
         endpoint.handle(message: hitMessage)
+        
+        waitForExpectations(timeout: 0.25)
     }
     
     func testMultipleMessageHandlers() {
         let mockService = MockService()
         let endpoint = Endpoint(service: mockService)
         
-        let firstExpectation = XCTestExpectation(description: "topic/hit should be hit")
+        let firstExpectation = expectation(description: "topic/hit should be hit")
+        #if swift(>=5.0) || os(macOS)
         firstExpectation.assertForOverFulfill = true
         firstExpectation.expectedFulfillmentCount = 1
+        #endif
         
-        let secondExpectation = XCTestExpectation(description: "topic/hit should be hit")
+        let secondExpectation = expectation(description: "topic/hit should be hit")
+        #if swift(>=5.0) || os(macOS)
         secondExpectation.assertForOverFulfill = true
         secondExpectation.expectedFulfillmentCount = 1
-        
+        #endif
+
         // Two handlers should both be called for the same message
         endpoint.message(topic: "topic/hit") { msg in
             XCTAssertEqual(msg.topic, "topic/hit")
@@ -86,6 +94,8 @@ class EndpointTests: XCTestCase {
         
         endpoint.handle(message: missMessage)
         endpoint.handle(message: hitMessage)
+        
+        waitForExpectations(timeout: 0.25)
     }
     
     static var allTests = [

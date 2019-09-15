@@ -99,7 +99,7 @@ public class Endpoint: EndpointProtocol {
     
     public func handle(message: Message) {
         // TODO: Get the list of closures for this event.
-        let closures: [MessageClosure] = []
+        let closures: [MessageClosure] = self.messageHandlers[message.topic] ?? []
         
         for closure in closures {
             closure(message)
