@@ -79,7 +79,8 @@ public struct ServiceConfiguration {
     public let gamma: Double
     public let controllers: [ServiceControllerConfiguration]
 
-    // TODO: MQTT Broker Config
+    // MQTT Broker Config
+    public let broker: ServiceBrokerConfiguration?
 
     enum CodingKeys: String, CodingKey {
         case username = "user"
@@ -87,6 +88,9 @@ public struct ServiceConfiguration {
 
         case boardType = "board"
         case gamma = "gamma"
+        
+        case broker = "broker"
+        
         case controllers = "controllers"
     }
 }
@@ -104,6 +108,7 @@ extension ServiceConfiguration: Decodable {
         }
  
         board = try container.decode(ServiceBoardType.self, forKey: .boardType)
+        broker = try container.decodeIfPresent(ServiceBrokerConfiguration.self, forKey: .broker)
         controllers = try container.decode([ServiceControllerConfiguration].self, forKey: .controllers)
 
         // Controller Gamma
@@ -116,6 +121,47 @@ extension ServiceConfiguration: Decodable {
         } else {
             gamma = 1.8
         }
+    }
+}
+
+//
+// Service Broker Configuration
+//
+// Configuration on what MQTT Broker to Connect to
+//
+
+public struct ServiceBrokerConfiguration {
+    public let host: String
+    public let port: Int32
+    
+    public let keepAlive: Int32
+    public let useTLS: Bool
+    
+    public let username: String?
+    public let password: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case host
+        case port
+        case keepAlive
+        case useTLS
+        
+        case username
+        case password
+    }
+}
+
+extension ServiceBrokerConfiguration: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        self.host = try container.decodeIfPresent(String.self, forKey: .host) ?? "localhost"
+        self.port = try container.decodeIfPresent(Int32.self, forKey: .port) ?? 1883
+        self.keepAlive = try container.decodeIfPresent(Int32.self, forKey: .keepAlive) ?? 60
+        self.useTLS = try container.decodeIfPresent(Bool.self, forKey: .useTLS) ?? false
+        
+        self.username = try container.decodeIfPresent(String.self, forKey: .username)
+        self.password = try container.decodeIfPresent(String.self, forKey: .password)
     }
 }
 

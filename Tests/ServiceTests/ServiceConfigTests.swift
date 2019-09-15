@@ -361,6 +361,113 @@ class ServiceConfigTests: XCTestCase {
             XCTFail("\(error)")
         }
     }
+    
+    func testBrokerConfiguration_Empty() {
+        let jsonData: JsonDictionary = [:]
+        do {
+            let decoder = JSONDecoder()
+            let config = try decoder.decode(ServiceBrokerConfiguration.self, from: jsonData)
+            XCTAssertEqual(config.host, "localhost")
+            XCTAssertEqual(config.port, 1883)
+            XCTAssertEqual(config.keepAlive, 60)
+            XCTAssertEqual(config.useTLS, false)
+            
+            XCTAssertNil(config.username)
+            XCTAssertNil(config.password)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testBrokerConfiguration_Partial() {
+        let jsonData: JsonDictionary = [
+            "host": "remote.server.com",
+            "port": 1882,
+            "useTLS": true,
+            "username": "testUser"
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let config = try decoder.decode(ServiceBrokerConfiguration.self, from: jsonData)
+            XCTAssertEqual(config.host, "remote.server.com")
+            XCTAssertEqual(config.port, 1882)
+            XCTAssertEqual(config.keepAlive, 60)
+            XCTAssertEqual(config.useTLS, true)
+            
+            XCTAssertEqual(config.username, "testUser")
+            XCTAssertNil(config.password)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testBrokerConfiguration_Complete() {
+        let jsonData: JsonDictionary = [
+            "host": "remote.server.com",
+            "port": 1882,
+            "keepAlive": 180,
+            "useTLS": true,
+            "username": "testUser",
+            "password": "testPassword"
+        ]
+        do {
+            let decoder = JSONDecoder()
+            let config = try decoder.decode(ServiceBrokerConfiguration.self, from: jsonData)
+            XCTAssertEqual(config.host, "remote.server.com")
+            XCTAssertEqual(config.port, 1882)
+            XCTAssertEqual(config.keepAlive, 180)
+            XCTAssertEqual(config.useTLS, true)
+            
+            XCTAssertEqual(config.username, "testUser")
+            XCTAssertEqual(config.password, "testPassword")
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+    
+    func testBrokerConfiguration_Example() {
+        let jsonString = """
+        {
+            "user": "pi",
+            "board": "raspberryPi",
+            "gamma": 2.2,
+            
+            "broker": {
+                "host": "local.server.com",
+                "port": 1880,
+                "keepAlive": 30,
+                "useTLS": true
+            },
+            
+            "controllers": [
+                {
+                    "type": "raspberryPwm",
+                    "frequency": 1440,
+                    "channels": {
+                        "primary": 0,
+                        "secondary": 1
+                    }
+                }
+            ]
+        }
+        """
+        
+        let jsonData = jsonString.data(using: .utf8)!
+        do {
+            let decoder = JSONDecoder()
+            let config = try decoder.decode(ServiceConfiguration.self, from: jsonData)
+            
+            XCTAssertEqual(config.broker?.host, "local.server.com")
+            XCTAssertEqual(config.broker?.port, 1880)
+            XCTAssertEqual(config.broker?.keepAlive, 30)
+            XCTAssertEqual(config.broker?.useTLS, true)
+            
+            XCTAssertEqual(config.broker?.username, nil)
+            XCTAssertEqual(config.broker?.password, nil)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
 
     static var allTests = [
         ("testEmptyControllerConfiguration", testEmptyControllerConfiguration),
@@ -377,5 +484,9 @@ class ServiceConfigTests: XCTestCase {
         ("testHardwareConfiguration_Incomplete", testHardwareConfiguration_Incomplete),
         ("testHardwareConfiguration_Complete", testHardwareConfiguration_Complete),
         ("testHardwareConfiguration_RaspberryPiExample", testHardwareConfiguration_RaspberryPiExample),
+        ("testBrokerConfiguration_Empty", testBrokerConfiguration_Empty),
+        ("testBrokerConfiguration_Partial", testBrokerConfiguration_Partial),
+        ("testBrokerConfiguration_Complete", testBrokerConfiguration_Complete),
+        ("testBrokerConfiguration_Example", testBrokerConfiguration_Example),
     ]
 }
