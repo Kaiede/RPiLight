@@ -10,6 +10,14 @@ import PerfectMosquitto
 @testable import Network
 
 class MockService: Service {
+    func connect(host: String, port: Int32, keepAlive: Int32) {
+        // Do Nothing
+    }
+    
+    func disconnect() {
+        // Do Nothing
+    }
+    
     func publish(message: Message) {
         // Do Nothing
     }

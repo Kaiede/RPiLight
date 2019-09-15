@@ -25,9 +25,20 @@
 
 import Foundation
 
-import Service
-import Logging
 import LED
+import Logging
+import Network
+import Service
+
+extension Service {
+    func connect(config: ServiceBrokerConfiguration) {
+        if config.useTLS {
+            // TODO: Handle TLS here
+        }
+        // TODO: Handle username/password here
+        self.connect(host: config.host, port: config.port, keepAlive: config.keepAlive)
+    }
+}
 
 extension LEDBoardType {
     init(configType: ServiceBoardType) {
@@ -81,6 +92,9 @@ class LightService {
         Log.info("Final User: \(configuration.username)")
         Log.info("Configured Board: \(configuration.board.rawValue)")
         Log.info("Configured Gamma: \(configuration.gamma)")
+        if let broker = configuration.broker {
+            Log.info("MQTT Broker: \(broker.host):\(broker.port)")
+        }
         for controller in configuration.controllers {
             Log.info("Controller \(controller.type):")
             if let address = controller.address {
@@ -96,6 +110,16 @@ class LightService {
             }
         }
 
+        // Connect to Broker Here
+        var service: Service? = nil
+        if let broker = configuration.broker {
+            let brokerService = MosquittoService(id: "RPiLight", cleanSession: true)
+            brokerService.connect(config: broker)
+            service = brokerService
+            
+            // TODO: We need an endpoint that can start handling communication.
+        }
+        
         //
         // MARK: Initialize Light Controller and Run
         //
@@ -119,6 +143,11 @@ class LightService {
 
         controller.start()
         dispatchMain()
+        
+        // Disconnect from the broker naturally here.
+        if let brokerService = service {
+            brokerService.disconnect()
+        }
     }
 
     private func dropRoot() -> uid_t {

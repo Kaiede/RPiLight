@@ -78,6 +78,14 @@ public class MosquittoService: Service {
         self.mosquitto.OnMessage = { message in self.handle(message: message) }
     }
     
+    public func connect(host: String, port: Int32, keepAlive: Int32) {
+        try! self.mosquitto.connect(host: host, port: port, keepAlive: keepAlive)
+    }
+    
+    public func disconnect() {
+        try! self.mosquitto.disconnect()
+    }
+    
     public func register(endpoint: EndpointProtocol) {
         endpoints.append(endpoint)
     }

@@ -26,6 +26,9 @@
 import Foundation
 
 public protocol Service: class {
+    func connect(host: String, port: Int32, keepAlive: Int32)
+    func disconnect()
+    
     func register(endpoint: EndpointProtocol)
     func unregister(endpoint: EndpointProtocol)
     
