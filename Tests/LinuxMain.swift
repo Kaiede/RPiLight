@@ -11,6 +11,7 @@ XCTMain([
     testCase(ChannelTests.allTests),
     testCase(ModuleTests.allTests),
     // Network Tests
+    testCase(EndpointTests.allTests),
     testCase(MosquittoTests.allTests),
     // Service Tests
     testCase(SwiftExtensionsTests.allTests),
