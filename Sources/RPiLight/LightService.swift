@@ -116,6 +116,13 @@ class LightService {
             let lunarCycleController = LunarCycleController(schedule: lunarCycle)
             controller.setEvent(controller: lunarCycleController)
         }
+        
+        if let storms = schedule.stormEvents {
+            let stormEvents = StormEventController.loadMultiple(events: storms)
+            for storm in stormEvents {
+                controller.setEvent(controller: storm)
+            }
+        }
 
         controller.start()
         dispatchMain()
