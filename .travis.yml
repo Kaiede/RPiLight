@@ -5,42 +5,38 @@ matrix:
   include:
     - name: "Linux Swift 4.1.3"
       os: linux
-      dist: trusty
+      dist: xenial
       env: SWIFT_VERSION=4.1.3
       install:
         - mkdir swift
-        - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1404/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04.tar.gz -s | tar -xz -C swift
-        - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04/usr/bin:$PATH"
-        
-    - name: "Linux Swift 4.2.3"
-      os: linux
-      dist: trusty
-      env: SWIFT_VERSION=4.2.3
-      install:
-        - mkdir swift
-        - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1404/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04.tar.gz -s | tar -xz -C swift
-        - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04/usr/bin:$PATH"
+        - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift
+        - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04/usr/bin:$PATH"
         
     - name: "Linux Swift 5.0.3"
       os: linux
-      dist: trusty
+      dist: xenial
       env: SWIFT_VERSION=5.0.3
       install:
         - mkdir swift
-        - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1404/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04.tar.gz -s | tar -xz -C swift
-        - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu14.04/usr/bin:$PATH"
-
-    - name: "Mac Xcode 9 (Swift 4.1)"
-      os: osx
-      osx_image: xcode9.4
-      
-    - name: "Mac Xcode 10 (Swift 4.2)"
-      os: osx
-      osx_image: xcode10
+        - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift
+        - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04/usr/bin:$PATH"
+        
+    - name: "Linux Swift 5.1"
+      os: linux
+      dist: xenial
+      env: SWIFT_VERSION=5.1
+      install:
+        - mkdir swift
+        - curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift
+        - export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04/usr/bin:$PATH"
       
     - name: "Mac Xcode 10.2 (Swift 5)"
       os: osx
       osx_image: xcode10.2
+      
+    - name: "Mac Xcode 11 (Swift 5.1)"
+      os: osx
+      osx_image: xcode11
 
 script:
   - swift package reset
