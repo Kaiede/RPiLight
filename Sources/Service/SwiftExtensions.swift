@@ -64,27 +64,12 @@ public extension DateComponents {
         return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
     }
 
-    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
-        #if swift(>=5.0)
-            return Calendar.current.nextDate(after: date,
-                                             matching: self,
-                                             matchingPolicy: .nextTime,
-                                             repeatedTimePolicy: .first,
-                                             direction: direction)
-        #else
-            #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
-                return Calendar.current.nextDate(after: date,
-                                                matching: self,
-                                                matchingPolicy: .nextTime,
-                                                repeatedTimePolicy: .first,
-                                                direction: direction)
-            #elseif os(Linux)
-                return self.calcNextDateCustom(after: date, direction: direction)
-            #else
-                fatalError("No Implementation Available for this OS")
-            #endif
-        #endif
-
+    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward, calendar: Calendar = Calendar.current) -> Date? {
+        return calendar.nextDate(after: date,
+                                matching: self,
+                                matchingPolicy: .nextTime,
+                                repeatedTimePolicy: .first,
+                                direction: direction)
     }
 }
 
@@ -93,14 +78,6 @@ public extension FileManager {
         return URL(fileURLWithPath: self.currentDirectoryPath)
     }
 }
-
-#if !swift(>=4.1)
-extension Sequence {
-    func compactMap<ElementOfResult>(_ transform: (Iterator.Element) throws -> ElementOfResult?) rethrows -> [ElementOfResult] {
-        return try flatMap(transform)
-    }
-}
-#endif
 
 //
 // MARK: Dispatch Extensions
