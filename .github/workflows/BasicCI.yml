@@ -19,13 +19,15 @@ jobs:
       run: |
         mkdir ${HOME}/swift
         curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C ${HOME}/swift --strip-components=2
-    - uses: actions/checkout@v1
-    - name: Build & Test RPiLight
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Build & Test
       run: |
-        ${SWIFT_PATH} package reset
-        ${SWIFT_PATH} package show-dependencies
-        ${SWIFT_PATH} build
-        ${SWIFT_PATH} test
+        export PATH="${PATH}:${HOME}/swift/bin/"
+        swift package reset
+        swift package show-dependencies
+        swift build
+        swift test
 
   macOSBuild:
     runs-on: macOS-latest
@@ -38,6 +40,7 @@ jobs:
       - name: Configure Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/
+          xcode-select -v
       - name: Checkout
         uses: actions/checkout@v1
       - name: Build & Test
