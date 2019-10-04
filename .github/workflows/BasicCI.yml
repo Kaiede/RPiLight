@@ -16,13 +16,12 @@ jobs:
             os: ubuntu-18.04
     
     steps:
+    - name: Install Swift
+      uses: YOCKOW/Action-setup-swift@master
+      with:
+          swift-version: ${{ matrix.swift-version }}
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Install Swift
-      uses: ./github/workflows/install-swift
-      with:
-        version: ${{ matrix.swift-version }}
-        distro: ${{ matrix.os }}
     - name: Swift Package Information
       run: |
         ${HOME}/swift/bin/swift --version
