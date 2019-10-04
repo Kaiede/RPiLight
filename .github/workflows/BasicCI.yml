@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-16.04
     strategy:
       max-parallel: 2
       matrix:
@@ -14,8 +14,8 @@ jobs:
     - name: Install Swift
       run: |
         mkdir swift
-        curl https://swift.org/builds/swift-${{ matrix.swift-version }}-release/ubuntu1804/swift-${{ matrix.swift-version }}-RELEASE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04.tar.gz -s | tar -xz -C swift
-        export PATH="$(pwd)/swift/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04/usr/bin:$PATH"
+        curl https://swift.org/builds/swift-${{ matrix.swift-version }}-release/ubuntu1604/swift-${{ matrix.swift-version }}-RELEASE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift
+        export PATH="$(pwd)/swift/swift-${{ matrix.swift-version }}-RELEASE-ubuntu16.04/usr/bin:$PATH"
     - uses: actions/checkout@v1
     - name: Build & Test RPiLight
       run: |
