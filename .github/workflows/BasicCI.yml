@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   linuxBuild:
+    name: Linux Swift ${{ matrix.swift-version }}
     runs-on: ubuntu-16.04
     strategy:
       max-parallel: 1
@@ -23,12 +24,13 @@ jobs:
       run: |
         ${HOME}/swift/bin/swift --version
         ${HOME}/swift/bin/swift package show-dependencies
-    - name: Build & Test
+    - name: Build
       run: ${HOME}/swift/bin/swift build --build-tests
     - name: Test
       run: ${HOME}/swift/bin/swift test
 
   macOSBuild:
+    name: macOS Xcode ${{ matrix.xcode-version }}
     runs-on: macOS-latest
     strategy:
       max-parallel: 1
@@ -46,7 +48,7 @@ jobs:
         run: |
           swift --version
           swift package show-dependencies
-      - name: Build & Test
+      - name: Build
         run: swift build --build-tests
       - name: Test
         run: swift test
