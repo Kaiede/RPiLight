@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-16.04
     env:
-      SWIFT_PATH: swift/bin/swift
+      SWIFT_PATH: ${home}/swift/bin/swift
     strategy:
       max-parallel: 2
       matrix:
@@ -17,8 +17,8 @@ jobs:
       env:
         SWIFT_VERSION: ${{ matrix.swift-version }}
       run: |
-        mkdir swift
-        curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift --strip-components=2
+        mkdir ${home}/swift
+        curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C ${home}/swift --strip-components=2
     - uses: actions/checkout@v1
     - name: Build & Test RPiLight
       run: |
@@ -26,3 +26,21 @@ jobs:
         ${SWIFT_PATH} package show-dependencies
         ${SWIFT_PATH} build
         ${SWIFT_PATH} test
+
+  macOSBuild:
+    runs-on: macOS-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        xcode-version: [11.0, 10.3]
+        
+    steps:
+      - name: Configure Xcode
+        run: |
+          xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/
+      - name: Build & Test RPiLight
+        run: |
+          swift package reset
+          swift package show-dependencies
+          swift build
+          swift test
