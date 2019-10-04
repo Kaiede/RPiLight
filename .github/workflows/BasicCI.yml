@@ -8,14 +8,14 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        key: [4.1.3, 5.0.3, 5.1]
+        swift-version: [4.1.3, 5.0.3, 5.1]
     
     steps:
     - name: Install Swift
       run: |
         mkdir swift
-        curl https://swift.org/builds/swift-${{ matrix.python-version }}-release/ubuntu18888604/swift-${SWIFT_VERSION}-RELEASE/swift-${{ matrix.python-version }}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift
-        export PATH="$(pwd)/swift/swift-${{ matrix.python-version }}-RELEASE-ubuntu16.04/usr/bin:$PATH"
+        curl https://swift.org/builds/swift-${{ matrix.swift-version }}-release/ubuntu1804/swift-${{ matrix.swift-version }}-RELEASE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04.tar.gz -s | tar -xz -C swift
+        export PATH="$(pwd)/swift/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04/usr/bin:$PATH"
     - uses: actions/checkout@v1
     - name: Build & Test RPiLight
       run: |
