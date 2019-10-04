@@ -24,12 +24,12 @@ jobs:
       uses: actions/checkout@v1
     - name: Swift Package Information
       run: |
-        ${HOME}/swift/bin/swift --version
-        ${HOME}/swift/bin/swift package show-dependencies
+        swift --version
+        swift package show-dependencies
     - name: Build
-      run: ${HOME}/swift/bin/swift build --build-tests
+      run: swift build --build-tests
     - name: Test
-      run: ${HOME}/swift/bin/swift test
+      run: swift test
 
   macOSBuild:
     name: macOS Xcode ${{ matrix.xcode-version }}
