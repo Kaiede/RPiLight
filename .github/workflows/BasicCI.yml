@@ -5,6 +5,8 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-16.04
+    env:
+      SWIFT_PATH: swift/bin/swift
     strategy:
       max-parallel: 2
       matrix:
@@ -12,14 +14,15 @@ jobs:
     
     steps:
     - name: Install Swift
+      env:
+        SWIFT_VERSION: ${{ matrix.swift-version }}
       run: |
         mkdir swift
-        curl https://swift.org/builds/swift-${{ matrix.swift-version }}-release/ubuntu1604/swift-${{ matrix.swift-version }}-RELEASE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift
-        export PATH="$(pwd)/swift/swift-${{ matrix.swift-version }}-RELEASE-ubuntu16.04/usr/bin:$PATH"
+        curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu1604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift --strip-components=2
     - uses: actions/checkout@v1
     - name: Build & Test RPiLight
       run: |
-        swift package reset
-        swift package show-dependencies
-        swift build
-        swift test
+        ${SWIFT_PATH} package reset
+        ${SWIFT_PATH} package show-dependencies
+        ${SWIFT_PATH} build
+        ${SWIFT_PATH} test
