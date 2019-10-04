@@ -1,0 +1,21 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    
+    steps:
+    - name: Install Swift 5.0.3
+      run: |
+        mkdir swift
+        curl https://swift.org/builds/swift-${SWIFT_VERSION}-release/ubuntu18888604/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04.tar.gz -s | tar -xz -C swift
+        export PATH="$(pwd)/swift/swift-${SWIFT_VERSION}-RELEASE-ubuntu16.04/usr/bin:$PATH"
+    - uses: actions/checkout@v1
+    - name: Build & Test RPiLight
+      run: |
+        swift package reset
+        swift package show-dependencies
+        swift build
+        swift test
