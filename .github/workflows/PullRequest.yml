@@ -3,8 +3,8 @@ name: Pull Request
 on: [pull_request]
 
 jobs:
-  raspbianBusterBuild:
-    name: ARM Buster - Swift ${{ matrix.swift-version }}
+  raspbianStretchBuild:
+    name: ARM Stretch - Swift ${{ matrix.swift-version }}
     runs-on: ubuntu-18.04
     strategy:
       matrix:
@@ -17,36 +17,14 @@ jobs:
         id: runcmd
         with:
           architecture: armv6
-          distribution: buster
+          distribution: stretch
           run: |
             apt update
-            apt install -y libatomic1 libbsd0 clang libicu-dev libcurl4-nss-dev
-            apt install -y ca-certificates curl
-            curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi01234-RaspbianBuster.tgz
+            apt install -y clang-3.8 libicu-dev libcurl4-nss-dev
+            apt install -y curl
+            curl -V -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi01234-RaspbianBuster.tgz
             tar xzf swift-${{ matrix.swift-version }}.tgz
             ./usr/bin/swift test
-
-  # raspbianStretchBuild:
-  #   name: ARM Stretch - Swift ${{ matrix.swift-version }}
-  #   runs-on: ubuntu-18.04
-  #   strategy:
-  #     matrix:
-  #       swift-version: [5.0.3, 5.1.1]
-  #   steps:
-  #     - uses: actions/checkout@v1.0.0
-  #     - uses: uraimo/run-on-arch-action@v1.0.5
-  #       name: Build in QEMU
-  #       id: runcmd
-  #       with:
-  #         architecture: armv6
-  #         distribution: stretch
-  #         run: |
-  #           apt update
-  #           apt install -y clang-3.8 libicu-dev libcurl4-nss-dev
-  #           apt install -y curl
-  #           curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi0123-RaspbianStretch.tgz
-  #           tar xzf swift-${{ matrix.swift-version }}.tgz
-  #           ./usr/bin/swift test
 
   # linuxBuild:
   #   name: Swift ${{ matrix.swift-version }} (${{ matrix.os }})
