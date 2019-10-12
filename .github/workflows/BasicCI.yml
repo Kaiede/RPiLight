@@ -44,8 +44,13 @@ jobs:
       - name: Swift Package Information
         run: |
           swift --version
-          swift package show-dependencies
+          swift package show-dependncies
       - name: Build
         run: swift build --build-tests
       - name: Test
         run: swift test
+      - name: Swiftlint
+        run: |
+          brew install swiftlint
+          swiftlint
+        
