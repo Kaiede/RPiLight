@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   linuxBuild:
-    name: Ubuntu (${{ matrix.os }}) - Swift ${{ matrix.swift-version }}
+    name: Swift ${{ matrix.swift-version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -28,7 +28,7 @@ jobs:
       run: swift test
 
   macOSBuild:
-    name: macOS Latest - Xcode ${{ matrix.xcode-version }}
+    name: macOS - Xcode ${{ matrix.xcode-version }}
     runs-on: macOS-latest
     strategy:
       matrix:

@@ -4,11 +4,12 @@ on: [pull_request]
 
 jobs:
   raspbianBusterBuild:
-    name: ARM Debian Buster - Swift ${{ matrix.swift-version }}
+    name: ARM Buster - Swift ${{ matrix.swift-version }}
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        swift-version: [5.0.3, 5.1.1]
+        swift-version: [5.1.1]
+#        swift-version: [5.0.3, 5.1.1]
     steps:
       - uses: actions/checkout@v1.0.0
       - uses: uraimo/run-on-arch-action@v1.0.5
@@ -25,76 +26,76 @@ jobs:
             tar xzf swift-${{ matrix.swift-version }}.tgz
             ./usr/bin/swift test
 
-  raspbianStretchBuild:
-    name: ARM Debian Stretch - Swift ${{ matrix.swift-version }}
-    runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        swift-version: [5.0.3, 5.1.1]
-    steps:
-      - uses: actions/checkout@v1.0.0
-      - uses: uraimo/run-on-arch-action@v1.0.5
-        name: Build in QEMU
-        id: runcmd
-        with:
-          architecture: armv6
-          distribution: stretch
-          run: |
-            apt update
-            apt install -y clang-3.8 libicu-dev libcurl4-nss-dev
-            apt install -y curl
-            curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi0123-RaspbianStretch.tgz
-            tar xzf swift-${{ matrix.swift-version }}.tgz
-            ./usr/bin/swift test
+  # raspbianStretchBuild:
+  #   name: ARM Stretch - Swift ${{ matrix.swift-version }}
+  #   runs-on: ubuntu-18.04
+  #   strategy:
+  #     matrix:
+  #       swift-version: [5.0.3, 5.1.1]
+  #   steps:
+  #     - uses: actions/checkout@v1.0.0
+  #     - uses: uraimo/run-on-arch-action@v1.0.5
+  #       name: Build in QEMU
+  #       id: runcmd
+  #       with:
+  #         architecture: armv6
+  #         distribution: stretch
+  #         run: |
+  #           apt update
+  #           apt install -y clang-3.8 libicu-dev libcurl4-nss-dev
+  #           apt install -y curl
+  #           curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi0123-RaspbianStretch.tgz
+  #           tar xzf swift-${{ matrix.swift-version }}.tgz
+  #           ./usr/bin/swift test
 
-  linuxBuild:
-    name: Ubuntu Desktop (${{ matrix.os }}) - Swift ${{ matrix.swift-version }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      max-parallel: 1
-      matrix:
-        swift-version: [4.1.3, 5.0.3, 5.1.1]
-        os: [ubuntu-16.04, ubuntu-18.04]
-        exclude: 
-          - swift-version: 4.1.3
-            os: ubuntu-18.04
+  # linuxBuild:
+  #   name: Swift ${{ matrix.swift-version }} (${{ matrix.os }})
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     max-parallel: 1
+  #     matrix:
+  #       swift-version: [4.1.3, 5.0.3, 5.1.1]
+  #       os: [ubuntu-16.04, ubuntu-18.04]
+  #       exclude: 
+  #         - swift-version: 4.1.3
+  #           os: ubuntu-18.04
     
-    steps:
-    - name: Install Swift
-      uses: YOCKOW/Action-setup-swift@master
-      with:
-          swift-version: ${{ matrix.swift-version }}
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Swift Package Information
-      run: |
-        swift --version
-        swift package show-dependencies
-    - name: Build
-      run: swift build --build-tests
-    - name: Test
-      run: swift test
+  #   steps:
+  #   - name: Install Swift
+  #     uses: YOCKOW/Action-setup-swift@master
+  #     with:
+  #         swift-version: ${{ matrix.swift-version }}
+  #   - name: Checkout
+  #     uses: actions/checkout@v1
+  #   - name: Swift Package Information
+  #     run: |
+  #       swift --version
+  #       swift package show-dependencies
+  #   - name: Build
+  #     run: swift build --build-tests
+  #   - name: Test
+  #     run: swift test
 
-  macOSBuild:
-    name: macOS Latest - Xcode ${{ matrix.xcode-version }}
-    runs-on: macOS-latest
-    strategy:
-      max-parallel: 1
-      matrix:
-        xcode-version: [11.0, 10.3]
+  # macOSBuild:
+  #   name: macOS - Xcode ${{ matrix.xcode-version }}
+  #   runs-on: macOS-latest
+  #   strategy:
+  #     max-parallel: 1
+  #     matrix:
+  #       xcode-version: [11.0, 10.3]
         
-    steps:
-      - name: Configure Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/
-          xcode-select -p
-      - name: Checkout
-        uses: actions/checkout@v1
-      - name: Swift Package Information
-        run: |
-          swift --version
-          swift package show-dependencies
-      - name: Build
-        run: swift build --build-tests
-      - name: Test
-        run: swift test
+  #   steps:
+  #     - name: Configure Xcode
+  #       run: |
+  #         sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/
+  #         xcode-select -p
+  #     - name: Checkout
+  #       uses: actions/checkout@v1
+  #     - name: Swift Package Information
+  #       run: |
+  #         swift --version
+  #         swift package show-dependencies
+  #     - name: Build
+  #       run: swift build --build-tests
+  #     - name: Test
+  #       run: swift test
