@@ -20,7 +20,7 @@ jobs:
           distribution: stretch
           run: |
             apt update
-            apt install -y clang-3.8 libicu-dev libcurl4-nss-dev
+            apt install -y clang-3.8 libncurses6 libicu-dev libcurl4-nss-dev
             apt install -y curl
             curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi01234-RaspbianBuster.tgz
             tar xzf swift-${{ matrix.swift-version }}.tgz
