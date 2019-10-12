@@ -24,6 +24,7 @@ jobs:
             apt install -y curl git
             curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi0123-RaspbianStretch.tgz
             tar xzf swift-${{ matrix.swift-version }}.tgz
+            ./usr/bin/swift build -j 1
             ./usr/bin/swift test
 
   # linuxBuild:
@@ -37,7 +38,10 @@ jobs:
   #       exclude: 
   #         - swift-version: 4.1.3
   #           os: ubuntu-18.04
-    
+  #         - swift-version: 5.0.3
+  #           os: ubuntu-18.04  
+  #         - swift-version: 5.1.1
+  #           os: ubuntu-18.04  
   #   steps:
   #   - name: Install Swift
   #     uses: YOCKOW/Action-setup-swift@master
