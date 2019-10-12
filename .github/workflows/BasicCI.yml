@@ -44,7 +44,7 @@ jobs:
       - name: Swift Package Information
         run: |
           swift --version
-          swift package show-dependncies
+          swift package show-dependencies
       - name: Build
         run: swift build --build-tests
       - name: Test
