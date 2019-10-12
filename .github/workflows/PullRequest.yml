@@ -21,7 +21,7 @@ jobs:
             apt update
             apt install -y libatomic1 libbsd0 clang libicu-dev libcurl4-nss-dev
             apt install -y curl
-            curl -OL https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RaspbianBuster.tgz
+            curl -OL https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi01234-RaspbianBuster.tgz
             tar xzf swift-${{ matrix.swift-version }}-armv6-RaspbianBuster.tgz
             ./usr/bin/swift test
 
@@ -43,7 +43,7 @@ jobs:
             apt update
             apt install -y clang-3.8 libicu-dev libcurl4-nss-dev
             apt install -y curl
-            curl -OL https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RaspbianStretch.tgz
+            curl -OL https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi0123-RaspbianStretch.tgz
             tar xzf swift-${{ matrix.swift-version }}-armv6-RaspbianStretch.tgz
             ./usr/bin/swift test
 
