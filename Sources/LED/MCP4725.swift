@@ -49,8 +49,7 @@ class DacViaMCP4725: LEDModuleImpl {
         // configurable. 
         self.controller.setDefault(voltage: 0, mode: .normal)
 
-        // TODO: There's bound to be a slightly less weird way to implement this for single-channel
-        // modules like this one.
+        // This is unusual for single-channel configurations. Is there some sugar we can use here?
         var channelMap: [String: Int] = [:]
         for (token, index) in configuration.channels where index < 1 {
             channelMap[token] = index

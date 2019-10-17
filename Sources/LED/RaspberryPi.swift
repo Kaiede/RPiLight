@@ -31,7 +31,7 @@ import SingleBoard
 //
 
 class PwmViaRaspberryPi: LEDModuleImpl {
-    internal let channelMap: [String : Int]
+    internal let channelMap: [String: Int]
 
     private var arePinsEnabled: [Bool]
     private let pwm: BoardPWM

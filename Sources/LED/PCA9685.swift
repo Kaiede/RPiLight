@@ -48,8 +48,6 @@ class PwmViaPCA9685: LEDModuleImpl {
 
         let address: UInt8 = configuration.addressAsI2C ?? PCA9685.defaultAdafruitAddress
 
-        // TODO: Support I2C Address Configuration Here
-        // TODO: Needs fixes to the PCA9685 Library
         self.controller = PCA9685(i2cBus: SingleBoard.raspberryPi.i2cMainBus, address: address)
         self.controller.frequency = UInt(frequency)
 
@@ -71,8 +69,6 @@ class PwmViaPCA9685: LEDModuleImpl {
         let maxIntensity: Double = 4095
         let steps = UInt16(intensity * maxIntensity)
 
-        // TODO: We probably want to be able to log information about the steps
-        // Log.debug("[\(self.token)] PWM Width \(steps)/4095")
         self.controller.setChannel(controllerChannel, onStep: 0, offStep: steps)
     }
 }

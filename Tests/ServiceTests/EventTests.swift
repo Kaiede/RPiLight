@@ -28,7 +28,7 @@ import XCTest
 
 class EventTests: XCTestCase {
     func testEmpty() {}
-    
+
     static var allTests = [
         ("testEmpty", testEmpty)
     ]

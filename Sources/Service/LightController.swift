@@ -54,14 +54,14 @@ struct ChannelPointWrapper: LayerPoint {
     var time: DateComponents {
         return self.event.time
     }
-    
+
     var brightness: Double {
         return self.event.setting.asBrightness(withGamma: self.configuration.gamma)
     }
-    
+
     private let configuration: BehaviorControllerConfig
     private let event: ChannelPoint
-    
+
     init(configuration: BehaviorControllerConfig, event: ChannelPoint) {
         self.configuration = configuration
         self.event = event
@@ -138,7 +138,7 @@ public class LightController: BehaviorController {
 
         // Copy the channel controllers
         self.channelControllers = channelControllers
-        
+
         // Attach the channel controllers to self
         for var channelController in self.channelControllers.values {
             channelController.rootController = self
@@ -154,14 +154,14 @@ public class LightController: BehaviorController {
                             channels: [Channel],
                             withSchedule schedule: [String: ChannelSchedule],
                             behavior: Behavior = DefaultLightBehavior()) throws {
-        
+
         // Convert the array into a lookup
         let channelDict = channels.reduce([String: Channel]()) { (dict, channel) -> [String: Channel] in
             var dict = dict
             dict[channel.token] = channel
             return dict
         }
-        
+
         // Configure each channel
         let configuration = LightControllerConfig(gamma: gamma)
         let now = Date()
@@ -170,18 +170,18 @@ public class LightController: BehaviorController {
             guard let channel = channelDict[token] else {
                 throw LightControllerError.missingToken(token)
             }
-            
+
             let controller = ChannelController(channel: channel)
             channelControllers[token] = controller
-            
+
             let points = channelSchedule.schedule.map({ ChannelPointWrapper(configuration: configuration, event: $0 ) })
             let layer = Layer(identifier: "Schedule", points: points, startTime: now)
             controller.set(layer: layer)
         }
-        
+
         self.init(configuration: configuration, channelControllers: channelControllers, behavior: behavior)
     }
-    
+
     deinit {
         self.stopInternal()
     }
@@ -192,14 +192,14 @@ public class LightController: BehaviorController {
 
             if self.isRunning {
                 let now = Date()
-                if (controller.firesOnStart) {
+                if controller.firesOnStart {
                     controller.fire(forController: self, date: now)
                 }
                 self.scheduleEvent(forDate: now)
             }
         }
     }
-    
+
     public func start() {
         self.queue.async {
             Log.info("Starting Light Controller")
@@ -211,19 +211,19 @@ public class LightController: BehaviorController {
             self.scheduleEvent(forDate: now)
         }
     }
-    
+
     public func setStopHandler(_ closure: StopClosure?) {
         self.queue.async {
             self.stopClosure = closure
         }
     }
-    
+
     public func stop() {
         self.queue.async {
             self.stopInternal()
         }
     }
-    
+
     public func invalidateRefreshTimer() {
         self.queue.async {
             if self.isRunning {
@@ -272,13 +272,13 @@ public class LightController: BehaviorController {
         Log.debug("Light Controller Refresh")
         let now = Date()
         self.behavior.refresh(controller: self, forDate: now)
-        
+
         if self.isRefreshOneShot {
             Log.debug("Light Controller One Shot Rescheduling")
             self.scheduleRefresh(forDate: now)
         }
     }
-    
+
     private func stopInternal() {
         Log.info("Stopping Light Controller")
         if self.isRunning {
@@ -298,7 +298,7 @@ public class LightController: BehaviorController {
     private func stopEventInternal() {
         self.eventTimer.pause()
     }
-    
+
     private func scheduleRefresh(forDate now: Date) {
         let segment = self.behavior.segment(forController: self, date: now)
         switch segment.nextUpdate {

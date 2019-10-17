@@ -48,14 +48,14 @@ class MockBehaviorController: BehaviorController {
     var channelControllers: [String : BehaviorChannel] = [:]
     var configuration: BehaviorControllerConfig = LightControllerConfig(gamma: 1.8)
     var didInvalidate: Bool = false
-    
+
     init(channelCount: Int) {
         for index in 0..<channelCount {
             let token = "CH\(index)"
             self.channelControllers[token] = MockBehaviorChannel()
         }
     }
-    
+
     func invalidateRefreshTimer() {
         self.didInvalidate = true
     }
@@ -88,10 +88,10 @@ class BehaviorTests: XCTestCase {
         let testBehavior = DefaultLightBehavior()
 
         let mockController = MockBehaviorController(channelCount: 4)
-        
+
         let refreshDate = Date()
         testBehavior.refresh(controller: mockController, forDate: refreshDate)
-        
+
         var testedMocks = 0
         for case let mockChannel as MockBehaviorChannel in mockController.channelControllers.values {
             XCTAssertEqual(mockChannel.lastUpdate, refreshDate)
@@ -99,18 +99,18 @@ class BehaviorTests: XCTestCase {
         }
         XCTAssertEqual(testedMocks, 4)
     }
-    
+
     func testDefaultNextUpdate() {
         let testBehavior = DefaultLightBehavior()
-    
+
         let mockController = MockBehaviorController(channelCount: 4)
-        
+
         let refreshDate = Date()
         let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
-        
+
         let expectedRefreshRate = (1.0 * 4096.0) / 60.0 // 1.0 brightness change over 1 minute
         let expectedInterval = DispatchTimeInterval.microseconds(Int(1_000_000.0 / expectedRefreshRate))
-        
+
         switch result {
         case .stop:
             XCTFail()
@@ -121,10 +121,10 @@ class BehaviorTests: XCTestCase {
             XCTAssertEqual(interval.asMicroseconds(), expectedInterval.asMicroseconds())
         }
     }
-    
+
     func testDefaultNextUpdateSleep() {
         let testBehavior = DefaultLightBehavior()
-        
+
         let mockController = MockBehaviorController(channelCount: 4)
 
         let testData = [
@@ -139,14 +139,14 @@ class BehaviorTests: XCTestCase {
             (0.75000, false),
             (1.00000, false)
         ]
-        
+
         for (brightnessDelta, expectSleep) in testData {
             for case let channel as MockBehaviorChannel in mockController.channelControllers.values {
                 channel.brightnessDelta = brightnessDelta
             }
             let refreshDate = Date()
             let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
-            
+
             switch result {
             case .stop:
                 XCTFail()
@@ -198,13 +198,13 @@ class BehaviorTests: XCTestCase {
             XCTFail("Should get a repeating interval")
         }
     }
-    
+
     func testPreviewRefresh() {
         let startDate = Date()
         let testBehavior = PreviewLightBehavior(startDate: startDate)
-        
+
         let mockController = MockBehaviorController(channelCount: 4)
-        
+
         let testData: [(TimeInterval, Bool)] = [
             // Interval from Start, Should Have Signaled
             (0.0, false),
@@ -216,15 +216,15 @@ class BehaviorTests: XCTestCase {
             (60.0, true),
             (120.0, true)
         ]
-        
+
         for (interval, shouldInvalidate) in testData {
             mockController.didInvalidate = false
-            
+
             let refreshDate = startDate.addingTimeInterval(interval)
             testBehavior.refresh(controller: mockController, forDate: refreshDate)
 
             XCTAssertEqual(mockController.didInvalidate, shouldInvalidate, "Interval: \(interval)")
-            
+
             var testedMocks = 0
             for case let mockChannel as MockBehaviorChannel in mockController.channelControllers.values {
                 XCTAssertNotEqual(mockChannel.lastUpdate, refreshDate)
@@ -233,13 +233,13 @@ class BehaviorTests: XCTestCase {
             XCTAssertEqual(testedMocks, 4)
         }
     }
-    
+
     func testPreviewNextUpdate() {
         let startDate = Date()
         let testBehavior = PreviewLightBehavior(startDate: startDate)
-        
+
         let mockController = MockBehaviorController(channelCount: 4)
-        
+
         let testData: [(TimeInterval, Bool)] = [
             // Interval from Start, Should Be Running
             (0.0, true),
@@ -251,7 +251,7 @@ class BehaviorTests: XCTestCase {
             (60.0, false),
             (120.0, false)
         ]
-        
+
         for (interval, shouldBeRunning) in testData {
             let refreshDate = startDate.addingTimeInterval(interval)
             let result = testBehavior.nextUpdate(forController: mockController, forDate: refreshDate)
@@ -268,7 +268,7 @@ class BehaviorTests: XCTestCase {
             }
         }
     }
-    
+
     static var allTests = [
         ("testDefaultRefresh", testDefaultRefresh),
         ("testDefaultNextUpdate", testDefaultNextUpdate),
@@ -278,5 +278,4 @@ class BehaviorTests: XCTestCase {
         ("testPreviewNextUpdate", testPreviewNextUpdate)
     ]
 }
-
 

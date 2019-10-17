@@ -112,7 +112,7 @@ class LayerTests: XCTestCase {
             XCTAssertEqual(brightness, expectedBrightness, "\(timeString)")
         }
     }
-    
+
     func testLightLevelInReverse() {
         let testExpectations = [
             ("08:00:00", 0.0),
@@ -132,13 +132,13 @@ class LayerTests: XCTestCase {
             // Start from known point every time
             let startTime = MockLayerPoint.dateFormatter.date(from: "23:59:59")!
             let testLayer = Layer(identifier: "Mock", points: LayerTests.testData, startTime: startTime)
-            
+
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
             let brightness = testLayer.lightLevel(forDate: testDate)
             XCTAssertEqual(brightness, expectedBrightness, "\(timeString)")
         }
     }
-    
+
     func testLayerRateOfChange() {
         let testExpectations = [
             // Time, Delta Change, Segment Start, Segment End

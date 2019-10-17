@@ -27,16 +27,16 @@ import Dispatch
 import Foundation
 import Logging
 
-typealias TimerHandler = () -> ()
+typealias TimerHandler = () -> Void
 
 class Timer<IDType> {
-    public private(set) var id: IDType
+    public private(set) var timerId: IDType
     private var source: DispatchSourceTimer
     private var handler: TimerHandler?
     public private(set) var isSuspended: Bool
 
     public init(identifier: IDType, queue: DispatchQueue) {
-        self.id = identifier
+        self.timerId = identifier
         self.handler = nil
         self.isSuspended = true
 
@@ -57,7 +57,7 @@ class Timer<IDType> {
         self.source.schedulePrecise(forDate: date)
         start()
 
-        Log.debug("[\(id)] Scheduled For \(Log.dateFormatter.string(from: date))")
+        Log.debug("[\(timerId)] Scheduled For \(Log.dateFormatter.string(from: date))")
     }
 
     public func schedule(startingAt date: Date, repeating interval: DispatchTimeInterval) {
@@ -67,7 +67,7 @@ class Timer<IDType> {
 
         Log.withDebug {
             let intervalMs = interval.toTimeInterval() * 1_000.0
-            Log.debug("[\(id)] Scheduled For \(Log.dateFormatter.string(from: date)), Repeating \(intervalMs) ms")
+            Log.debug("[\(timerId)] Scheduled For \(Log.dateFormatter.string(from: date)), Repeating \(intervalMs) ms")
         }
     }
 
@@ -86,17 +86,17 @@ class Timer<IDType> {
     }
 
     private func onRegistration() {
-        Log.debug("[\(id)] Registered")
+        Log.debug("[\(timerId)] Registered")
     }
 
     private func onCancel() {
-        Log.debug("[\(id)] Cancelled")
+        Log.debug("[\(timerId)] Cancelled")
     }
 
     private func onEvent() {
         Log.withDebug {
             let hasHandler = self.handler != nil
-            Log.debug("[\(id)] Event Fired. Valid Handler: \(hasHandler)")
+            Log.debug("[\(timerId)] Event Fired. Valid Handler: \(hasHandler)")
         }
         self.handler?()
     }

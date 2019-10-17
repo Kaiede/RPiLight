@@ -50,7 +50,7 @@ class SwiftExtensionsTests: XCTestCase {
             case .forward:
                 XCTAssertGreaterThan(calculatedDate, startDate)
             }
-            
+
             // Apple-only: Compare against real implementation
             #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
             let calculatedDateMac = Calendar.current.nextDate(after: startDate,

@@ -32,9 +32,9 @@ class MockBehavior: Behavior {
     var shouldStop: Bool = false
     var didStop: Bool = false
     var intervalMs: Int = 10
-    
+
     init() {}
-    
+
     func refresh(controller: BehaviorController, forDate date: Date) {
         self.refreshCount += 1
         if self.refreshCount > self.stopsAt {
@@ -48,7 +48,7 @@ class MockBehavior: Behavior {
         let mockSegment = MockChannelSegment(startBrightness: 0.0, endBrightness: 1.0, startDate: Date.distantPast, endDate: Date.distantFuture)
         return LightBehaviorSegment(segment: mockSegment, update: self.nextUpdate(forController: controller, forDate: date))
     }
-    
+
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
         if self.shouldStop {
             self.didStop = true
@@ -74,9 +74,9 @@ class MockOneShotBehavior: Behavior {
     var updateCount: Int = 0
     var stopAfter: Int = 2
     var didStop: Bool = false
-    
+
     init() {}
-    
+
     func refresh(controller: BehaviorController, forDate date: Date) {
         self.refreshCount += 1
     }
@@ -86,15 +86,15 @@ class MockOneShotBehavior: Behavior {
         let mockSegment = MockChannelSegment(startBrightness: 0.0, endBrightness: 1.0, startDate: Date.distantPast, endDate: Date.distantFuture)
         return LightBehaviorSegment(segment: mockSegment, update: self.nextUpdate(forController: controller, forDate: date))
     }
-    
+
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
         self.updateCount += 1
-        
+
         if self.updateCount >= self.stopAfter {
             self.didStop = true
             return .stop
         }
-        
+
         return .oneShot(date.addingTimeInterval(0.01))
     }
 }
@@ -107,78 +107,78 @@ class LightControllerTests: XCTestCase {
         let eventDate = LightControllerTests.dateFormatter.date(from: "08:00:00")!
         let eventComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: eventDate)
         let eventConfig = MockChannelPoint(time: eventComponents, setting: .intensity(0.5))
-        
+
         let testEvent = ChannelPointWrapper(configuration: mockConfiguration, event: eventConfig)
-        
+
         XCTAssertEqual(testEvent.time, eventComponents)
         XCTAssertEqual(testEvent.brightness, pow(0.5, (1/mockConfiguration.gamma)))
     }
-    
+
     func testChannelBinding() {
         let mockController = MockBehaviorController(channelCount: 4)
         let channelControllers = mockController.channelControllers
-        
+
         for controller in channelControllers.values {
             XCTAssertNil(controller.rootController)
         }
 
         let testController = LightController(configuration: LightControllerConfig(gamma: 1.8), channelControllers: channelControllers, behavior: MockBehavior())
-        
+
         for controller in testController.channelControllers.values {
             XCTAssertNotNil(controller.rootController)
         }
     }
-    
+
     func testAutoStop() {
         let mockController = MockBehaviorController(channelCount: 4)
         let testController = LightController(configuration: LightControllerConfig(gamma: 1.8), channelControllers: mockController.channelControllers, behavior: MockBehavior())
-        
+
         let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
             controllerStopped.fulfill()
         }
         testController.start()
-        
+
         waitForExpectations(timeout: 0.25)
     }
-    
+
     func testForceStop() {
         let mockController = MockBehaviorController(channelCount: 4)
         let mockBehavior = MockBehavior()
         mockBehavior.intervalMs = 1000
         let testController = LightController(configuration: LightControllerConfig(gamma: 1.8), channelControllers: mockController.channelControllers, behavior: mockBehavior)
-        
+
         let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
             controllerStopped.fulfill()
         }
         testController.start()
         testController.stop()
-        
+
         waitForExpectations(timeout: 0.25) { (error) in
             // Shouldn't have waited until a refresh to stop the controller
             XCTAssertFalse(mockBehavior.didStop)
         }
     }
-    
+
     func testOneShot() {
         let mockController = MockBehaviorController(channelCount: 4)
         let mockBehavior = MockOneShotBehavior()
         let testController = LightController(configuration: LightControllerConfig(gamma: 1.8), channelControllers: mockController.channelControllers, behavior: mockBehavior)
-        
+
         let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
             controllerStopped.fulfill()
         }
         testController.start()
-        
+
         waitForExpectations(timeout: 0.25) { (error) in
             XCTAssertEqual(mockBehavior.refreshCount, mockBehavior.stopAfter)
             XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter)
             XCTAssertTrue(mockBehavior.didStop)
         }
     }
-    
+
     static var allTests = [
         ("testChannelEvent", testChannelEvent),
         ("testChannelBinding", testChannelBinding),
@@ -186,7 +186,7 @@ class LightControllerTests: XCTestCase {
         ("testForceStop", testForceStop),
         ("testOneShot", testOneShot)
     ]
-    
+
     static public let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HH:mm:ss"
@@ -195,6 +195,4 @@ class LightControllerTests: XCTestCase {
         return dateFormatter
     }()
 }
-
-
 

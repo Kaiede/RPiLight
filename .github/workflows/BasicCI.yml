@@ -49,3 +49,7 @@ jobs:
         run: swift build --build-tests
       - name: Test
         run: swift test
+      - name: Swiftlint
+        run: |
+          brew install swiftlint
+          swiftlint

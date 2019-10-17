@@ -32,10 +32,10 @@ import LED
 public enum LightBehaviorUpdate {
     // Stop the controller
     case stop
-    
+
     // Do a one-shot update at date
     case oneShot(Date)
-    
+
     // Do repeating updates starting at date
     case repeating(Date, DispatchTimeInterval)
 }
@@ -81,29 +81,29 @@ public protocol Behavior {
 public struct PreviewLightBehavior: Behavior {
     // Makes 1 Minute act like 24 Hours
     private static let speedFactor: Double = 60.0 * 24.0
-    
+
     private let startDate: Date
     private let midnight: Date
-    
+
     public init(startDate: Date = Date()) {
         self.startDate = startDate
         self.midnight = Calendar.current.startOfDay(for: self.startDate)
     }
-    
+
     public func refresh(controller: BehaviorController, forDate date: Date) {
         let secondsSinceStart = date.timeIntervalSince(self.startDate)
         let acceleratedInterval = secondsSinceStart * PreviewLightBehavior.speedFactor
-        
+
         let now = self.midnight.addingTimeInterval(acceleratedInterval)
         for (_, channelController) in controller.channelControllers {
             channelController.update(forDate: now)
         }
-        
+
         if secondsSinceStart >= 60.0 {
             controller.invalidateRefreshTimer()
         }
     }
-    
+
     public func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
         let secondsSinceStart = date.timeIntervalSince(self.startDate)
         let acceleratedInterval = secondsSinceStart * PreviewLightBehavior.speedFactor
@@ -117,23 +117,24 @@ public struct PreviewLightBehavior: Behavior {
             mergedSegment.unionByChannel(withSegment: channelSegment)
         }
 
-        return LightBehaviorSegment(segment: mergedSegment, update: self.nextUpdate(forController: controller, forDate: date))
+        return LightBehaviorSegment(segment: mergedSegment,
+                                    update: self.nextUpdate(forController: controller, forDate: date))
     }
 
     public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
         let secondsSinceStart = date.timeIntervalSince(self.startDate)
-        
+
         if secondsSinceStart >= 60.0 {
             return .stop
         }
-        
+
         return .repeating(date, .milliseconds(10))
     }
 }
 
 public struct DefaultLightBehavior: Behavior {
     public init() {}
-    
+
     public func refresh(controller: BehaviorController, forDate date: Date) {
         for (_, channelController) in controller.channelControllers {
             channelController.update(forDate: date)
@@ -158,7 +159,7 @@ public struct DefaultLightBehavior: Behavior {
         let desiredChanges = (mergedSegment.totalBrightnessChange * targetChanges).rounded(.awayFromZero)
         let desiredInterval = mergedSegment.duration / max(1.0, desiredChanges)
         let interval = min(mergedSegment.duration, max(0.010, desiredInterval))
-        let finalInterval: DispatchTimeInterval = interval < 1000.0 ? .microseconds(Int(interval * 1_000_000.0)) : .milliseconds(Int(interval * 1_000.0))
+        let finalInterval = DispatchTimeInterval(lightBehaviorSeconds: interval)
 
         return LightBehaviorSegment(segment: mergedSegment, update: .repeating(mergedSegment.startDate, finalInterval))
     }
@@ -166,5 +167,15 @@ public struct DefaultLightBehavior: Behavior {
     public func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
         let segment = self.segment(forController: controller, date: date)
         return segment.nextUpdate
+    }
+}
+
+extension DispatchTimeInterval {
+    init(lightBehaviorSeconds seconds: Double) {
+        if seconds < 1000.0 {
+            self = .microseconds(Int(seconds * 1_000_000.0))
+        } else {
+            self = .milliseconds(Int(seconds * 1_000.0))
+        }
     }
 }

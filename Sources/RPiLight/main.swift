@@ -41,7 +41,7 @@ import LED
 // MARK: Process Arguments
 //
 var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
-let verbose = moderator.add(.option("v","verbose", description: "Provide Additional Logging"))
+let verbose = moderator.add(.option("v", "verbose", description: "Provide Additional Logging"))
 let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
 let configFile = moderator.add(Argument<String>
                     .singleArgument(name: "config file", description: "Configuration file to load")

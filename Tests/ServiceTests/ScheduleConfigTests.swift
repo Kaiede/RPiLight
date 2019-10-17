@@ -59,7 +59,7 @@ class ScheduleConfigTests: XCTestCase {
         do {
             let decoder = JSONDecoder()
             let lunarSchedule = try decoder.decode(LunarSchedule.self, from: jsonData)
-            
+
             XCTAssertEqual(lunarSchedule.startTime.hour, 20)
             XCTAssertEqual(lunarSchedule.startTime.minute, 30)
             XCTAssertEqual(lunarSchedule.startTime.second, 0)
@@ -96,7 +96,7 @@ class ScheduleConfigTests: XCTestCase {
         do {
             let decoder = JSONDecoder()
             let channelSchedule = try decoder.decode(ChannelSchedule.self, from: jsonData)
-    
+
             // Channel Specific Settings
             XCTAssertEqual(channelSchedule.minIntensity, 0.0)
 
@@ -123,7 +123,7 @@ class ScheduleConfigTests: XCTestCase {
         do {
             let decoder = JSONDecoder()
             let channelSchedule = try decoder.decode(ChannelSchedule.self, from: jsonData)
-    
+
             // Channel Specific Settings
             XCTAssertEqual(channelSchedule.minIntensity, 0.0025)
 

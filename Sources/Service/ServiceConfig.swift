@@ -41,26 +41,18 @@ public enum ServiceControllerType: String, Codable {
 
 extension ServiceControllerType {
     var hasAddress: Bool {
-        get {
-            switch(self) {
-            case .pca9685: fallthrough
-            case .mcp4725:
-                return true
-            default:
-                return false
-            }
+        switch self {
+        case .pca9685: return true
+        case .mcp4725: return true
+        default: return false
         }
     }
 
     var hasFrequency: Bool {
-        get {
-            switch(self) {
-            case .raspberryPwm: fallthrough
-            case .pca9685:
-                return true
-            default:
-                return false
-            }
+        switch self {
+        case .raspberryPwm: return true
+        case .pca9685: return true
+        default: return false
         }
     }
 }
@@ -79,7 +71,7 @@ public struct ServiceConfiguration {
     public let gamma: Double
     public let controllers: [ServiceControllerConfiguration]
 
-    // TODO: MQTT Broker Config
+    // FUTURE: MQTT Broker Config
 
     enum CodingKeys: String, CodingKey {
         case username = "user"
@@ -102,7 +94,7 @@ extension ServiceConfiguration: Decodable {
         } else {
             logLevel = .info
         }
- 
+
         board = try container.decode(ServiceBoardType.self, forKey: .boardType)
         controllers = try container.decode([ServiceControllerConfiguration].self, forKey: .controllers)
 
@@ -128,7 +120,7 @@ extension ServiceConfiguration: Decodable {
 public struct ServiceControllerConfiguration {
     // Required Controller Settings
     public let type: ServiceControllerType
-    public let channels: [String : Int]
+    public let channels: [String: Int]
 
     // Conditional Controller Settings
     public let frequency: Int?
@@ -151,7 +143,7 @@ extension ServiceControllerConfiguration: Decodable {
         type = try container.decode(ServiceControllerType.self, forKey: .type)
 
         let channelContainer = try container.nestedContainer(keyedBy: AnyCodingKey.self, forKey: .channels)
-        var decodedChannels: [String:Int] = [:]
+        var decodedChannels: [String: Int] = [:]
         for codingKey in channelContainer.allKeys {
             decodedChannels[codingKey.stringValue] = try channelContainer.decode(Int.self, forKey: codingKey)
         }
@@ -166,17 +158,32 @@ extension ServiceControllerConfiguration: Decodable {
 
         // Conditional: Frequency
         if type.hasFrequency {
-            let minimumFrequency = 120
             let defaultFrequency = 480
-            let maximumFrequency = 2000
             if container.contains(.frequency) {
                 let decodedFrequency = try container.decode(Int.self, forKey: .frequency)
-                frequency = decodedFrequency <= 0 ? defaultFrequency : max(min(decodedFrequency, maximumFrequency), minimumFrequency)
+                frequency = Int(decodedFrequency: decodedFrequency, default: defaultFrequency)
             } else {
                 frequency = defaultFrequency
             }
         } else {
             frequency = nil
+        }
+    }
+}
+
+fileprivate extension Int {
+    init(decodedFrequency: Int, default defaultFrequency: Int) {
+        let minimumFrequency = 120
+        let maximumFrequency = 2000
+
+        if decodedFrequency <= 0 {
+            self = defaultFrequency
+        } else if decodedFrequency <= minimumFrequency {
+            self = minimumFrequency
+        } else if decodedFrequency >= maximumFrequency {
+            self = maximumFrequency
+        } else {
+            self = decodedFrequency
         }
     }
 }

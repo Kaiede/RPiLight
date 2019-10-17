@@ -101,24 +101,31 @@ class LightService {
         //
         let behavior: Behavior = withPreview ? PreviewLightBehavior() : DefaultLightBehavior()
 
-        let controller = try! LightController(gamma: configuration.gamma, channels: channels.asArray(), withSchedule: schedule.channels, behavior: behavior)
-        controller.setStopHandler { (controller) in
-            if withPreview {
-                Log.info("Simulation Complete")
-                exit(0)
-            } else {
-                Log.error("Controller unexpectedly stopped.")
-                exit(1)
+        do {
+            let controller = try LightController(gamma: configuration.gamma,
+                                                  channels: channels.asArray(),
+                                                  withSchedule: schedule.channels,
+                                                  behavior: behavior)
+            controller.setStopHandler { _ in
+                if withPreview {
+                    Log.info("Simulation Complete")
+                    exit(0)
+                } else {
+                    Log.error("Controller unexpectedly stopped.")
+                    exit(1)
+                }
             }
-        }
 
-        if let lunarCycle = schedule.lunarCycle, !withPreview {
-            let lunarCycleController = LunarCycleController(schedule: lunarCycle)
-            controller.setEvent(controller: lunarCycleController)
-        }
+            if let lunarCycle = schedule.lunarCycle, !withPreview {
+                let lunarCycleController = LunarCycleController(schedule: lunarCycle)
+                controller.setEvent(controller: lunarCycleController)
+            }
 
-        controller.start()
-        dispatchMain()
+            controller.start()
+            dispatchMain()
+        } catch {
+            Log.error("Unable to create Controller")
+        }
     }
 
     private func dropRoot() -> uid_t {
@@ -155,7 +162,8 @@ class LightService {
         return channels
     }
 
-    static private func createModule(withConfig configuration: ServiceControllerConfiguration, boardType: ServiceBoardType) -> LEDModule {
+    static private func createModule(withConfig configuration: ServiceControllerConfiguration,
+                                     boardType: ServiceBoardType) -> LEDModule {
         do {
             let moduleType = LEDModuleType(configType: configuration.type)
             let moduleBoardType = LEDBoardType(configType: boardType)
@@ -188,7 +196,7 @@ class LightService {
             guard let channel = channelSet[token] else {
                 fatalError("Attempted to configure unknown channel '\(token)")
             }
-    
+
             channel.minIntensity = channelSchedule.minIntensity
         }
     }
@@ -201,7 +209,7 @@ class LightService {
         do {
             let decoder = JSONDecoder()
             let configuration = try decoder.decode(ServiceConfiguration.self, fromFile: configUrl)
-        
+
             return configuration
         } catch {
             fatalError("\(error)")
@@ -216,7 +224,7 @@ class LightService {
         do {
             let decoder = JSONDecoder()
             let schedule = try decoder.decode(Schedule.self, fromFile: configUrl)
-        
+
             return schedule
         } catch {
             fatalError("\(error)")

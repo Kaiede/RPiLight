@@ -63,7 +63,7 @@ public enum LEDBoardType: String {
 //
 
 public protocol LEDModuleConfig {
-    var channels: [String : Int] { get }
+    var channels: [String: Int] { get }
 
     // Conditional LED Controller Settings
     var frequency: Int? { get }
@@ -116,7 +116,7 @@ extension LEDModuleType {
 
 public class LEDModule: CustomStringConvertible {
     public var availableChannels: [String] {
-        get { return Array(impl.channelMap.keys) }
+        return Array(impl.channelMap.keys)
     }
 
     public var description: String {
@@ -128,7 +128,7 @@ public class LEDModule: CustomStringConvertible {
             return nil
         }
 
-        return LEDChannel(impl: impl, token: token, id: channelId)
+        return LEDChannel(impl: impl, token: token, channelId: channelId)
     }
 
     private let impl: LEDModuleImpl
@@ -145,7 +145,7 @@ public class LEDModule: CustomStringConvertible {
 
 public class LEDChannel {
     private let impl: LEDModuleImpl
-    private let id: Int
+    private let channelId: Int
 
     public let token: String
     public var minIntensity: Double
@@ -153,13 +153,13 @@ public class LEDChannel {
         didSet { self.onSettingChanged() }
     }
 
-    internal init(impl: LEDModuleImpl, token: String, id: Int) {
+    internal init(impl: LEDModuleImpl, token: String, channelId: Int) {
         self.minIntensity = 0.0
         self.intensity = 0.0
 
         self.impl = impl
         self.token = token
-        self.id = id
+        self.channelId = channelId
     }
 
     private func onSettingChanged() {
@@ -168,7 +168,7 @@ public class LEDChannel {
             clampedIntensity = 0.0
         }
 
-        impl.applyIntensity(clampedIntensity, toChannel: self.id)
+        impl.applyIntensity(clampedIntensity, toChannel: self.channelId)
         Log.debug("\(self.token): Intensity Now \(clampedIntensity * 100)")
     }
 }
