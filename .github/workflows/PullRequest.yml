@@ -14,9 +14,10 @@ jobs:
       matrix:
         swift-version: [5.0.3, 5.1.1]
     steps:
-      - uses: actions/checkout@v1.0.0
-      - uses: uraimo/run-on-arch-action@v1.0.5
-        name: Build in QEMU
+      - name: Checkout
+        uses: actions/checkout@v1.0.0
+      - name: Build in QEMU
+        uses: uraimo/run-on-arch-action@v1.0.5
         id: runcmd
         with:
           architecture: armv6
