@@ -47,22 +47,30 @@ class Layer: ChannelLayer {
         (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: startTime, withPoints: points)
         Log.withInfo {
             let formatter = Log.timeFormatter
-            Log.info("Initial Segment Guess: [\(identifier)] \(activeSegment.range) \(formatter.string(from: activeSegment.startDate)) -> \(formatter.string(from: activeSegment.endDate))")
+            Log.info {
+                let startString = formatter.string(from: activeSegment.startDate)
+                let endString = formatter.string(from: activeSegment.endDate)
+                return "Initial Segment Guess: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
+            }
         }
     }
 
     func segment(forDate date: Date) -> ChannelSegment {
         let (_, activeSegment) = Layer.activeSegment(forDate: date, withPoints: self.points)
-        
+
         return activeSegment
     }
-    
+
     func lightLevel(forDate now: Date) -> Double {
         if now >= self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
             Log.withInfo {
                 let formatter = Log.timeFormatter
-                Log.info("Switched to Segment: [\(self.identifier)] \(activeSegment.range) \(formatter.string(from: activeSegment.startDate)) -> \(formatter.string(from: activeSegment.endDate))")
+                Log.info {
+                    let startString = formatter.string(from: activeSegment.startDate)
+                    let endString = formatter.string(from: activeSegment.endDate)
+                    return "Switched to Segment: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
+                }
             }
         }
 
@@ -91,7 +99,9 @@ class Layer: ChannelLayer {
         return (activeIndex, activeSegment)
     }
 
-    private static func segment(forIndex index: Int, withStartDate startDate: Date, points: [LayerPoint]) -> LayerSegment {
+    private static func segment(forIndex index: Int,
+                                withStartDate startDate: Date,
+                                points: [LayerPoint]) -> LayerSegment {
         let nextIndex = (index + 1) % points.count
 
         guard let endDate = points[nextIndex].time.calcNextDate(after: startDate) else {
@@ -110,11 +120,11 @@ struct LayerSegment: ChannelSegment {
     var startBrightness: Double {
         return range.origin
     }
-    
+
     var endBrightness: Double {
         return range.end
     }
-    
+
     var timeDelta: TimeInterval {
         return self.endDate.timeIntervalSince(self.startDate)
     }

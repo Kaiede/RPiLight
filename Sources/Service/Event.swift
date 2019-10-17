@@ -75,7 +75,11 @@ public class LunarCycleController: EventController {
         let intensityFactorStart: ChannelSetting = .intensity(illuminationStart.fraction)
         let intensityFactorEnd: ChannelSetting = .intensity(illuminationEnd.fraction)
 
-        Log.info("Lunar Night Period: \(Log.timeFormatter.string(from: nightStart)) -> \(Log.timeFormatter.string(from: nightEnd))")
+        Log.info {
+            let startString = Log.timeFormatter.string(from: nightStart)
+            let endString = Log.timeFormatter.string(from: nightEnd)
+            return "Lunar Night Period: \(startString) -> \(endString)"
+        }
         Log.info("Calculated Lunar Light: \(illuminationStart.fraction) -> \(illuminationEnd.fraction)")
 
         for channelController in controller.channelControllers.values {
@@ -96,10 +100,14 @@ struct LunarPoint: LayerPoint {
 }
 
 extension Layer {
-    convenience init(nightStart: Date, end nightEnd: Date, brightnessFactorStart brightnessStart: Double, end brightnessEnd: Double) {
+    convenience init(nightStart: Date,
+                     end nightEnd: Date,
+                     brightnessFactorStart brightnessStart: Double,
+                     end brightnessEnd: Double) {
         let desiredTransitionTime: TimeInterval = 60.0 * 5.0
         let nightInterval = nightEnd.timeIntervalSince(nightStart)
-        let transitionInterval: TimeInterval = nightInterval > desiredTransitionTime * 2 ? desiredTransitionTime : nightInterval / 2.0
+        let transitionInterval: TimeInterval = nightInterval > desiredTransitionTime * 2 ?
+                                               desiredTransitionTime : nightInterval / 2.0
 
         let nightFullStart = nightStart.addingTimeInterval(transitionInterval)
         let nightFullEnd = nightEnd.addingTimeInterval(-transitionInterval)

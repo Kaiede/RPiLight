@@ -36,18 +36,24 @@ import Foundation
 // MARK: Foundation Extensions
 //
 extension Calendar {
-    func intervalBetweenDateComponents(_ components: DateComponents, since olderComponents: DateComponents) -> TimeInterval? {
+    func intervalBetweenDateComponents(_ components: DateComponents,
+                                       since olderComponents: DateComponents) -> TimeInterval? {
         let startOfDay = self.startOfDay(for: Date())
         guard let olderDate = self.date(byAdding: olderComponents, to: startOfDay) else { return nil }
         guard let date = components.calcNextDate(after: olderDate) else { return nil }
-        
+
         return date.timeIntervalSince(olderDate)
     }
 }
 
 public extension DateComponents {
     func asTimeOfDay() -> DateComponents {
-        return DateComponents(calendar: self.calendar, timeZone: self.timeZone, hour: self.hour, minute: self.minute, second: self.second, nanosecond: self.nanosecond)
+        return DateComponents(calendar: self.calendar,
+                              timeZone: self.timeZone,
+                              hour: self.hour,
+                              minute: self.minute,
+                              second: self.second,
+                              nanosecond: self.nanosecond)
     }
 
     // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
@@ -99,7 +105,8 @@ public extension FileManager {
 
 #if !swift(>=4.1)
 extension Sequence {
-    func compactMap<ElementOfResult>(_ transform: (Iterator.Element) throws -> ElementOfResult?) rethrows -> [ElementOfResult] {
+    func compactMap<ElementOfResult>(_ transform: (Iterator.Element) throws -> ElementOfResult?) rethrows
+                                     -> [ElementOfResult] {
         return try flatMap(transform)
     }
 }
@@ -127,9 +134,9 @@ extension DispatchTimeInterval {
 
 extension DispatchWallTime {
     init(date: Date) {
-        let NSEC_IN_SEC: UInt64 = 1_000_000_000
+        let nsecInSec: UInt64 = 1_000_000_000
         let interval = date.timeIntervalSince1970
-        let spec = timespec(tv_sec: Int(interval), tv_nsec: Int(UInt64(interval * Double(NSEC_IN_SEC)) % NSEC_IN_SEC))
+        let spec = timespec(tv_sec: Int(interval), tv_nsec: Int(UInt64(interval * Double(nsecInSec)) % nsecInSec))
         self.init(timespec: spec)
     }
 }

@@ -36,7 +36,7 @@ public enum LogLevel: Int, Comparable {
     case info
     case warn
     case error
-    
+
     public init(fromString levelString: String) {
         switch levelString.lowercased() {
         case "debug":
@@ -51,17 +51,18 @@ public enum LogLevel: Int, Comparable {
             self = .info
         }
     }
-    
+
     public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
         return lhs.rawValue < rhs.rawValue
     }
-    
+
     public static func == (lhs: LogLevel, rhs: LogLevel) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
 }
 
 public typealias LogClosure = () -> Void
+public typealias LogStringClosure = () -> String
 
 public struct Log {
     private static var stdOut: StdoutOutputStream = StdoutOutputStream()
@@ -82,15 +83,15 @@ public struct Log {
         formatter.timeZone = TimeZone.current
         return formatter
     }()
-    
+
     public static func debug(_ item: Any, file: String = #file, line: Int = #line) {
         Log.log(item, level: .debug, file: file, line: line)
     }
-    
+
     public static func info(_ item: Any, file: String = #file, line: Int = #line) {
         Log.log(item, level: .info, file: file, line: line)
     }
-    
+
     public static func warn(_ item: Any, file: String = #file, line: Int = #line) {
         Log.log(item, level: .warn, file: file, line: line)
     }
@@ -99,54 +100,88 @@ public struct Log {
         Log.log(item, level: .error, file: file, line: line)
     }
 
+    public static func debug(file: String = #file, line: Int = #line, _ closure: LogStringClosure) {
+        Log.performStringClosure(closure, level: .debug, file: file, line: line)
+    }
+
+    public static func info(file: String = #file, line: Int = #line, _ closure: LogStringClosure) {
+        Log.performStringClosure(closure, level: .info, file: file, line: line)
+    }
+
+    public static func warn(file: String = #file, line: Int = #line, _ closure: LogStringClosure) {
+        Log.performStringClosure(closure, level: .warn, file: file, line: line)
+    }
+
+    public static func error(file: String = #file, line: Int = #line, _ closure: LogStringClosure) {
+        Log.performStringClosure(closure, level: .error, file: file, line: line)
+    }
+
     public static func withDebug(_ closure: LogClosure) {
         Log.performClosure(closure, level: .debug)
     }
-    
+
     public static func withInfo(_ closure: LogClosure) {
         Log.performClosure(closure, level: .info)
     }
-    
+
     public static func withWarn(_ closure: LogClosure) {
         Log.performClosure(closure, level: .warn)
     }
-    
+
     public static func withError(_ closure: LogClosure) {
         Log.performClosure(closure, level: .error)
     }
-    
+
     public static func setLoggingLevel(_ level: LogLevel) {
         Log.logLevel = level
     }
 
-    private static var logLevel : LogLevel = .info
+    private static var logLevel: LogLevel = .info
     private static func shouldLog(_ level: LogLevel) -> Bool {
         return level >= Log.logLevel
     }
-    
+
+    private static func performStringClosure(_ closure: LogStringClosure,
+                                             level: LogLevel,
+                                             file: String = #file,
+                                             line: Int = #line) {
+        guard level >= Log.logLevel else { return }
+
+        let message = closure()
+        self.log(message, level: level, file: file, line: line)
+    }
+
     private static func performClosure(_ closure: LogClosure, level: LogLevel) {
         guard level >= Log.logLevel else { return }
-        
+
         closure()
     }
-    
+
     private static func log(_ item: Any, level: LogLevel, file: String, line: Int) {
         guard level >= Log.logLevel else { return }
-        
+
         let nowString = Log.timeFormatter.string(from: Date())
         if Log.logLevel == .debug {
             let shortFileName = URL(fileURLWithPath: file).lastPathComponent
-            print("[\(level)][\(nowString)][\(shortFileName):\(line)]", item, separator: " ", terminator: "\n", to: &Log.stdErr)
+            print("[\(level)][\(nowString)][\(shortFileName):\(line)]",
+                    item,
+                    separator: " ",
+                    terminator: "\n",
+                    to: &Log.stdErr)
         } else {
-            print("[\(level)][\(nowString)]", item, separator: " ", terminator: "\n", to: &Log.stdErr)
+            print("[\(level)][\(nowString)]",
+                    item,
+                    separator: " ",
+                    terminator: "\n",
+                    to: &Log.stdErr)
         }
     }
 }
 
-fileprivate struct StderrOutputStream: TextOutputStream {
+private struct StderrOutputStream: TextOutputStream {
     public mutating func write(_ string: String) { fputs(string, stderr) }
 }
 
-fileprivate struct StdoutOutputStream: TextOutputStream {
+private struct StdoutOutputStream: TextOutputStream {
     public mutating func write(_ string: String) { fputs(string, stdout) }
 }

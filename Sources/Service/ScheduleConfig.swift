@@ -25,10 +25,9 @@
 
 import Foundation
 
-// TODO: Needs a more central location
 // Originally Written by "Hamish Knight"
 // https://bugs.swift.org/browse/SR-7498
-struct AnyCodingKey : CodingKey {
+struct AnyCodingKey: CodingKey {
   var stringValue: String
   var intValue: Int?
 
@@ -48,7 +47,7 @@ struct AnyCodingKey : CodingKey {
   }
 }
 
-fileprivate struct ScheduleFormatters {
+private struct ScheduleFormatters {
     static let timeOfDay: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HH:mm:ss"
@@ -60,7 +59,7 @@ fileprivate struct ScheduleFormatters {
 
 public struct Schedule {
     public let lunarCycle: LunarSchedule?
-    public let channels: [String:ChannelSchedule]
+    public let channels: [String: ChannelSchedule]
 }
 
 extension Schedule: Decodable {
@@ -69,7 +68,7 @@ extension Schedule: Decodable {
 
         lunarCycle = try container.decodeIfPresent(LunarSchedule.self, forKey: AnyCodingKey(stringValue: "lunarCycle"))
 
-        var decodedChannels: [String:ChannelSchedule] = [:] 
+        var decodedChannels: [String: ChannelSchedule] = [:]
         for codingKey in container.allKeys {
             guard codingKey.stringValue != "lunarCycle" else { continue }
 
@@ -93,13 +92,19 @@ extension LunarSchedule: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        guard let parsedStart = ScheduleFormatters.timeOfDay.date(from: try container.decode(String.self, forKey: .startTime)) else {
-            throw DecodingError.dataCorruptedError(forKey: .startTime, in: container, debugDescription: "Invalid Start Time provided")
+        let decodedStart = try container.decode(String.self, forKey: .startTime)
+        guard let parsedStart = ScheduleFormatters.timeOfDay.date(from: decodedStart) else {
+            throw DecodingError.dataCorruptedError(forKey: .startTime,
+                                                   in: container,
+                                                   debugDescription: "Invalid Start Time provided")
         }
         startTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedStart)
 
-        guard let parsedEnd = ScheduleFormatters.timeOfDay.date(from: try container.decode(String.self, forKey: .endTime)) else {
-            throw DecodingError.dataCorruptedError(forKey: .endTime, in: container, debugDescription: "Invalid End Time provided")
+        let decodedEnd = try container.decode(String.self, forKey: .endTime)
+        guard let parsedEnd = ScheduleFormatters.timeOfDay.date(from: decodedEnd) else {
+            throw DecodingError.dataCorruptedError(forKey: .endTime,
+                                                   in: container,
+                                                   debugDescription: "Invalid End Time provided")
         }
         endTime = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedEnd)
     }
@@ -139,21 +144,28 @@ extension SchedulePoint: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        guard let parsedTime = ScheduleFormatters.timeOfDay.date(from: try container.decode(String.self, forKey: .time)) else {
-            throw DecodingError.dataCorruptedError(forKey: .time, in: container, debugDescription: "Invalid Time provided")
+        let decodedTime = try container.decode(String.self, forKey: .time)
+        guard let parsedTime = ScheduleFormatters.timeOfDay.date(from: decodedTime) else {
+            throw DecodingError.dataCorruptedError(forKey: .time,
+                                                   in: container,
+                                                   debugDescription: "Invalid Time provided")
         }
         time = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
 
-        guard !container.contains(.brightness) || !container.contains(.intensity) else { 
-            throw DecodingError.dataCorruptedError(forKey: .brightness, in: container, debugDescription: "Only brightness *or* intensity allowed")
+        guard !container.contains(.brightness) || !container.contains(.intensity) else {
+            throw DecodingError.dataCorruptedError(forKey: .brightness,
+                                                   in: container,
+                                                   debugDescription: "Only brightness *or* intensity allowed")
         }
 
         if container.contains(.brightness) {
             setting = .brightness(try container.decode(Double.self, forKey: .brightness))
         } else if container.contains(.intensity) {
             setting = .intensity(try container.decode(Double.self, forKey: .intensity))
-        } else { 
-            throw DecodingError.dataCorruptedError(forKey: .brightness, in: container, debugDescription: "brightness *or* intensity required")
+        } else {
+            throw DecodingError.dataCorruptedError(forKey: .brightness,
+                                                   in: container,
+                                                   debugDescription: "brightness *or* intensity required")
         }
     }
 }
@@ -170,7 +182,7 @@ public enum ChannelSetting {
             return .intensity(Swift.max(intensity, rhs.asIntensity(withGamma: gamma)))
         }
     }
-    
+
     public func asBrightness(withGamma gamma: Double) -> Double {
         switch self {
         case .brightness(let brightness):
@@ -179,7 +191,7 @@ public enum ChannelSetting {
             return intensity ** (1.0 / gamma)
         }
     }
-    
+
     public func asIntensity(withGamma gamma: Double) -> Double {
         switch self {
         case .brightness(let brightness):
@@ -189,4 +201,3 @@ public enum ChannelSetting {
         }
     }
 }
-
