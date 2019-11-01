@@ -60,7 +60,7 @@ class PwmViaRaspberryPi: LEDModuleImpl {
         self.period = UInt(NANOSECONDS / frequency)
     }
 
-    func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+    func applyIntensity(_ intensity: Intensity, toChannel channel: Int) {
         guard channel < self.pwm.count else {
             Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
             return
@@ -71,10 +71,7 @@ class PwmViaRaspberryPi: LEDModuleImpl {
             output.enable(pins: output.pins)
             self.arePinsEnabled[channel] = true
         }
-
-        let maxValue = 100.0
-        let targetIntensity = Float(intensity * maxValue)
-
-        output.start(period: self.period, dutyCycle: targetIntensity)
+        
+        output.start(period: self.period, dutyCycle: intensity.toPercentage())
     }
 }

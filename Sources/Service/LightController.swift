@@ -55,8 +55,9 @@ struct ChannelPointWrapper: LayerPoint {
         return self.event.time
     }
 
-    var brightness: Double {
-        return self.event.setting.asBrightness(withGamma: self.configuration.gamma)
+    var brightness: Brightness {
+        let gamma = Gamma(self.configuration.gamma)
+        return Brightness(setting: self.event.setting, gamma: gamma)
     }
 
     private let configuration: BehaviorControllerConfig

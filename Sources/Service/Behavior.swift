@@ -26,8 +26,8 @@
 import Dispatch
 import Foundation
 
-import Logging
 import LED
+import Logging
 
 public enum LightBehaviorUpdate {
     // Stop the controller
@@ -53,7 +53,7 @@ public struct LightBehaviorSegment {
 }
 
 public protocol BehaviorChannel {
-    var channelGamma: Double { get }
+    var channelGamma: Gamma { get }
     var rootController: BehaviorController? { get set }
 
     func set(layer: ChannelLayer, forType type: ChannelLayerType)

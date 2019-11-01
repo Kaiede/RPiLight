@@ -82,9 +82,25 @@ class TypeTests: XCTestCase {
             XCTFail("\(error)")
         }
     }
+    
+    func testIntensitySteps() {
+        let maxSteps: UInt = 4095
+        XCTAssertEqual(Intensity(0.0).toSteps(max: maxSteps), 0) // Can Hit True Zero
+        XCTAssertEqual(Intensity(0.25).toSteps(max: maxSteps), 1023) // Rounds Down
+        XCTAssertEqual(Intensity(1.0).toSteps(max: maxSteps), 4095) // Can Hit True Max
+    }
+    
+    func testIntensityPercent() {
+        XCTAssertEqual(Intensity(0.0).toPercentage(), 0.0) // Can Hit True Zero
+        XCTAssertEqual(Intensity(0.25).toPercentage(), 25.0)
+        XCTAssertEqual(Intensity(1.0).toPercentage(), 100.0) // Can Hit True Max
+    }
 
     static var allTests = [
         ("testFlatGammaConversion", testFlatGammaConversion),
         ("testCurvedGammaConversion", testCurvedGammaConversion),
+        ("testCodableTypes", testCodableTypes),
+        ("testIntensitySteps", testIntensitySteps),
+        ("testIntensityPercent", testIntensityPercent),
     ]
 }

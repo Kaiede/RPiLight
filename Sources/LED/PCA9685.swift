@@ -59,16 +59,14 @@ class PwmViaPCA9685: LEDModuleImpl {
         self.channelMap = channelMap
     }
 
-    internal func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+    internal func applyIntensity(_ intensity: Intensity, toChannel channel: Int) {
         guard channel < 16 else {
             Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
             return
         }
 
         let controllerChannel = UInt8(channel)
-        let maxIntensity: Double = 4095
-        let steps = UInt16(intensity * maxIntensity)
-
-        self.controller.setChannel(controllerChannel, onStep: 0, offStep: steps)
+        let step = UInt16(intensity.toSteps(max: 4095))
+        self.controller.setChannel(controllerChannel, onStep: 0, offStep: step)
     }
 }

@@ -148,14 +148,14 @@ public class LEDChannel {
     private let channelId: Int
 
     public let token: String
-    public var minIntensity: Double
-    public var intensity: Double {
+    public var minIntensity: Intensity
+    public var intensity: Intensity {
         didSet { self.onSettingChanged() }
     }
 
     internal init(impl: LEDModuleImpl, token: String, channelId: Int) {
-        self.minIntensity = 0.0
-        self.intensity = 0.0
+        self.minIntensity = Intensity(0.0)
+        self.intensity = Intensity(0.0)
 
         self.impl = impl
         self.token = token
@@ -164,12 +164,12 @@ public class LEDChannel {
 
     private func onSettingChanged() {
         var clampedIntensity = self.intensity
-        if clampedIntensity < self.minIntensity.nextUp {
-            clampedIntensity = 0.0
+        if clampedIntensity < self.minIntensity {
+            clampedIntensity = Intensity(0.0)
         }
 
         impl.applyIntensity(clampedIntensity, toChannel: self.channelId)
-        Log.debug("\(self.token): Intensity Now \(clampedIntensity * 100)")
+        Log.debug("\(self.token): Intensity Now \(clampedIntensity.rawValue * 100)")
     }
 }
 

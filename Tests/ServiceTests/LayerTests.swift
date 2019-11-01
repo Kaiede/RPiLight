@@ -31,12 +31,12 @@ import Logging
 
 struct MockLayerPoint: LayerPoint {
     var time: DateComponents
-    var brightness: Double
+    var brightness: Brightness
 
     init(time: String, brightness: Double) {
         let date = MockLayerPoint.dateFormatter.date(from: time)!
         self.time = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
-        self.brightness = brightness
+        self.brightness = Brightness(brightness)
     }
 
     static public let dateFormatter: DateFormatter = {
@@ -120,7 +120,7 @@ class LayerTests: XCTestCase {
 
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
             let brightness = testLayer.lightLevel(forDate: testDate)
-            XCTAssertEqual(brightness, expectedBrightness, "\(timeString)")
+            XCTAssertEqual(brightness.rawValue, expectedBrightness, "\(timeString)")
         }
     }
 
@@ -146,7 +146,7 @@ class LayerTests: XCTestCase {
 
             let testDate = MockLayerPoint.dateFormatter.date(from: timeString)!
             let brightness = testLayer.lightLevel(forDate: testDate)
-            XCTAssertEqual(brightness, expectedBrightness, "\(timeString)")
+            XCTAssertEqual(brightness.rawValue, expectedBrightness, "\(timeString)")
         }
     }
 

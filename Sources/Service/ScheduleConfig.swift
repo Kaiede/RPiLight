@@ -25,6 +25,8 @@
 
 import Foundation
 
+import LED
+
 // Originally Written by "Hamish Knight"
 // https://bugs.swift.org/browse/SR-7498
 struct AnyCodingKey: CodingKey {
@@ -159,9 +161,9 @@ extension SchedulePoint: Decodable {
         }
 
         if container.contains(.brightness) {
-            setting = .brightness(try container.decode(Double.self, forKey: .brightness))
+            setting = .brightness(try container.decode(Brightness.self, forKey: .brightness))
         } else if container.contains(.intensity) {
-            setting = .intensity(try container.decode(Double.self, forKey: .intensity))
+            setting = .intensity(try container.decode(Intensity.self, forKey: .intensity))
         } else {
             throw DecodingError.dataCorruptedError(forKey: .brightness,
                                                    in: container,
@@ -171,33 +173,28 @@ extension SchedulePoint: Decodable {
 }
 
 public enum ChannelSetting {
-    case brightness(Double)
-    case intensity(Double)
+    case brightness(Brightness)
+    case intensity(Intensity)
+}
 
-    public static func max(_ lhs: ChannelSetting, _ rhs: ChannelSetting, withGamma gamma: Double) -> ChannelSetting {
-        switch lhs {
+extension Brightness {
+    public init(setting: ChannelSetting, gamma: Gamma) {
+        switch setting {
         case .brightness(let brightness):
-            return .brightness(Swift.max(brightness, rhs.asBrightness(withGamma: gamma)))
+            self.init(brightness)
         case .intensity(let intensity):
-            return .intensity(Swift.max(intensity, rhs.asIntensity(withGamma: gamma)))
+            self.init(intensity, gamma: gamma)
         }
     }
+}
 
-    public func asBrightness(withGamma gamma: Double) -> Double {
-        switch self {
+extension Intensity {
+    public init(setting: ChannelSetting, gamma: Gamma) {
+        switch setting {
         case .brightness(let brightness):
-            return brightness
+            self.init(brightness, gamma: gamma)
         case .intensity(let intensity):
-            return intensity ** (1.0 / gamma)
-        }
-    }
-
-    public func asIntensity(withGamma gamma: Double) -> Double {
-        switch self {
-        case .brightness(let brightness):
-            return brightness ** gamma
-        case .intensity(let intensity):
-            return intensity
+            self.init(intensity)
         }
     }
 }
