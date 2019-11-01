@@ -24,6 +24,8 @@
  */
 
 import XCTest
+
+import Yams
 @testable import Service
 
 
@@ -229,6 +231,32 @@ class ServiceDescriptionTests: XCTestCase {
             XCTFail("\(error)")
         }
     }
+    
+    func testHardwareConfiguration_RaspberryPiExample_Yaml() {
+        let yamlString = """
+        user: pi
+        board: raspberryPi
+
+        controllers:
+            - type: raspberryPwm
+              frequency: 1440
+              gamma: 2.2
+              channels:
+                primary: 0
+                secondary: 1
+        """
+        
+        do {
+            let decoder = YAMLDecoder()
+            let config = try decoder.decode(ServiceDescription.self, from: yamlString)
+            XCTAssertEqual(config.username, "pi")
+            XCTAssertEqual(config.board, .raspberryPi)
+            XCTAssertEqual(config.controllers.count, 1)
+            XCTAssertEqual(config.controllers[0].type, .raspberryPwm)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
 
     static var allTests = [
         ("testEmptyControllerConfiguration", testEmptyControllerConfiguration),
@@ -241,5 +269,6 @@ class ServiceDescriptionTests: XCTestCase {
         ("testHardwareConfiguration_Incomplete", testHardwareConfiguration_Incomplete),
         ("testHardwareConfiguration_Complete", testHardwareConfiguration_Complete),
         ("testHardwareConfiguration_RaspberryPiExample_Json", testHardwareConfiguration_RaspberryPiExample_Json),
+        ("testHardwareConfiguration_RaspberryPiExample_Yaml", testHardwareConfiguration_RaspberryPiExample_Yaml),
     ]
 }
