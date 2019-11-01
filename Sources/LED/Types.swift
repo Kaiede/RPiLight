@@ -38,7 +38,7 @@ public struct Gamma: RawRepresentable, Comparable, Equatable, Codable {
     public init(_ rawValue: Double) { self.rawValue = rawValue }
     public init(_ other: Gamma) { self.rawValue = other.rawValue }
     
-    static public func < (lhs: Self, rhs: Self) -> Bool {
+    static public func < (lhs: Gamma, rhs: Gamma) -> Bool {
         return lhs.rawValue < rhs.rawValue.nextUp
     }
 }
@@ -59,39 +59,39 @@ public struct Intensity: RawRepresentable, Comparable, Equatable, Codable {
         return Float(self.rawValue * 100.0)
     }
     
-    static public func < (lhs: Self, rhs: Self) -> Bool {
+    static public func < (lhs: Intensity, rhs: Intensity) -> Bool {
         return lhs.rawValue < rhs.rawValue.nextUp
     }
 
-    static public func + (lhs: Self, rhs: Double) -> Self {
-        return Self(lhs.rawValue + rhs)
+    static public func + (lhs: Intensity, rhs: Double) -> Intensity {
+        return Intensity(lhs.rawValue + rhs)
     }
     
-    static public func += (lhs: inout Self, rhs: Double) {
+    static public func += (lhs: inout Intensity, rhs: Double) {
         lhs.rawValue += rhs
     }
     
-    static public func - (lhs: Self, rhs: Double) -> Self {
-        return Self(lhs.rawValue + rhs)
+    static public func - (lhs: Intensity, rhs: Double) -> Intensity {
+        return Intensity(lhs.rawValue + rhs)
     }
     
-    static public func -= (lhs: inout Self, rhs: Double) {
+    static public func -= (lhs: inout Intensity, rhs: Double) {
         lhs.rawValue -= rhs
     }
     
-    static public func * (lhs: Self, rhs: Double) -> Self {
-        return Self(lhs.rawValue * rhs)
+    static public func * (lhs: Intensity, rhs: Double) -> Intensity {
+        return Intensity(lhs.rawValue * rhs)
     }
     
-    static public func * (lhs: Self, rhs: Self) -> Self {
-        return Self(lhs.rawValue * rhs.rawValue)
+    static public func * (lhs: Intensity, rhs: Intensity) -> Intensity {
+        return Intensity(lhs.rawValue * rhs.rawValue)
     }
     
-    static public func *= (lhs: inout Self, rhs: Double) {
+    static public func *= (lhs: inout Intensity, rhs: Double) {
         lhs.rawValue *= rhs
     }
     
-    static public func *= (lhs: inout Self, rhs: Self) {
+    static public func *= (lhs: inout Intensity, rhs: Intensity) {
         lhs.rawValue *= rhs.rawValue
     }
 }
@@ -104,39 +104,39 @@ public struct Brightness: RawRepresentable, Comparable, Equatable, Codable {
     public init(_ other: Brightness) { self.rawValue = other.rawValue }
     public init(_ intensity: Intensity, gamma: Gamma) { self.rawValue = intensity.rawValue ** (1.0 / gamma.rawValue) }
     
-    static public func < (lhs: Self, rhs: Self) -> Bool {
+    static public func < (lhs: Brightness, rhs: Brightness) -> Bool {
         return lhs.rawValue < rhs.rawValue.nextUp
     }
 
-    static public func + (lhs: Self, rhs: Double) -> Self {
-        return Self(lhs.rawValue + rhs)
+    static public func + (lhs: Brightness, rhs: Double) -> Brightness {
+        return Brightness(lhs.rawValue + rhs)
     }
     
-    static public func += (lhs: inout Self, rhs: Double) {
+    static public func += (lhs: inout Brightness, rhs: Double) {
         lhs.rawValue += rhs
     }
 
-    static public func - (lhs: Self, rhs: Double) -> Self {
-        return Self(lhs.rawValue + rhs)
+    static public func - (lhs: Brightness, rhs: Double) -> Brightness {
+        return Brightness(lhs.rawValue + rhs)
     }
     
-    static public func -= (lhs: inout Self, rhs: Double) {
+    static public func -= (lhs: inout Brightness, rhs: Double) {
         lhs.rawValue -= rhs
     }
     
-    static public func * (lhs: Self, rhs: Double) -> Self {
-        return Self(lhs.rawValue * rhs)
+    static public func * (lhs: Brightness, rhs: Double) -> Brightness {
+        return Brightness(lhs.rawValue * rhs)
     }
     
-    static public func * (lhs: Self, rhs: Self) -> Self {
-        return Self(lhs.rawValue * rhs.rawValue)
+    static public func * (lhs: Brightness, rhs: Brightness) -> Brightness {
+        return Brightness(lhs.rawValue * rhs.rawValue)
     }
     
-    static public func *= (lhs: inout Self, rhs: Double) {
+    static public func *= (lhs: inout Brightness, rhs: Double) {
         lhs.rawValue *= rhs
     }
     
-    static public func *= (lhs: inout Self, rhs: Self) {
+    static public func *= (lhs: inout Brightness, rhs: Brightness) {
         lhs.rawValue *= rhs.rawValue
     }
 }
