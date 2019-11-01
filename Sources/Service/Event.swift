@@ -119,10 +119,10 @@ extension Layer {
         let nightEndPoint = calendar.dateComponents([.hour, .minute, .second], from: nightEnd)
 
         var layerPoints: [LunarPoint] = []
-        layerPoints.append(LunarPoint(time: nightStartPoint, brightness: Brightness(1.0)))
+        layerPoints.append(LunarPoint(time: nightStartPoint, brightness: 1.0))
         layerPoints.append(LunarPoint(time: nightFullStartPoint, brightness: brightnessStart))
         layerPoints.append(LunarPoint(time: nightFullEndPoint, brightness: brightnessEnd))
-        layerPoints.append(LunarPoint(time: nightEndPoint, brightness: Brightness(1.0)))
+        layerPoints.append(LunarPoint(time: nightEndPoint, brightness: 1.0))
         self.init(identifier: "Lunar", points: layerPoints, startTime: nightStart)
     }
 }

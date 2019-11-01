@@ -46,8 +46,8 @@ struct MockCodable: Codable {
 
 class TypeTests: XCTestCase {
     func testFlatGammaConversion() {
-        let gamma = Gamma(1.0)
-        let intensity = Intensity(0.5)
+        let gamma: Gamma = 1.0
+        let intensity: Intensity = 0.5
         let brightness = Brightness(intensity, gamma: gamma)
         let intensity2 = Intensity(brightness, gamma: gamma)
 
@@ -56,8 +56,8 @@ class TypeTests: XCTestCase {
     }
 
     func testCurvedGammaConversion() {
-        let gamma = Gamma(2.0)
-        let brightness = Brightness(0.5)
+        let gamma: Gamma = 2.0
+        let brightness: Brightness = 0.5
         let intensity = Intensity(brightness, gamma: gamma)
         let brightness2 = Brightness(intensity, gamma: gamma)
 
@@ -75,9 +75,9 @@ class TypeTests: XCTestCase {
         do {
             let decoder = JSONDecoder()
             let codable = try decoder.decode(MockCodable.self, from: jsonData)
-            XCTAssertEqual(codable.brightness, Brightness(1.0))
-            XCTAssertEqual(codable.intensity, Intensity(0.5))
-            XCTAssertEqual(codable.gamma, Gamma(2.2))
+            XCTAssertEqual(codable.brightness, 1.0)
+            XCTAssertEqual(codable.intensity, 0.5)
+            XCTAssertEqual(codable.gamma, 2.2)
         } catch {
             XCTFail("\(error)")
         }
@@ -85,15 +85,15 @@ class TypeTests: XCTestCase {
     
     func testIntensitySteps() {
         let maxSteps: UInt = 4095
-        XCTAssertEqual(Intensity(0.0).toSteps(max: maxSteps), 0) // Can Hit True Zero
-        XCTAssertEqual(Intensity(0.25).toSteps(max: maxSteps), 1023) // Rounds Down
-        XCTAssertEqual(Intensity(1.0).toSteps(max: maxSteps), 4095) // Can Hit True Max
+        XCTAssertEqual(Intensity(rawValue: 0.0).toSteps(max: maxSteps), 0) // Can Hit True Zero
+        XCTAssertEqual(Intensity(rawValue: 0.25).toSteps(max: maxSteps), 1023) // Rounds Down
+        XCTAssertEqual(Intensity(rawValue: 1.0).toSteps(max: maxSteps), 4095) // Can Hit True Max
     }
     
     func testIntensityPercent() {
-        XCTAssertEqual(Intensity(0.0).toPercentage(), 0.0) // Can Hit True Zero
-        XCTAssertEqual(Intensity(0.25).toPercentage(), 25.0)
-        XCTAssertEqual(Intensity(1.0).toPercentage(), 100.0) // Can Hit True Max
+        XCTAssertEqual(Intensity(rawValue: 0.0).toPercentage(), 0.0) // Can Hit True Zero
+        XCTAssertEqual(Intensity(rawValue: 0.25).toPercentage(), 25.0)
+        XCTAssertEqual(Intensity(rawValue: 1.0).toPercentage(), 100.0) // Can Hit True Max
     }
 
     static var allTests = [
