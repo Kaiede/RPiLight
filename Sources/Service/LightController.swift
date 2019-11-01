@@ -56,7 +56,7 @@ struct ChannelPointWrapper: LayerPoint {
     }
 
     var brightness: Brightness {
-        let gamma = Gamma(self.configuration.gamma)
+        let gamma = Gamma(rawValue: self.configuration.gamma)
         return Brightness(setting: self.event.setting, gamma: gamma)
     }
 

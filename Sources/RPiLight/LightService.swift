@@ -197,7 +197,7 @@ class LightService {
                 fatalError("Attempted to configure unknown channel '\(token)")
             }
 
-            channel.minIntensity = Intensity(channelSchedule.minIntensity)
+            channel.minIntensity = Intensity(rawValue: channelSchedule.minIntensity)
         }
     }
 

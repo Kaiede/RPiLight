@@ -78,7 +78,8 @@ class MockBehaviorChannel: BehaviorChannel {
     func segment(forDate date: Date) -> ChannelSegment {
         let startDate = date.addingTimeInterval(-self.interval)
         let endDate = date.addingTimeInterval(self.interval)
-        return MockChannelSegment(startBrightness: 0.0, endBrightness: brightnessDelta, startDate: startDate, endDate: endDate)
+        let endBrightness = Brightness(rawValue: brightnessDelta)
+        return MockChannelSegment(startBrightness: 0.0, endBrightness: endBrightness, startDate: startDate, endDate: endDate)
     }
 
     func update(forDate date: Date) {

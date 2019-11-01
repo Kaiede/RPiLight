@@ -25,31 +25,81 @@
 
 import Foundation
 
-infix operator ** : MultiplicationPrecedence
-
-fileprivate func ** (num: Double, power: Double) -> Double {
-    return pow(num, power)
+public protocol UnitType: RawRepresentable, Comparable, ExpressibleByFloatLiteral, SignedNumeric, Codable {
+    var rawValue: Double { set get }
+    init(rawValue: Double)
 }
 
-public struct Gamma: RawRepresentable, Comparable, Equatable, Codable {
-    public private(set) var rawValue: Double
-
-    public init(rawValue: Double) { self.rawValue = rawValue }
-    public init(_ rawValue: Double) { self.rawValue = rawValue }
-    public init(_ other: Gamma) { self.rawValue = other.rawValue }
+public extension UnitType {
+    init?<T>(exactly source: T) where T : BinaryInteger {
+        guard let value = Double(exactly: source) else { return nil }
+        
+        self.init(rawValue: value)
+    }
     
-    static public func < (lhs: Gamma, rhs: Gamma) -> Bool {
-        return lhs.rawValue < rhs.rawValue.nextUp
+    init(floatLiteral value: Double)  {
+        self.init(rawValue: Double(value))
+    }
+    
+    init(integerLiteral value: Int) {
+        self.init(rawValue: Double(value))
     }
 }
 
-public struct Intensity: RawRepresentable, Comparable, Equatable, Codable {
-    public private(set) var rawValue: Double
+public extension UnitType {
+    var magnitude: Self { return Self(rawValue: abs(self.rawValue)) }
+}
 
+public func + <T: UnitType> (lhs: T, rhs: T) -> T {
+    return T(rawValue: lhs.rawValue + rhs.rawValue)
+}
+
+public func += <T: UnitType> (lhs: inout T, rhs: T) {
+    lhs.rawValue += rhs.rawValue
+}
+
+public func - <T: UnitType> (lhs: T, rhs: T) -> T {
+    return T(rawValue: lhs.rawValue - rhs.rawValue)
+}
+
+public func -= <T: UnitType> (lhs: inout T, rhs: T) {
+    lhs.rawValue -= rhs.rawValue
+}
+
+public func * <T: UnitType> (lhs: T, rhs: T) -> T {
+    return T(rawValue: lhs.rawValue * rhs.rawValue)
+}
+
+public func *= <T: UnitType> (lhs: inout T, rhs: T) {
+    lhs.rawValue *= rhs.rawValue
+}
+
+public func == <T: UnitType> (lhs: T, rhs: T) -> Bool {
+    return lhs.rawValue == rhs.rawValue
+}
+
+public func < <T: UnitType> (lhs: T, rhs: T) -> Bool {
+    return lhs.rawValue < rhs.rawValue
+}
+
+
+public struct Gamma: UnitType {
+    public typealias Magnitude = Gamma
+    public typealias IntegerLiteralType = Int
+    public typealias FloatLiteralType = Double
+    
+    public var rawValue: Double
     public init(rawValue: Double) { self.rawValue = rawValue }
-    public init(_ rawValue: Double) { self.rawValue = rawValue }
-    public init(_ other: Intensity) { self.rawValue = other.rawValue }
-    public init(_ brightness: Brightness, gamma: Gamma) { self.rawValue = brightness.rawValue ** gamma.rawValue }
+}
+
+public struct Intensity: UnitType {
+    public typealias Magnitude = Intensity
+    public typealias IntegerLiteralType = Int
+    public typealias FloatLiteralType = Double
+    
+    public var rawValue: Double
+    public init(rawValue: Double) { self.rawValue = rawValue }
+    public init(_ brightness: Brightness, gamma: Gamma) { self.rawValue = pow(brightness.rawValue, gamma.rawValue) }
     
     internal func toSteps(max: UInt) -> UInt {
         return UInt(self.rawValue * Double(max))
@@ -58,86 +108,14 @@ public struct Intensity: RawRepresentable, Comparable, Equatable, Codable {
     internal func toPercentage() -> Float {
         return Float(self.rawValue * 100.0)
     }
-    
-    static public func < (lhs: Intensity, rhs: Intensity) -> Bool {
-        return lhs.rawValue < rhs.rawValue.nextUp
-    }
-
-    static public func + (lhs: Intensity, rhs: Double) -> Intensity {
-        return Intensity(lhs.rawValue + rhs)
-    }
-    
-    static public func += (lhs: inout Intensity, rhs: Double) {
-        lhs.rawValue += rhs
-    }
-    
-    static public func - (lhs: Intensity, rhs: Double) -> Intensity {
-        return Intensity(lhs.rawValue + rhs)
-    }
-    
-    static public func -= (lhs: inout Intensity, rhs: Double) {
-        lhs.rawValue -= rhs
-    }
-    
-    static public func * (lhs: Intensity, rhs: Double) -> Intensity {
-        return Intensity(lhs.rawValue * rhs)
-    }
-    
-    static public func * (lhs: Intensity, rhs: Intensity) -> Intensity {
-        return Intensity(lhs.rawValue * rhs.rawValue)
-    }
-    
-    static public func *= (lhs: inout Intensity, rhs: Double) {
-        lhs.rawValue *= rhs
-    }
-    
-    static public func *= (lhs: inout Intensity, rhs: Intensity) {
-        lhs.rawValue *= rhs.rawValue
-    }
 }
 
-public struct Brightness: RawRepresentable, Comparable, Equatable, Codable {
-    public private(set) var rawValue: Double
-
+public struct Brightness: UnitType {
+    public typealias Magnitude = Brightness
+    public typealias IntegerLiteralType = Int
+    public typealias FloatLiteralType = Double
+    
+    public var rawValue: Double
     public init(rawValue: Double) { self.rawValue = rawValue }
-    public init(_ rawValue: Double) { self.rawValue = rawValue }
-    public init(_ other: Brightness) { self.rawValue = other.rawValue }
-    public init(_ intensity: Intensity, gamma: Gamma) { self.rawValue = intensity.rawValue ** (1.0 / gamma.rawValue) }
-    
-    static public func < (lhs: Brightness, rhs: Brightness) -> Bool {
-        return lhs.rawValue < rhs.rawValue.nextUp
-    }
-
-    static public func + (lhs: Brightness, rhs: Double) -> Brightness {
-        return Brightness(lhs.rawValue + rhs)
-    }
-    
-    static public func += (lhs: inout Brightness, rhs: Double) {
-        lhs.rawValue += rhs
-    }
-
-    static public func - (lhs: Brightness, rhs: Double) -> Brightness {
-        return Brightness(lhs.rawValue + rhs)
-    }
-    
-    static public func -= (lhs: inout Brightness, rhs: Double) {
-        lhs.rawValue -= rhs
-    }
-    
-    static public func * (lhs: Brightness, rhs: Double) -> Brightness {
-        return Brightness(lhs.rawValue * rhs)
-    }
-    
-    static public func * (lhs: Brightness, rhs: Brightness) -> Brightness {
-        return Brightness(lhs.rawValue * rhs.rawValue)
-    }
-    
-    static public func *= (lhs: inout Brightness, rhs: Double) {
-        lhs.rawValue *= rhs
-    }
-    
-    static public func *= (lhs: inout Brightness, rhs: Brightness) {
-        lhs.rawValue *= rhs.rawValue
-    }
+    public init(_ intensity: Intensity, gamma: Gamma) { self.rawValue = pow(intensity.rawValue, (1.0 / gamma.rawValue)) }
 }
-

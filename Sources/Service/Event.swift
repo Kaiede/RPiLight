@@ -72,8 +72,8 @@ public class LunarCycleController: EventController {
 
         let illuminationStart = Moon.fastIllumination(forDate: nightStart.toJ2000Date())
         let illuminationEnd = Moon.fastIllumination(forDate: nightEnd.toJ2000Date())
-        let intensityFactorStart = Intensity(illuminationStart.fraction)
-        let intensityFactorEnd = Intensity(illuminationEnd.fraction)
+        let intensityFactorStart = Intensity(rawValue: illuminationStart.fraction)
+        let intensityFactorEnd = Intensity(rawValue: illuminationEnd.fraction)
 
         Log.info {
             let startString = Log.timeFormatter.string(from: nightStart)

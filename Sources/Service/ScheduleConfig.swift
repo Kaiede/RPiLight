@@ -181,7 +181,7 @@ extension Brightness {
     public init(setting: ChannelSetting, gamma: Gamma) {
         switch setting {
         case .brightness(let brightness):
-            self.init(brightness)
+            self = brightness
         case .intensity(let intensity):
             self.init(intensity, gamma: gamma)
         }
@@ -194,7 +194,7 @@ extension Intensity {
         case .brightness(let brightness):
             self.init(brightness, gamma: gamma)
         case .intensity(let intensity):
-            self.init(intensity)
+            self = intensity
         }
     }
 }
