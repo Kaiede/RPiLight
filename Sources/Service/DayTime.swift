@@ -64,7 +64,7 @@ struct DayTime: Codable {
 // MARK: Wrapper for DateComponent Access
 
 extension DayTime {
-    var hour: Int? { get { dateComponents.hour }}
-    var minute: Int? { get { dateComponents.minute }}
-    var second: Int? { get { dateComponents.second }}
+    var hour: Int? { get { return dateComponents.hour }}
+    var minute: Int? { get { return dateComponents.minute }}
+    var second: Int? { get { return dateComponents.second }}
 }
