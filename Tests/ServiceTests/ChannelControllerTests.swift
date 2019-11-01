@@ -41,9 +41,9 @@ class MockChannelSegment: ChannelSegment {
     var startDate: Date
     var endDate: Date
 
-    init(startBrightness: Double, endBrightness: Double, startDate: Date, endDate: Date) {
-        self.startBrightness = Brightness(startBrightness)
-        self.endBrightness = Brightness(endBrightness)
+    init(startBrightness: Brightness, endBrightness: Brightness, startDate: Date, endDate: Date) {
+        self.startBrightness = startBrightness
+        self.endBrightness = endBrightness
         self.startDate = startDate
         self.endDate = endDate
     }
@@ -108,8 +108,8 @@ class ChannelControllerTests: XCTestCase {
 
         let testData = [ 0.0, 0.25, 0.50, 0.75, 1.0 ]
         for testValue in testData {
-            let expectedValue = Intensity(testValue)
-            testLayer.lightLevel = Brightness(testValue)
+            let expectedValue = Intensity(rawValue: testValue)
+            testLayer.lightLevel = Brightness(rawValue: testValue)
             testController.update(forDate: Date())
 
             XCTAssertEqual(testChannel.intensity, expectedValue)

@@ -57,7 +57,7 @@ extension ChannelSegment {
             let spentInterval = date.timeIntervalSince(self.startDate)
             let factor = spentInterval / self.duration
 
-            return self.startBrightness + (factor * self.deltaBrightnessChange)
+            return self.startBrightness + Brightness(rawValue: factor * self.deltaBrightnessChange)
         }
     }
 }
@@ -135,7 +135,7 @@ public class ChannelController: BehaviorChannel {
     var layers: [ChannelLayer?]
 
     public var channelGamma: Gamma {
-        return Gamma(rootController?.configuration.gamma ?? 1.8)
+        return Gamma(rawValue: rootController?.configuration.gamma ?? 1.8)
     }
 
     var activeLayers: [ChannelLayer] {

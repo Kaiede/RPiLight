@@ -33,10 +33,10 @@ struct MockLayerPoint: LayerPoint {
     var time: DateComponents
     var brightness: Brightness
 
-    init(time: String, brightness: Double) {
+    init(time: String, brightness: Brightness) {
         let date = MockLayerPoint.dateFormatter.date(from: time)!
         self.time = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
-        self.brightness = Brightness(brightness)
+        self.brightness = brightness
     }
 
     static public let dateFormatter: DateFormatter = {
