@@ -154,8 +154,8 @@ public class LEDChannel {
     }
 
     internal init(impl: LEDModuleImpl, token: String, channelId: Int) {
-        self.minIntensity = Intensity(0.0)
-        self.intensity = Intensity(0.0)
+        self.minIntensity = 0.0
+        self.intensity = 0.0
 
         self.impl = impl
         self.token = token
@@ -164,8 +164,8 @@ public class LEDChannel {
 
     private func onSettingChanged() {
         var clampedIntensity = self.intensity
-        if clampedIntensity < self.minIntensity {
-            clampedIntensity = Intensity(0.0)
+        if clampedIntensity <= self.minIntensity {
+            clampedIntensity = 0.0
         }
 
         impl.applyIntensity(clampedIntensity, toChannel: self.channelId)

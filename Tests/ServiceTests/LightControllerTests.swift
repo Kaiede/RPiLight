@@ -117,7 +117,7 @@ class LightControllerTests: XCTestCase {
 
         let eventDate = LightControllerTests.dateFormatter.date(from: "08:00:00")!
         let eventComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: eventDate)
-        let eventConfig = MockChannelPoint(time: eventComponents, setting: .intensity(Intensity(0.5)))
+        let eventConfig = MockChannelPoint(time: eventComponents, setting: .intensity(Intensity(rawValue: 0.5)))
 
         let testEvent = ChannelPointWrapper(configuration: mockConfiguration, event: eventConfig)
 

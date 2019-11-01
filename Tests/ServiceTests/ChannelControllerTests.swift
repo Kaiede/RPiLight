@@ -30,9 +30,9 @@ import LED
 
 class MockChannel: Channel {
     var token: String = ""
-    var minIntensity: Intensity = Intensity(0.0)
+    var minIntensity: Intensity = 0.0
 
-    var intensity: Intensity = Intensity(0.0)
+    var intensity: Intensity = 0.0
 }
 
 class MockChannelSegment: ChannelSegment {
@@ -51,7 +51,7 @@ class MockChannelSegment: ChannelSegment {
 
 class MockLayer: ChannelLayer {
     var activeIndex: Int = 0
-    var lightLevel: Brightness = Brightness(0.0)
+    var lightLevel: Brightness = 0.0
 
     func segment(forDate date: Date) -> ChannelSegment {
         let startDate = date.addingTimeInterval(-30.0)
@@ -71,9 +71,9 @@ class ChannelControllerTests: XCTestCase {
         let testController = ChannelController(channel: testChannel)
 
         let layer1 = MockLayer()
-        layer1.lightLevel = Brightness(1.0)
+        layer1.lightLevel = 1.0
         let layer2 = MockLayer()
-        layer2.lightLevel = Brightness(0.5)
+        layer2.lightLevel = 0.5
 
         testController.set(layer: layer1)
 
@@ -90,7 +90,7 @@ class ChannelControllerTests: XCTestCase {
         let testChannel = MockChannel()
         let testController = ChannelController(channel: testChannel)
 
-        testChannel.intensity = Intensity(1.0)
+        testChannel.intensity = 1.0
 
         testController.update(forDate: Date())
         XCTAssertEqual(testChannel.intensity.rawValue, 0.0)
@@ -154,10 +154,8 @@ class ChannelControllerTests: XCTestCase {
         let nowPlus5 = now.addingTimeInterval(60.0 * 5)
         let nowPlus45 = now.addingTimeInterval(60.0 * 45)
         let nowPlus60 = now.addingTimeInterval(60.0 * 60)
-        let fullBrightness = Brightness(1.0)
-        let halfBrightness = Brightness(0.5)
-        let testSegment1 = ChannelControllerSegment(startBrightness: fullBrightness, endBrightness: halfBrightness, startDate: now, endDate: nowPlus45)
-        let testSegment2 = ChannelControllerSegment(startBrightness: halfBrightness, endBrightness: halfBrightness, startDate: nowPlus5, endDate: nowPlus60)
+        let testSegment1 = ChannelControllerSegment(startBrightness: 1.0, endBrightness: 0.5, startDate: now, endDate: nowPlus45)
+        let testSegment2 = ChannelControllerSegment(startBrightness: 0.5, endBrightness: 0.5, startDate: nowPlus5, endDate: nowPlus60)
 
         var targetSegment = testSegment1
         targetSegment.unionByLayer(withSegment: testSegment2)
@@ -177,10 +175,8 @@ class ChannelControllerTests: XCTestCase {
         let nowPlus5 = now.addingTimeInterval(60.0 * 5)
         let nowPlus45 = now.addingTimeInterval(60.0 * 45)
         let nowPlus60 = now.addingTimeInterval(60.0 * 60)
-        let fullBrightness = Brightness(1.0)
-        let halfBrightness = Brightness(0.5)
-        let testSegment1 = ChannelControllerSegment(startBrightness: fullBrightness, endBrightness: halfBrightness, startDate: now, endDate: nowPlus45)
-        let testSegment2 = ChannelControllerSegment(startBrightness: halfBrightness, endBrightness: halfBrightness, startDate: nowPlus5, endDate: nowPlus60)
+        let testSegment1 = ChannelControllerSegment(startBrightness: 1.0, endBrightness: 0.5, startDate: now, endDate: nowPlus45)
+        let testSegment2 = ChannelControllerSegment(startBrightness: 0.5, endBrightness: 0.5, startDate: nowPlus5, endDate: nowPlus60)
 
         var targetSegment = testSegment1
         targetSegment.unionByChannel(withSegment: testSegment2)

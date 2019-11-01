@@ -71,8 +71,8 @@ public protocol ChannelLayer {
 
 // Wrapper that allows for merging multiple ChannelSegments
 struct ChannelControllerSegment: ChannelSegment {
-    var startBrightness: Brightness = Brightness(1.0)
-    var endBrightness: Brightness = Brightness(1.0)
+    var startBrightness: Brightness = 1.0
+    var endBrightness: Brightness = 1.0
 
     var startDate: Date = Date.distantPast
     var endDate: Date = Date.distantFuture
@@ -167,12 +167,12 @@ public class ChannelController: BehaviorChannel {
         let activeLayers = self.activeLayers
         guard activeLayers.count > 0 else {
             Log.warn("No Active Layers in Channel")
-            self.channel.intensity = Intensity(0.0)
+            self.channel.intensity = 0.0
             return
         }
 
         var shouldInvalidate: Bool = false
-        var channelBrightness = Brightness(1.0)
+        var channelBrightness: Brightness = 1.0
         for layer in activeLayers {
             let oldIndex = layer.activeIndex
             let layerBrightness = layer.lightLevel(forDate: date)

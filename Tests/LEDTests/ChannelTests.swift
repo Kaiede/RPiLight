@@ -47,13 +47,13 @@ class ChannelTests: XCTestCase {
         let mockImpl = MockModuleImpl()
         let testChannel = LEDChannel(impl: mockImpl, token: "Second", channelId: 1)
 
-        testChannel.intensity = Intensity(1.0)
+        testChannel.intensity = 1.0
         XCTAssertEqual(mockImpl.lastChannel, 1)
         XCTAssertEqual(mockImpl.lastIntensity, 1.0)
-        testChannel.intensity = Intensity(0.5)
+        testChannel.intensity = 0.5
         XCTAssertEqual(mockImpl.lastChannel, 1)
         XCTAssertEqual(mockImpl.lastIntensity, 0.5)
-        testChannel.intensity = Intensity(0.0)
+        testChannel.intensity = 0.0
         XCTAssertEqual(mockImpl.lastChannel, 1)
         XCTAssertEqual(mockImpl.lastIntensity, 0.0)
     }
@@ -61,15 +61,15 @@ class ChannelTests: XCTestCase {
     func testIntensityClamping() {
         let mockImpl = MockModuleImpl()
         let testChannel = LEDChannel(impl: mockImpl, token: "Second", channelId: 1)
-        testChannel.minIntensity = Intensity(0.025)
+        testChannel.minIntensity = 0.025
 
-        testChannel.intensity = Intensity(1.0)
+        testChannel.intensity = 1.0
         XCTAssertEqual(mockImpl.lastChannel, 1)
         XCTAssertEqual(mockImpl.lastIntensity, 1.0)
-        testChannel.intensity = Intensity(0.026)
+        testChannel.intensity = 0.026
         XCTAssertEqual(mockImpl.lastChannel, 1)
         XCTAssertEqual(mockImpl.lastIntensity, 0.026)
-        testChannel.intensity = Intensity(0.024)
+        testChannel.intensity = 0.024
         XCTAssertEqual(mockImpl.lastChannel, 1)
         XCTAssertEqual(mockImpl.lastIntensity, 0.0)
     }

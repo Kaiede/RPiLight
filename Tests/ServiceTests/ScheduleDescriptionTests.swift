@@ -105,8 +105,8 @@ class ScheduleDescriptionTests: XCTestCase {
 
             // Sanity Check the Schedule Itself
             XCTAssertEqual(channelSchedule.steps.count, 2)
-            XCTAssertEqual(channelSchedule.steps[0].brightness, (0.30))
-            XCTAssertEqual(channelSchedule.steps[1].brightness, Brightness(0.50))
+            XCTAssertEqual(channelSchedule.steps[0].brightness, 0.30)
+            XCTAssertEqual(channelSchedule.steps[1].brightness, 0.50)
         } catch {
             XCTFail("\(error)")
         }

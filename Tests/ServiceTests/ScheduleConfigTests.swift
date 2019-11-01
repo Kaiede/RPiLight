@@ -104,9 +104,9 @@ class ScheduleConfigTests: XCTestCase {
 
             // Sanity Check the Schedule Itself
             XCTAssertEqual(channelSchedule.schedule.count, 2)
-            let gamma = Gamma(1.8)
-            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[0].setting, gamma: gamma), Brightness(0.30))
-            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[1].setting, gamma: gamma), Brightness(0.50))
+            let gamma: Gamma = 1.8
+            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[0].setting, gamma: gamma), 0.30)
+            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[1].setting, gamma: gamma), 0.50)
         } catch {
             XCTFail("\(error)")
         }
@@ -131,10 +131,10 @@ class ScheduleConfigTests: XCTestCase {
             XCTAssertEqual(channelSchedule.minIntensity, 0.0025)
 
             // Sanity Check the Schedule Itself
-            let gamma = Gamma(1.8)
+            let gamma: Gamma = 1.8
             XCTAssertEqual(channelSchedule.schedule.count, 2)
-            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[0].setting, gamma: gamma), Brightness(0.30))
-            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[1].setting, gamma: gamma), Brightness(0.50))
+            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[0].setting, gamma: gamma), 0.30)
+            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[1].setting, gamma: gamma), 0.50)
         } catch {
             XCTFail("\(error)")
         }
