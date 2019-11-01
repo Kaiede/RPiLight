@@ -24,6 +24,8 @@
  */
 
 import XCTest
+
+import LED
 @testable import Service
 
 class ScheduleConfigTests: XCTestCase {
@@ -102,8 +104,9 @@ class ScheduleConfigTests: XCTestCase {
 
             // Sanity Check the Schedule Itself
             XCTAssertEqual(channelSchedule.schedule.count, 2)
-            XCTAssertEqual(channelSchedule.schedule[0].setting.asBrightness(withGamma: 1.8), 0.30)
-            XCTAssertEqual(channelSchedule.schedule[1].setting.asBrightness(withGamma: 1.8), 0.50)
+            let gamma = Gamma(1.8)
+            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[0].setting, gamma: gamma), Brightness(0.30))
+            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[1].setting, gamma: gamma), Brightness(0.50))
         } catch {
             XCTFail("\(error)")
         }
@@ -128,9 +131,10 @@ class ScheduleConfigTests: XCTestCase {
             XCTAssertEqual(channelSchedule.minIntensity, 0.0025)
 
             // Sanity Check the Schedule Itself
+            let gamma = Gamma(1.8)
             XCTAssertEqual(channelSchedule.schedule.count, 2)
-            XCTAssertEqual(channelSchedule.schedule[0].setting.asBrightness(withGamma: 1.8), 0.30)
-            XCTAssertEqual(channelSchedule.schedule[1].setting.asBrightness(withGamma: 1.8), 0.50)
+            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[0].setting, gamma: gamma), Brightness(0.30))
+            XCTAssertEqual(Brightness(setting: channelSchedule.schedule[1].setting, gamma: gamma), Brightness(0.50))
         } catch {
             XCTFail("\(error)")
         }
@@ -176,7 +180,7 @@ class ScheduleConfigTests: XCTestCase {
 
             switch(point.setting) {
             case .brightness(let brightness):
-                XCTAssertEqual(brightness, 0.25)
+                XCTAssertEqual(brightness.rawValue, 0.25)
             case .intensity(_):
                 XCTFail("Didn't expect intensity")                
             }
@@ -201,7 +205,7 @@ class ScheduleConfigTests: XCTestCase {
             case .brightness(_):
                 XCTFail("Didn't expect brightness")
             case .intensity(let intensity):
-                XCTAssertEqual(intensity, 0.25)
+                XCTAssertEqual(intensity.rawValue, 0.25)
             }
         } catch {
             XCTFail("\(error)")

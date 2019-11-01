@@ -58,14 +58,13 @@ class DacViaMCP4725: LEDModuleImpl {
         self.channelMap = channelMap
     }
 
-    internal func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+    internal func applyIntensity(_ intensity: Intensity, toChannel channel: Int) {
         guard channel < 1 else {
             Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
             return
         }
 
-        let maxIntensity: Double = 4095
-        let steps = UInt16(intensity * maxIntensity)
-        self.controller.set(voltage: steps)
+        let step = UInt16(intensity.toSteps(max: 4095))
+        self.controller.set(voltage: step)
     }
 }

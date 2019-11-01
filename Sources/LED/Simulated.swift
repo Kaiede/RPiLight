@@ -41,7 +41,7 @@ internal class SimulatedImpl: LEDModuleImpl {
         self.channelMap = channelMap
     }
 
-    internal func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+    internal func applyIntensity(_ intensity: Intensity, toChannel channel: Int) {
         // Do nothing for Simulated Module
     }
 }

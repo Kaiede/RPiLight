@@ -31,26 +31,113 @@ fileprivate func ** (num: Double, power: Double) -> Double {
     return pow(num, power)
 }
 
-public struct Gamma: RawRepresentable, Equatable, Codable {
+public struct Gamma: RawRepresentable, Comparable, Equatable, Codable {
     public private(set) var rawValue: Double
 
     public init(rawValue: Double) { self.rawValue = rawValue }
     public init(_ rawValue: Double) { self.rawValue = rawValue }
+    public init(_ other: Gamma) { self.rawValue = other.rawValue }
+    
+    static public func < (lhs: Self, rhs: Self) -> Bool {
+        return lhs.rawValue < rhs.rawValue.nextUp
+    }
 }
 
-public struct Intensity: RawRepresentable, Equatable, Codable {
+public struct Intensity: RawRepresentable, Comparable, Equatable, Codable {
     public private(set) var rawValue: Double
 
     public init(rawValue: Double) { self.rawValue = rawValue }
     public init(_ rawValue: Double) { self.rawValue = rawValue }
+    public init(_ other: Intensity) { self.rawValue = other.rawValue }
     public init(_ brightness: Brightness, gamma: Gamma) { self.rawValue = brightness.rawValue ** gamma.rawValue }
+    
+    internal func toSteps(max: UInt) -> UInt {
+        return UInt(self.rawValue * Double(max))
+    }
+    
+    internal func toPercentage() -> Float {
+        return Float(self.rawValue * 100.0)
+    }
+    
+    static public func < (lhs: Self, rhs: Self) -> Bool {
+        return lhs.rawValue < rhs.rawValue.nextUp
+    }
+
+    static public func + (lhs: Self, rhs: Double) -> Self {
+        return Self(lhs.rawValue + rhs)
+    }
+    
+    static public func += (lhs: inout Self, rhs: Double) {
+        lhs.rawValue += rhs
+    }
+    
+    static public func - (lhs: Self, rhs: Double) -> Self {
+        return Self(lhs.rawValue + rhs)
+    }
+    
+    static public func -= (lhs: inout Self, rhs: Double) {
+        lhs.rawValue -= rhs
+    }
+    
+    static public func * (lhs: Self, rhs: Double) -> Self {
+        return Self(lhs.rawValue * rhs)
+    }
+    
+    static public func * (lhs: Self, rhs: Self) -> Self {
+        return Self(lhs.rawValue * rhs.rawValue)
+    }
+    
+    static public func *= (lhs: inout Self, rhs: Double) {
+        lhs.rawValue *= rhs
+    }
+    
+    static public func *= (lhs: inout Self, rhs: Self) {
+        lhs.rawValue *= rhs.rawValue
+    }
 }
 
-public struct Brightness: RawRepresentable, Equatable, Codable {
+public struct Brightness: RawRepresentable, Comparable, Equatable, Codable {
     public private(set) var rawValue: Double
 
     public init(rawValue: Double) { self.rawValue = rawValue }
     public init(_ rawValue: Double) { self.rawValue = rawValue }
+    public init(_ other: Brightness) { self.rawValue = other.rawValue }
     public init(_ intensity: Intensity, gamma: Gamma) { self.rawValue = intensity.rawValue ** (1.0 / gamma.rawValue) }
+    
+    static public func < (lhs: Self, rhs: Self) -> Bool {
+        return lhs.rawValue < rhs.rawValue.nextUp
+    }
+
+    static public func + (lhs: Self, rhs: Double) -> Self {
+        return Self(lhs.rawValue + rhs)
+    }
+    
+    static public func += (lhs: inout Self, rhs: Double) {
+        lhs.rawValue += rhs
+    }
+
+    static public func - (lhs: Self, rhs: Double) -> Self {
+        return Self(lhs.rawValue + rhs)
+    }
+    
+    static public func -= (lhs: inout Self, rhs: Double) {
+        lhs.rawValue -= rhs
+    }
+    
+    static public func * (lhs: Self, rhs: Double) -> Self {
+        return Self(lhs.rawValue * rhs)
+    }
+    
+    static public func * (lhs: Self, rhs: Self) -> Self {
+        return Self(lhs.rawValue * rhs.rawValue)
+    }
+    
+    static public func *= (lhs: inout Self, rhs: Double) {
+        lhs.rawValue *= rhs
+    }
+    
+    static public func *= (lhs: inout Self, rhs: Self) {
+        lhs.rawValue *= rhs.rawValue
+    }
 }
 

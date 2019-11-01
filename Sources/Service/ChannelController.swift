@@ -29,26 +29,26 @@ import Logging
 import LED
 
 public protocol ChannelSegment {
-    var startBrightness: Double { get }
-    var endBrightness: Double { get }
+    var startBrightness: Brightness { get }
+    var endBrightness: Brightness { get }
     var startDate: Date { get }
     var endDate: Date { get }
 }
 
 extension ChannelSegment {
     var deltaBrightnessChange: Double {
-        return self.endBrightness - self.startBrightness
+        return self.endBrightness.rawValue - self.startBrightness.rawValue
     }
 
     var totalBrightnessChange: Double {
-        return abs(self.endBrightness - self.startBrightness)
+        return abs(self.deltaBrightnessChange)
     }
 
     var duration: TimeInterval {
         return self.endDate.timeIntervalSince(self.startDate)
     }
 
-    public func interpolateBrightness(forDate date: Date) -> Double {
+    public func interpolateBrightness(forDate date: Date) -> Brightness {
         if date <= self.startDate {
             return self.startBrightness
         } else if date >= self.endDate {
@@ -66,13 +66,13 @@ public protocol ChannelLayer {
     var activeIndex: Int { get }
 
     func segment(forDate date: Date) -> ChannelSegment
-    func lightLevel(forDate now: Date) -> Double
+    func lightLevel(forDate now: Date) -> Brightness
 }
 
 // Wrapper that allows for merging multiple ChannelSegments
 struct ChannelControllerSegment: ChannelSegment {
-    var startBrightness: Double = 1.0
-    var endBrightness: Double = 1.0
+    var startBrightness: Brightness = Brightness(1.0)
+    var endBrightness: Brightness = Brightness(1.0)
 
     var startDate: Date = Date.distantPast
     var endDate: Date = Date.distantFuture
@@ -106,35 +106,14 @@ struct ChannelControllerSegment: ChannelSegment {
 
         self.startDate = newStartDate
         self.endDate = newEndDate
-        if abs(endBrightness - startBrightness) > abs(segmentEndBrightness - segmentStartBrightness) {
+        let myTotalDelta = abs(endBrightness.rawValue - startBrightness.rawValue)
+        let otherTotalDelta = abs(segmentEndBrightness.rawValue - segmentStartBrightness.rawValue)
+        if myTotalDelta > otherTotalDelta {
             self.startBrightness = startBrightness
             self.endBrightness = endBrightness
         } else {
             self.startBrightness = segmentStartBrightness
             self.endBrightness = segmentEndBrightness
-        }
-    }
-
-    private func biggestDelta(leftStart: Double,
-                              end leftEnd: Double,
-                              rightStart: Double,
-                              end rightEnd: Double) -> (start: Double, end: Double) {
-        let leftEndLeftStart = abs(leftEnd - leftStart)
-        let rightEndLeftStart = abs(rightEnd - leftStart)
-        let leftEndRightStart = abs(leftEnd - rightStart)
-        let rightEndRightStart = abs(rightEnd - rightStart)
-
-        let maxDelta = max(leftEndLeftStart, max(rightEndLeftStart, max(leftEndRightStart, rightEndRightStart)))
-        if leftEndLeftStart == maxDelta {
-            return (start: leftStart, end: leftEnd)
-        } else if rightEndLeftStart == maxDelta {
-            return (start: leftStart, end: rightEnd)
-        } else if leftEndRightStart == maxDelta {
-            return (start: rightStart, end: leftEnd)
-        } else if rightEndRightStart == maxDelta {
-            return (start: rightStart, end: rightEnd)
-        } else {
-            fatalError()
         }
     }
 }
@@ -146,8 +125,8 @@ public enum ChannelLayerType: Int {
 
 public protocol Channel {
     var token: String { get }
-    var minIntensity: Double { get set }
-    var intensity: Double { get set }
+    var minIntensity: Intensity { get set }
+    var intensity: Intensity { get set }
 }
 
 public class ChannelController: BehaviorChannel {
@@ -155,8 +134,8 @@ public class ChannelController: BehaviorChannel {
     var channel: Channel
     var layers: [ChannelLayer?]
 
-    public var channelGamma: Double {
-        return rootController?.configuration.gamma ?? 1.8
+    public var channelGamma: Gamma {
+        return Gamma(rootController?.configuration.gamma ?? 1.8)
     }
 
     var activeLayers: [ChannelLayer] {
@@ -188,12 +167,12 @@ public class ChannelController: BehaviorChannel {
         let activeLayers = self.activeLayers
         guard activeLayers.count > 0 else {
             Log.warn("No Active Layers in Channel")
-            self.channel.intensity = 0.0
+            self.channel.intensity = Intensity(0.0)
             return
         }
 
         var shouldInvalidate: Bool = false
-        var channelBrightness: Double = 1.0
+        var channelBrightness = Brightness(1.0)
         for layer in activeLayers {
             let oldIndex = layer.activeIndex
             let layerBrightness = layer.lightLevel(forDate: date)
@@ -202,8 +181,7 @@ public class ChannelController: BehaviorChannel {
             shouldInvalidate = shouldInvalidate || (oldIndex != layer.activeIndex)
         }
 
-        let setting = ChannelSetting.brightness(channelBrightness)
-        self.channel.intensity = setting.asIntensity(withGamma: self.channelGamma)
+        self.channel.intensity = Intensity(channelBrightness, gamma: self.channelGamma)
         if shouldInvalidate {
             Log.debug("Invalidating Refresh Because of Channel: \(self.channel.token)")
             self.rootController?.invalidateRefreshTimer()

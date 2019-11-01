@@ -32,7 +32,7 @@ import Foundation
 //
 
 internal protocol LEDModuleImpl {
-    func applyIntensity(_ intensity: Double, toChannel channel: Int)
+    func applyIntensity(_ intensity: Intensity, toChannel channel: Int)
     var channelMap: [String: Int] { get }
 }
 
