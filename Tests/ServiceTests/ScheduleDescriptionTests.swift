@@ -26,6 +26,7 @@
 import XCTest
 
 import LED
+import Yams
 @testable import Service
 
 class ScheduleDescriptionTests: XCTestCase {
@@ -254,7 +255,7 @@ class ScheduleDescriptionTests: XCTestCase {
         }
     }
 
-    func testCompleteSchedule_Example() {
+    func testCompleteSchedule_Example_Json() {
         let jsonString = """
         {
             "lunar-cycle": {
@@ -318,6 +319,62 @@ class ScheduleDescriptionTests: XCTestCase {
             XCTFail("\(error)")
         }
     }
+    
+    func testCompleteSchedule_Example_Yaml() {
+        let yamlString = """
+        lunar-cycle:
+            start: 21:00:00
+            end: 07:00:00
+
+        schedule:
+            primary:
+                min-intensity: 0.0025
+                steps:
+                    - { time: 08:00:00, brightness: 0.0 }
+                    - { time: 08:30:00, brightness: 0.25 }
+                    - { time: 12:00:00, brightness: 0.25 }
+                    - { time: 14:00:00, brightness: 0.50 }
+                    - { time: 18:00:00, brightness: 0.50 }
+                    - { time: 20:00:00, brightness: 0.10 }
+                    - { time: 22:30:00, brightness: 0.10 }
+                    - { time: 23:00:00, brightness: 0.0 }
+
+            secondary:
+                min-intensity: 0.0025
+                steps:
+                    - { time: 08:00:00, brightness: 0.0 }
+                    - { time: 08:30:00, brightness: 0.30 }
+                    - { time: 18:00:00, brightness: 0.30 }
+                    - { time: 20:00:00, brightness: 0.15 }
+                    - { time: 22:30:00, brightness: 0.15 }
+                    - { time: 23:00:00, brightness: 0.0 }
+        """
+
+        do {
+            let decoder = YAMLDecoder()
+            let schedule = try decoder.decode(ScheduleDescription.self, from: yamlString)
+
+            // Sanity Check the Channels
+            XCTAssertEqual(schedule.schedule.count, 2)
+            XCTAssertEqual(schedule.schedule["primary"]?.minIntensity, 0.0025)
+            XCTAssertEqual(schedule.schedule["primary"]?.steps.count, 8)
+            XCTAssertEqual(schedule.schedule["secondary"]?.minIntensity, 0.0025)
+            XCTAssertEqual(schedule.schedule["secondary"]?.steps.count, 6)
+
+            // Sanity Check the Lunar Schedule
+            XCTAssertNotNil(schedule.lunarCycle)
+            XCTAssertEqual(schedule.lunarCycle?.start.hour, 21)
+            XCTAssertEqual(schedule.lunarCycle?.start.minute, 0)
+            XCTAssertEqual(schedule.lunarCycle?.start.second, 0)
+            XCTAssertEqual(schedule.lunarCycle?.end.hour, 7)
+            XCTAssertEqual(schedule.lunarCycle?.end.minute, 0)
+            XCTAssertEqual(schedule.lunarCycle?.end.second, 0)
+
+            // Did the Channel Schedules Parse?
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
 
     static var allTests = [
         ("testLunarSchedule_Empty", testLunarSchedule_Empty),
@@ -331,6 +388,7 @@ class ScheduleDescriptionTests: XCTestCase {
         ("testSchedulePoint_Intensity", testSchedulePoint_Intensity),
         ("testCompleteSchedule_Empty", testCompleteSchedule_Empty),
         ("testCompleteSchedule", testCompleteSchedule),
-        ("testCompleteSchedule_Example", testCompleteSchedule_Example)
+        ("testCompleteSchedule_Example_Json", testCompleteSchedule_Example_Json),
+        ("testCompleteSchedule_Example_Yaml", testCompleteSchedule_Example_Yaml)
     ]
 }
