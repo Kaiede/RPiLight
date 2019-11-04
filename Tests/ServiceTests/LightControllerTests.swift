@@ -154,6 +154,8 @@ class LightControllerTests: XCTestCase {
     }
 
     func testForceStop() {
+        Log.pushLevel(.debug)
+
         let mockController = MockBehaviorController(channelCount: 4)
         let mockBehavior = MockBehavior()
         mockBehavior.intervalMs = 1000
@@ -170,6 +172,8 @@ class LightControllerTests: XCTestCase {
             // Shouldn't have waited until a refresh to stop the controller
             XCTAssertFalse(mockBehavior.didStop)
         }
+
+        Log.popLevel()
     }
 
     func testOneShot() {

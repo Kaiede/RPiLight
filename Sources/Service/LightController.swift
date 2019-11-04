@@ -119,7 +119,7 @@ public class LightController: BehaviorController {
 
         // Configure Dispatch Queue
         self.queue = DispatchQueue(label: "rpilight.controller",
-                                   qos: .userInitiated,
+                                   qos: .userInteractive,
                                    attributes: [],
                                    autoreleaseFrequency: .inherit,
                                    target: nil)
