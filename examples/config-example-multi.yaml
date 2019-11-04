@@ -1,0 +1,13 @@
+user: pi
+board: raspberryPi
+gamma: 2.2
+
+controllers:
+    - type: raspberryPwm
+      frequency: 1440
+      channels:
+        primary: 0
+    - type: pca9685
+      frequency: 960
+      channels:
+        secondary: 1
