@@ -10,6 +10,7 @@ XCTMain([
     // Service Tests
     testCase(BehaviorTests.allTests),
     testCase(ChannelControllerTests.allTests),
+    testCase(DayTimeTests.allTests),
     testCase(EventTests.allTests),
     testCase(LayerTests.allTests),
     testCase(LightControllerTests.allTests),

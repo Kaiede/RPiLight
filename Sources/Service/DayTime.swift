@@ -25,12 +25,12 @@
 
 import Foundation
 
-struct DayTime: Codable {
+public struct DayTime: Codable {
     enum DecodeError: Error {
         case unableToParse
     }
     
-    var dateComponents: DateComponents
+    public internal(set) var dateComponents: DateComponents
 
     private static let Formatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -40,7 +40,15 @@ struct DayTime: Codable {
         return dateFormatter
     }()
 
-    init(from decoder: Decoder) throws {
+    public init(from date: Date, calendar: Calendar = Calendar.current) {
+        self.dateComponents = calendar.dateComponents([.hour, .minute, .second], from: date)
+    }
+
+    public init(_ components: DateComponents) {
+        self.dateComponents = components.asTimeOfDay()
+    }
+
+    public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let decodedString = try container.decode(String.self)
         guard let parsedTime = DayTime.Formatter.date(from: decodedString) else {
@@ -49,7 +57,7 @@ struct DayTime: Codable {
         dateComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         let tempDate = Calendar.current.nextDate(after: Date(),
                                              matching: dateComponents,
@@ -61,10 +69,84 @@ struct DayTime: Codable {
     }
 }
 
+extension DayTime: Equatable {
+    public static func == (lhs: DayTime, rhs: DayTime) -> Bool {
+        return lhs.dateComponents == rhs.dateComponents
+    }
+}
+
+extension DayTime: CustomStringConvertible {
+    public var description: String {
+        return self.dateComponents.description
+    }
+}
+
+extension DayTime: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return self.dateComponents.debugDescription
+    }
+}
+
+
 // MARK: Wrapper for DateComponent Access
 
-extension DayTime {
+public extension DayTime {
     var hour: Int? { get { return dateComponents.hour }}
     var minute: Int? { get { return dateComponents.minute }}
     var second: Int? { get { return dateComponents.second }}
+}
+
+public extension DayTime {
+    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
+        #if swift(>=5.0)
+            return Calendar.current.nextDate(after: date,
+                                             matching: self.dateComponents,
+                                             matchingPolicy: .nextTime,
+                                             repeatedTimePolicy: .first,
+                                             direction: direction)
+        #else
+            #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
+                return Calendar.current.nextDate(after: date,
+                                                matching: self.dateComponents,
+                                                matchingPolicy: .nextTime,
+                                                repeatedTimePolicy: .first,
+                                                direction: direction)
+            #elseif os(Linux)
+                return self.calcNextDateCustom(after: date, direction: direction)
+            #else
+                fatalError("No Implementation Available for this OS")
+            #endif
+        #endif
+
+    }
+    
+    // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
+    // but may not be very relevant for any other package.
+    internal func calcNextDateCustom(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        var dateComponentAsDayTime = self.dateComponents.asTimeOfDay()
+        guard let targetDate = calendar.date(byAdding: dateComponentAsDayTime, to: startOfDay) else { return nil }
+        switch direction {
+        case .forward:
+            if targetDate <= date { dateComponentAsDayTime.day = 1 }
+        case .backward:
+            if targetDate >= date { dateComponentAsDayTime.day = -1 }
+        }
+
+        return calendar.date(byAdding: dateComponentAsDayTime, to: startOfDay, wrappingComponents: false)
+    }
+}
+
+// MARK: Internal Helper Functions
+
+fileprivate extension DateComponents {
+    func asTimeOfDay() -> DateComponents {
+        return DateComponents(calendar: self.calendar,
+                              timeZone: self.timeZone,
+                              hour: self.hour,
+                              minute: self.minute,
+                              second: self.second,
+                              nanosecond: self.nanosecond)
+    }
 }

@@ -29,7 +29,7 @@ import Logging
 import LED
 
 protocol LayerPoint {
-    var time: DateComponents { get }
+    var time: DayTime { get }
     var brightness: Brightness { get }
 }
 

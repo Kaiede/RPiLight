@@ -44,14 +44,14 @@ public enum LightControllerError: Error {
 // Wrapper for Configuration that's compatible with Layers
 //
 protocol ChannelPoint {
-    var time: DateComponents { get }
+    var time: DayTime { get }
     var setting: ChannelSetting { get }
 }
 
 extension SchedulePoint: ChannelPoint {}
 
 struct ChannelPointWrapper: LayerPoint {
-    var time: DateComponents {
+    var time: DayTime {
         return self.event.time
     }
 

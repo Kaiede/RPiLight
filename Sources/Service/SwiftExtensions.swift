@@ -35,68 +35,6 @@ import Foundation
 //
 // MARK: Foundation Extensions
 //
-extension Calendar {
-    func intervalBetweenDateComponents(_ components: DateComponents,
-                                       since olderComponents: DateComponents) -> TimeInterval? {
-        let startOfDay = self.startOfDay(for: Date())
-        guard let olderDate = self.date(byAdding: olderComponents, to: startOfDay) else { return nil }
-        guard let date = components.calcNextDate(after: olderDate) else { return nil }
-
-        return date.timeIntervalSince(olderDate)
-    }
-}
-
-public extension DateComponents {
-    func asTimeOfDay() -> DateComponents {
-        return DateComponents(calendar: self.calendar,
-                              timeZone: self.timeZone,
-                              hour: self.hour,
-                              minute: self.minute,
-                              second: self.second,
-                              nanosecond: self.nanosecond)
-    }
-
-    // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
-    // but may not be very relevant for any other package.
-    func calcNextDateCustom(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        var copyOfSelf = self.asTimeOfDay()
-        guard let targetDate = calendar.date(byAdding: copyOfSelf, to: startOfDay) else { return nil }
-        switch direction {
-        case .forward:
-            if targetDate <= date { copyOfSelf.day = 1 }
-        case .backward:
-            if targetDate >= date { copyOfSelf.day = -1 }
-        }
-
-        return calendar.date(byAdding: copyOfSelf, to: startOfDay, wrappingComponents: false)
-    }
-
-    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
-        #if swift(>=5.0)
-            return Calendar.current.nextDate(after: date,
-                                             matching: self,
-                                             matchingPolicy: .nextTime,
-                                             repeatedTimePolicy: .first,
-                                             direction: direction)
-        #else
-            #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
-                return Calendar.current.nextDate(after: date,
-                                                matching: self,
-                                                matchingPolicy: .nextTime,
-                                                repeatedTimePolicy: .first,
-                                                direction: direction)
-            #elseif os(Linux)
-                return self.calcNextDateCustom(after: date, direction: direction)
-            #else
-                fatalError("No Implementation Available for this OS")
-            #endif
-        #endif
-
-    }
-}
-
 public extension FileManager {
     var currentDirectoryUrl: URL {
         return URL(fileURLWithPath: self.currentDirectoryPath)
