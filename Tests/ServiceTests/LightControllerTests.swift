@@ -24,6 +24,9 @@
  */
 
 import XCTest
+
+import LED
+import Logging
 @testable import Service
 
 class MockBehavior: Behavior {
@@ -100,6 +103,14 @@ class MockOneShotBehavior: Behavior {
 }
 
 class LightControllerTests: XCTestCase {
+    override class func setUp() {
+        Log.pushLevel(.warn)
+    }
+
+    override class func tearDown() {
+        Log.popLevel()
+    }
+
     func testChannelEvent() {        
         // This ensures we know that we are actually getting brightness, not intensity.
         let mockConfiguration = LightControllerConfig(gamma: 2.0)

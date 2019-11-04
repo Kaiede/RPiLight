@@ -136,7 +136,30 @@ public struct Log {
         Log.logLevel = level
     }
 
-    private static var logLevel: LogLevel = .info
+    public static func pushLevel(_ level: LogLevel) {
+        Log.logLevelStack.append(level)
+    }
+
+    public static func popLevel() {
+        let _ = Log.logLevelStack.popLast()
+    }
+
+    private static var logLevelStack: [LogLevel] = []
+
+    private static var logLevel: LogLevel {
+        get {
+            return Log.logLevelStack.last ?? .info
+        }
+        set {
+            let count = Log.logLevelStack.count
+            if count > 0 {
+                Log.logLevelStack[count - 1] = newValue
+            } else {
+                Log.logLevelStack.append(newValue)
+            }
+        }
+    }
+
     private static func shouldLog(_ level: LogLevel) -> Bool {
         return level >= Log.logLevel
     }
