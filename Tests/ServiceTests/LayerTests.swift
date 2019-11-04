@@ -30,12 +30,12 @@ import Logging
 @testable import Service
 
 struct MockLayerPoint: LayerPoint {
-    var time: DateComponents
+    var time: DayTime
     var brightness: Brightness
 
     init(time: String, brightness: Brightness) {
         let date = MockLayerPoint.dateFormatter.date(from: time)!
-        self.time = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
+        self.time = DayTime(from: date)
         self.brightness = brightness
     }
 
@@ -173,8 +173,8 @@ class LayerTests: XCTestCase {
 
             let startDate = MockLayerPoint.dateFormatter.date(from: expectedStart)!
             let endDate = MockLayerPoint.dateFormatter.date(from: expectedEnd)!
-            let startComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: startDate)
-            let endComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: endDate)
+            let startComponents = DayTime(from: startDate)
+            let endComponents = DayTime(from: endDate)
             let startDateCorrected = startComponents.calcNextDateCustom(after: testDate, direction: .backward)!
             let endDateCorrected = endComponents.calcNextDateCustom(after: testDate, direction: .forward)!
 

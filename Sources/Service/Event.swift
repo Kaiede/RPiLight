@@ -34,7 +34,7 @@ public enum EventId: Equatable {
 }
 
 public protocol EventController {
-    var time: DateComponents { get }
+    var time: DayTime { get }
     var token: EventId { get }
 
     var firesOnStart: Bool { get }
@@ -48,14 +48,14 @@ public class LunarCycleController: EventController {
     public let token: EventId = .lunar
     public let firesOnStart: Bool = true
 
-    public let time: DateComponents
-    let endTime: DateComponents
+    public let time: DayTime
+    let endTime: DayTime
 
     public convenience init(schedule: LunarSchedule) {
         self.init(startTime: schedule.startTime, endTime: schedule.endTime)
     }
 
-    init(startTime: DateComponents, endTime: DateComponents) {
+    init(startTime: DayTime, endTime: DayTime) {
         self.time = startTime
         self.endTime = endTime
     }
@@ -95,7 +95,7 @@ public class LunarCycleController: EventController {
 }
 
 struct LunarPoint: LayerPoint {
-    let time: DateComponents
+    let time: DayTime
     let brightness: Brightness
 }
 
@@ -112,11 +112,10 @@ extension Layer {
         let nightFullStart = nightStart.addingTimeInterval(transitionInterval)
         let nightFullEnd = nightEnd.addingTimeInterval(-transitionInterval)
 
-        let calendar = Calendar.current
-        let nightStartPoint = calendar.dateComponents([.hour, .minute, .second], from: nightStart)
-        let nightFullStartPoint = calendar.dateComponents([.hour, .minute, .second], from: nightFullStart)
-        let nightFullEndPoint = calendar.dateComponents([.hour, .minute, .second], from: nightFullEnd)
-        let nightEndPoint = calendar.dateComponents([.hour, .minute, .second], from: nightEnd)
+        let nightStartPoint = DayTime(from: nightStart)
+        let nightFullStartPoint = DayTime(from: nightFullStart)
+        let nightFullEndPoint = DayTime(from: nightFullEnd)
+        let nightEndPoint = DayTime(from: nightEnd)
 
         var layerPoints: [LunarPoint] = []
         layerPoints.append(LunarPoint(time: nightStartPoint, brightness: 1.0))
