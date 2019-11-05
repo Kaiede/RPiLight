@@ -62,7 +62,9 @@ class DayTimeTests: XCTestCase {
             // - DayTimes should be equal
             // - Calendar's idea of what equal is should also hold true.
             XCTAssertEqual(targetTime, DayTime(from: calculatedDate))
-            XCTAssertEqual(targetTime.dateComponents, Calendar.current.dateComponents([.hour, .minute, .second], from: calculatedDate))
+            XCTAssertEqual(
+                targetTime.dateComponents,
+                Calendar.current.dateComponents([.hour, .minute, .second], from: calculatedDate))
         }
     }
 
@@ -99,7 +101,9 @@ class DayTimeTests: XCTestCase {
             // - DayTimes should be equal
             // - Calendar's idea of what equal is should also hold true.
             XCTAssertEqual(targetTime, DayTime(from: calculatedDate))
-            XCTAssertEqual(targetTime.dateComponents, Calendar.current.dateComponents([.hour, .minute, .second], from: calculatedDate))
+            XCTAssertEqual(
+                targetTime.dateComponents,
+                Calendar.current.dateComponents([.hour, .minute, .second], from: calculatedDate))
         }
     }
 
@@ -138,7 +142,9 @@ class DayTimeTests: XCTestCase {
             // - DayTimes should be equal
             // - Calendar's idea of what equal is should also hold true.
             XCTAssertEqual(targetTime, DayTime(from: calculatedDate))
-            XCTAssertEqual(targetTime.dateComponents, Calendar.current.dateComponents([.hour, .minute, .second], from: calculatedDate))
+            XCTAssertEqual(
+                targetTime.dateComponents,
+                Calendar.current.dateComponents([.hour, .minute, .second], from: calculatedDate))
         }
     }
 
@@ -175,7 +181,9 @@ class DayTimeTests: XCTestCase {
             // - DayTimes should be equal
             // - Calendar's idea of what equal is should also hold true.
             XCTAssertEqual(targetTime, DayTime(from: calculatedDate))
-            XCTAssertEqual(targetTime.dateComponents, Calendar.current.dateComponents([.hour, .minute, .second], from: calculatedDate))
+            XCTAssertEqual(
+                targetTime.dateComponents,
+                Calendar.current.dateComponents([.hour, .minute, .second], from: calculatedDate))
         }
     }
 

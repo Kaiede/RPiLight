@@ -32,34 +32,39 @@ import Logging
 import Service
 
 class LightService {
-    let configuration: ServiceInfo
     var channels: LEDChannelSet
-    var schedule: Schedule
+    let configuration: ServiceDescription
+    var schedule: ScheduleDescription
 
     init(configFile: String, scheduleFile: String) {
         let configuration = LightService.loadConfiguration(file: configFile)
         let schedule = LightService.loadSchedule(file: scheduleFile)
         let channels = LightService.createChannelSet(
-            withDescriptions: configuration.controllers, 
+            withDescriptions: configuration.controllers,
             boardType: configuration.board)
 
-        self.configuration = ServiceInfo(configuration)
+        self.configuration = configuration
         self.schedule = schedule
         self.channels = channels
     }
 
     func applyLoggingLevel() {
-        Log.setLoggingLevel(LogLevel(configuration.logLevel))
+        let loggingLevel = configuration.logLevel ?? .info
+        Log.setLoggingLevel(LogLevel(loggingLevel))
     }
 
     func run(withPreview: Bool = false) {
         // Before we start running, drop root
         let originalUid = self.dropRoot()
 
-        Log.info("Startup User: \(getUsername(uid: originalUid) ?? "Unknown")")
+        // Solidify Some Config Inputs
+        let username: String = getUsername(uid: originalUid) ?? "Unknown"
+        let gamma: Gamma = configuration.gamma ?? 1.8
+
+        Log.info("Startup User: \(username)")
         Log.info("Final User: \(configuration.username)")
         Log.info("Configured Board: \(configuration.board.rawValue)")
-        Log.info("Configured Gamma: \(configuration.gamma)")
+        Log.info("Configured Gamma: \(gamma)")
         for controller in configuration.controllers {
             Log.info("Controller \(controller.type):")
             if let address = controller.address {
@@ -81,9 +86,9 @@ class LightService {
         let behavior: Behavior = withPreview ? PreviewLightBehavior() : DefaultLightBehavior()
 
         do {
-            let controller = try LightController(gamma: configuration.gamma,
+            let controller = try LightController(gamma: gamma,
                                                   channels: channels.asArray(),
-                                                  withSchedule: schedule.channels,
+                                                  withSchedule: schedule.schedule,
                                                   behavior: behavior)
             controller.setStopHandler { _ in
                 if withPreview {
@@ -126,7 +131,7 @@ class LightService {
     }
 
     static private func createChannelSet(
-        withDescriptions descriptions: [ServiceControllerInfo], 
+        withDescriptions descriptions: [ServiceControllerDescription],
         boardType: ServiceBoardType
     ) -> LEDChannelSet {
         let channels = LEDChannelSet()
@@ -145,7 +150,7 @@ class LightService {
     }
 
     static private func createModule(
-        withDescription configuration: ServiceControllerInfo,
+        withDescription configuration: ServiceControllerDescription,
         boardType: ServiceBoardType
     ) -> LEDModule {
         do {
@@ -175,23 +180,23 @@ class LightService {
         }
     }
 
-    static private func configureChannelSet(_ channelSet: LEDChannelSet, schedule: Schedule) {
-        for (token, channelSchedule) in schedule.channels {
+    static private func configureChannelSet(_ channelSet: LEDChannelSet, schedule: ScheduleDescription) {
+        for (token, channelSchedule) in schedule.schedule {
             guard let channel = channelSet[token] else {
                 fatalError("Attempted to configure unknown channel '\(token)")
             }
 
-            channel.minIntensity = Intensity(rawValue: channelSchedule.minIntensity)
+            channel.minIntensity = channelSchedule.minIntensity ?? 0.0
         }
     }
 
-    static private func loadConfiguration(file: String) -> ServiceConfiguration {
+    static private func loadConfiguration(file: String) -> ServiceDescription {
         let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
         let configUrl = configDir.appendingPathComponent(file)
         Log.debug("Opening Configuration: \(configUrl.absoluteString)")
 
         do {
-            let configuration = try decodeJson(ServiceConfiguration.self, file: configUrl)
+            let configuration = try decodeJson(ServiceDescription.self, file: configUrl)
 
             return configuration
         } catch {
@@ -199,13 +204,14 @@ class LightService {
         }
     }
 
-    static private func loadSchedule(file: String) -> Schedule {
+    static private func loadSchedule(file: String) -> ScheduleDescription {
+
         let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
         let configUrl = configDir.appendingPathComponent(file)
         Log.debug("Opening Schedule: \(configUrl.absoluteString)")
 
         do {
-            let schedule = try decodeJson(Schedule.self, file: configUrl)
+            let schedule = try decodeJson(ScheduleDescription.self, file: configUrl)
 
             return schedule
         } catch {

@@ -41,6 +41,36 @@ public enum LightControllerError: Error {
 }
 
 //
+// Wrapper for Channel Settings
+//
+public enum ChannelSetting {
+    case brightness(Brightness)
+    case intensity(Intensity)
+}
+
+extension Brightness {
+    public init(setting: ChannelSetting, gamma: Gamma) {
+        switch setting {
+        case .brightness(let brightness):
+            self = brightness
+        case .intensity(let intensity):
+            self.init(intensity, gamma: gamma)
+        }
+    }
+}
+
+extension Intensity {
+    public init(setting: ChannelSetting, gamma: Gamma) {
+        switch setting {
+        case .brightness(let brightness):
+            self.init(brightness, gamma: gamma)
+        case .intensity(let intensity):
+            self = intensity
+        }
+    }
+}
+
+//
 // Wrapper for Configuration that's compatible with Layers
 //
 protocol ChannelPoint {
@@ -48,7 +78,17 @@ protocol ChannelPoint {
     var setting: ChannelSetting { get }
 }
 
-extension SchedulePoint: ChannelPoint {}
+extension ScheduleStepDescription: ChannelPoint {
+    var setting: ChannelSetting {
+        if let intensity = self.intensity {
+            return .intensity(intensity)
+        } else if let brightness = self.brightness {
+            return .brightness(brightness)
+        } else {
+            return .intensity(0.0)
+        }
+    }
+}
 
 struct ChannelPointWrapper: LayerPoint {
     var time: DayTime {
@@ -153,7 +193,7 @@ public class LightController: BehaviorController {
 
     public convenience init(gamma: Gamma,
                             channels: [Channel],
-                            withSchedule schedule: [String: ChannelSchedule],
+                            withSchedule schedule: [String: ChannelScheduleDescription],
                             behavior: Behavior = DefaultLightBehavior()) throws {
 
         // Convert the array into a lookup
@@ -175,7 +215,7 @@ public class LightController: BehaviorController {
             let controller = ChannelController(channel: channel)
             channelControllers[token] = controller
 
-            let points = channelSchedule.schedule.map({ ChannelPointWrapper(configuration: configuration, event: $0 ) })
+            let points = channelSchedule.steps.map({ ChannelPointWrapper(configuration: configuration, event: $0 ) })
             let layer = Layer(identifier: "Schedule", points: points, startTime: now)
             controller.set(layer: layer)
         }

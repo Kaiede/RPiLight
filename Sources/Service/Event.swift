@@ -51,8 +51,8 @@ public class LunarCycleController: EventController {
     public let time: DayTime
     let endTime: DayTime
 
-    public convenience init(schedule: LunarSchedule) {
-        self.init(startTime: schedule.startTime, endTime: schedule.endTime)
+    public convenience init(schedule: LunarCycleDescription) {
+        self.init(startTime: schedule.start, endTime: schedule.end)
     }
 
     init(startTime: DayTime, endTime: DayTime) {

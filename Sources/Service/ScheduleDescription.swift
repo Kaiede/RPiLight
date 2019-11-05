@@ -27,9 +27,9 @@ import Foundation
 
 import LED
 
-struct ScheduleDescription: Codable {
-    var lunarCycle: LunarCycleDescription?
-    var schedule: [String: ChannelScheduleDescription]
+public struct ScheduleDescription: Codable {
+    public var lunarCycle: LunarCycleDescription?
+    public var schedule: [String: ChannelScheduleDescription]
 
     enum CodingKeys: String, CodingKey {
         case lunarCycle = "lunar-cycle"
@@ -37,14 +37,14 @@ struct ScheduleDescription: Codable {
     }
 }
 
-struct LunarCycleDescription: Codable {
-    var start: DayTime
-    var end: DayTime
+public struct LunarCycleDescription: Codable {
+    public var start: DayTime
+    public var end: DayTime
 }
 
-struct ChannelScheduleDescription: Codable {
-    var minIntensity: Double?
-    var steps: [ScheduleStepDescription]
+public struct ChannelScheduleDescription: Codable {
+    public var minIntensity: Intensity?
+    public var steps: [ScheduleStepDescription]
 
     enum CodingKeys: String, CodingKey {
         case minIntensity = "min-intensity"
@@ -52,8 +52,8 @@ struct ChannelScheduleDescription: Codable {
     }
 }
 
-struct ScheduleStepDescription: Codable {
-    var time: DayTime
-    var intensity: Intensity?
-    var brightness: Brightness?
+public struct ScheduleStepDescription: Codable {
+    public var time: DayTime
+    public var intensity: Intensity?
+    public var brightness: Brightness?
 }

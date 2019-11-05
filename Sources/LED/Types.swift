@@ -25,7 +25,19 @@
 
 import Foundation
 
-public protocol UnitType: RawRepresentable, Comparable, ExpressibleByFloatLiteral, SignedNumeric, Codable {
+// Disable these because they don't work right with the massive UnitType declaration...
+// swiftlint:disable opening_brace
+// swiftlint:disable colon
+
+public protocol UnitType:
+    RawRepresentable,
+    Comparable,
+    ExpressibleByFloatLiteral,
+    SignedNumeric,
+    Codable,
+    CustomStringConvertible,
+    CustomDebugStringConvertible
+{
     var rawValue: Double { get set }
     init(rawValue: Double)
 }
@@ -44,6 +56,11 @@ public extension UnitType {
     init(integerLiteral value: Int) {
         self.init(rawValue: Double(value))
     }
+}
+
+extension UnitType {
+    public var description: String { return "\(rawValue)"; }
+    public var debugDescription: String { return "\(Self.self)(\(rawValue))" }
 }
 
 public extension UnitType {

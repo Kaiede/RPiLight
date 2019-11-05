@@ -27,6 +27,42 @@ import Foundation
 
 import LED
 
+public enum ServiceLoggingLevel: String, Codable {
+    case debug
+    case info
+    case warn
+    case error
+}
+
+public enum ServiceControllerType: String, Codable {
+    case simulated
+    case raspberryPwm
+    case pca9685
+    case mcp4725
+}
+
+extension ServiceControllerType {
+    var hasAddress: Bool {
+        switch self {
+        case .pca9685: return true
+        case .mcp4725: return true
+        default: return false
+        }
+    }
+
+    var hasFrequency: Bool {
+        switch self {
+        case .raspberryPwm: return true
+        case .pca9685: return true
+        default: return false
+        }
+    }
+}
+
+public enum ServiceBoardType: String, Codable {
+    case raspberryPi
+}
+
 public struct ServiceDescription: Codable {
     // Service Properties
     public let username: String

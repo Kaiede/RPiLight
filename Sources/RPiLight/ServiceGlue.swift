@@ -53,47 +53,7 @@ extension LEDModuleType {
 
 extension LEDChannel: Channel {}
 
-// MARK: Decoupling Types for Configuration / Description
-//
-// 
-
-// ServiceInfo (Wrapper)
-struct ServiceInfo {
-    // Service Properties
-    public let username: String
-    public let logLevel: ServiceLoggingLevel
-
-    // LED Controller Settings
-    public let board: ServiceBoardType
-    public let gamma: Gamma
-    public let controllers: [ServiceControllerInfo]
-}
-
-extension ServiceInfo {
-    init(_ other: ServiceConfiguration) {
-        self.username = other.username
-        self.logLevel = other.logLevel
-        self.board = other.board
-        self.gamma = other.gamma
-        self.controllers = other.controllers
-    }
-
-    init(_ other: ServiceDescription) {
-        self.username = other.username
-        self.logLevel = other.logLevel ?? .info
-        self.board = other.board
-        self.gamma = other.gamma ?? 1.8
-        self.controllers = other.controllers
-    }
-}
-
-// ServiceControllerInfo
-protocol ServiceControllerInfo: LEDModuleConfig {
-    var type: ServiceControllerType { get }
-}
-
-extension ServiceControllerConfiguration: ServiceControllerInfo {}
-extension ServiceControllerDescription: ServiceControllerInfo {}
+extension ServiceControllerDescription: LEDModuleConfig {}
 
 // MARK: Casting Support between Logging and Service types
 //
