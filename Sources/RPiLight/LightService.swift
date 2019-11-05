@@ -25,46 +25,25 @@
 
 import Foundation
 
-import Service
-import Logging
+import Yams
+
 import LED
-
-extension LEDBoardType {
-    init(configType: ServiceBoardType) {
-        switch configType {
-        case .raspberryPi: self = .raspberryPi
-        }
-    }
-}
-
-extension LEDModuleType {
-    init(configType: ServiceControllerType) {
-        switch configType {
-        case .simulated: self = .simulated
-        case .pca9685: self = .pca9685
-        case .raspberryPwm: self = .hardware
-        case .mcp4725: self = .mcp4725
-        }
-    }
-}
-
-extension ServiceControllerConfiguration: LEDModuleConfig {}
-
-extension LEDChannel: Channel {}
+import Logging
+import Service
 
 class LightService {
-    let configuration: ServiceConfiguration
+    let configuration: ServiceInfo
     var channels: LEDChannelSet
     var schedule: Schedule
 
     init(configFile: String, scheduleFile: String) {
         let configuration = LightService.loadConfiguration(file: configFile)
         let schedule = LightService.loadSchedule(file: scheduleFile)
-        let channels = LightService.createChannelSet(withConfig: configuration)
+        let channels = LightService.createChannelSet(
+            withDescriptions: configuration.controllers, 
+            boardType: configuration.board)
 
-        LightService.configureChannelSet(channels, schedule: schedule)
-
-        self.configuration = configuration
+        self.configuration = ServiceInfo(configuration)
         self.schedule = schedule
         self.channels = channels
     }
@@ -146,15 +125,18 @@ class LightService {
         return originalUid
     }
 
-    static private func createChannelSet(withConfig configuration: ServiceConfiguration) -> LEDChannelSet {
+    static private func createChannelSet(
+        withDescriptions descriptions: [ServiceControllerInfo], 
+        boardType: ServiceBoardType
+    ) -> LEDChannelSet {
         let channels = LEDChannelSet()
 
-        for controllerConfig in configuration.controllers {
+        for controllerDescription in descriptions {
             do {
-                let module = LightService.createModule(withConfig: controllerConfig, boardType: configuration.board)
+                let module = LightService.createModule(withDescription: controllerDescription, boardType: boardType)
                 try channels.add(module: module)
             } catch {
-                Log.error("Unable to create modules")
+                Log.error("Failed to create LED Controller Modules")
                 exit(-1)
             }
         }
@@ -162,8 +144,10 @@ class LightService {
         return channels
     }
 
-    static private func createModule(withConfig configuration: ServiceControllerConfiguration,
-                                     boardType: ServiceBoardType) -> LEDModule {
+    static private func createModule(
+        withDescription configuration: ServiceControllerInfo,
+        boardType: ServiceBoardType
+    ) -> LEDModule {
         do {
             let moduleType = LEDModuleType(configType: configuration.type)
             let moduleBoardType = LEDBoardType(configType: boardType)
@@ -207,8 +191,7 @@ class LightService {
         Log.debug("Opening Configuration: \(configUrl.absoluteString)")
 
         do {
-            let decoder = JSONDecoder()
-            let configuration = try decoder.decode(ServiceConfiguration.self, fromFile: configUrl)
+            let configuration = try decodeJson(ServiceConfiguration.self, file: configUrl)
 
             return configuration
         } catch {
@@ -222,12 +205,54 @@ class LightService {
         Log.debug("Opening Schedule: \(configUrl.absoluteString)")
 
         do {
-            let decoder = JSONDecoder()
-            let schedule = try decoder.decode(Schedule.self, fromFile: configUrl)
+            let schedule = try decodeJson(Schedule.self, file: configUrl)
 
             return schedule
         } catch {
             fatalError("\(error)")
         }
+    }
+
+    static private func loadDescription<T>(_ type: T.Type, file: String, name: String) throws -> T where T: Decodable {
+        let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
+        let fileUrl = configDir.appendingPathComponent(file)
+        Log.debug("Opening \(name): \(fileUrl.absoluteString)")
+
+        let description = try decode(type, file: fileUrl)
+        return description
+    }
+
+    static private func decode<T>(_ type: T.Type, file: URL) throws -> T where T: Decodable {
+        let fileExtension = file.pathExtension.lowercased()
+
+        if fileExtension == "yaml" || fileExtension == "yml" {
+            return try decodeYaml(type, file: file)
+        } else if fileExtension == "json" {
+            return try decodeJson(type, file: file)
+        }
+
+        Log.warn("\(file.absoluteString) has unknown file extension, assuming JSON")
+        return try decodeJson(type, file: file)
+    }
+
+    static private func decodeJson<T>(_ type: T.Type, file: URL) throws -> T where T: Decodable {
+        let encodedJson = try Data(contentsOf: file)
+        Log.withDebug {
+            guard let content = String(data: encodedJson, encoding: .utf8) else { return }
+            Log.debug("JSON From: \(file.absoluteString)")
+            Log.debug(content)
+        }
+        let decoder = JSONDecoder()
+        return try decoder.decode(type, from: encodedJson)
+    }
+
+    static private func decodeYaml<T>(_ type: T.Type, file: URL) throws -> T where T: Decodable {
+        let encodedYaml = try String(contentsOf: file, encoding: .utf8)
+        Log.withDebug {
+            Log.debug("YAML From: \(file.absoluteString)")
+            Log.debug(encodedYaml)
+        }
+        let decoder = YAMLDecoder()
+        return try decoder.decode(type, from: encodedYaml)
     }
 }
