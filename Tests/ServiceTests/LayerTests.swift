@@ -72,7 +72,7 @@ class LayerTests: XCTestCase {
             let testLayer = Layer(identifier: "Mock", points: LayerTests.testData, startTime: testTime)
 
             XCTAssertEqual(testLayer.activeIndex, expectedIndex)
-        } 
+        }
     }
 
     func testActiveSegment() {

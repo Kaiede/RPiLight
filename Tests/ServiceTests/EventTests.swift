@@ -33,4 +33,3 @@ class EventTests: XCTestCase {
         ("testEmpty", testEmpty)
     ]
 }
-

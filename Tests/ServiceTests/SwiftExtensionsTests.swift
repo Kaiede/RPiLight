@@ -40,4 +40,3 @@ class SwiftExtensionsTests: XCTestCase {
         ("testGetUsername", testGetUsername)
     ]
 }
-

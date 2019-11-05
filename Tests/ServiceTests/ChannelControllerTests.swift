@@ -154,16 +154,27 @@ class ChannelControllerTests: XCTestCase {
         let nowPlus5 = now.addingTimeInterval(60.0 * 5)
         let nowPlus45 = now.addingTimeInterval(60.0 * 45)
         let nowPlus60 = now.addingTimeInterval(60.0 * 60)
-        let testSegment1 = ChannelControllerSegment(startBrightness: 1.0, endBrightness: 0.5, startDate: now, endDate: nowPlus45)
-        let testSegment2 = ChannelControllerSegment(startBrightness: 0.5, endBrightness: 0.5, startDate: nowPlus5, endDate: nowPlus60)
+        let testSegment1 = ChannelControllerSegment(
+            startBrightness: 1.0,
+            endBrightness: 0.5,
+            startDate: now,
+            endDate: nowPlus45)
+        let testSegment2 = ChannelControllerSegment(
+            startBrightness: 0.5,
+            endBrightness: 0.5,
+            startDate: nowPlus5,
+            endDate: nowPlus60)
 
         var targetSegment = testSegment1
         targetSegment.unionByLayer(withSegment: testSegment2)
 
-        // Case 1: Union of two segments should result in what the actual final brightness would be assigned to the PWM Channel at Start & Finish
-        // This is an interpolation of the brightness in one segment, multiplied by the start brightness in the other.
-        XCTAssertEqual(targetSegment.startBrightness.rawValue, 0.4722222222, accuracy: 0.0000000001) // startBrightness + delta(5 into segment)... then multiplied by other segment's start brightness
-        XCTAssertEqual(targetSegment.endBrightness.rawValue, 0.25)
+        // Case 1: Union of two segments should result in what the actual final brightness 
+        // would be assigned to the PWM Channel at Start & Finish. This is an interpolation
+        // of the brightness in one segment, multiplied by the start brightness in the other.
+        //
+        // startBrightness + delta(5 into segment)... then multiplied by other segment's start brightness
+        XCTAssertEqual(targetSegment.startBrightness, 0.4722222222, accuracy: 0.0000000001)
+        XCTAssertEqual(targetSegment.endBrightness, 0.25)
 
         // Case 2: Segment should represent the smallest slice of time.
         XCTAssertEqual(targetSegment.startDate, nowPlus5)
@@ -175,16 +186,27 @@ class ChannelControllerTests: XCTestCase {
         let nowPlus5 = now.addingTimeInterval(60.0 * 5)
         let nowPlus45 = now.addingTimeInterval(60.0 * 45)
         let nowPlus60 = now.addingTimeInterval(60.0 * 60)
-        let testSegment1 = ChannelControllerSegment(startBrightness: 1.0, endBrightness: 0.5, startDate: now, endDate: nowPlus45)
-        let testSegment2 = ChannelControllerSegment(startBrightness: 0.5, endBrightness: 0.5, startDate: nowPlus5, endDate: nowPlus60)
+        let testSegment1 = ChannelControllerSegment(
+            startBrightness: 1.0,
+            endBrightness: 0.5,
+            startDate: now,
+            endDate: nowPlus45)
+        let testSegment2 = ChannelControllerSegment(
+            startBrightness: 0.5,
+            endBrightness: 0.5,
+            startDate: nowPlus5,
+            endDate: nowPlus60)
 
         var targetSegment = testSegment1
         targetSegment.unionByChannel(withSegment: testSegment2)
 
-        // Case 1: Union of two segments should result in what the actual final brightness would be assigned to the PWM Channel at Start & Finish
-        // This is an interpolation of the brightness in one segment, multiplied by the start brightness in the other.
-        XCTAssertEqual(targetSegment.startBrightness.rawValue, 0.9444444444, accuracy: 0.0000000001) // startBrightness + delta(5 into segment)... then multiplied by other segment's start brightness
-        XCTAssertEqual(targetSegment.endBrightness.rawValue, 0.5)
+        // Case 1: Union of two segments should result in what the actual final brightness 
+        // would be assigned to the PWM Channel at Start & Finish. This is an interpolation
+        // of the brightness in one segment, multiplied by the start brightness in the other.
+        //
+        // startBrightness + delta(5 into segment)... then multiplied by other segment's start brightness
+        XCTAssertEqual(targetSegment.startBrightness, 0.9444444444, accuracy: 0.0000000001)
+        XCTAssertEqual(targetSegment.endBrightness, 0.5)
 
         // Case 2: Segment should represent the smallest slice of time.
         XCTAssertEqual(targetSegment.startDate, nowPlus5)
@@ -201,4 +223,3 @@ class ChannelControllerTests: XCTestCase {
         ("testSegmentUnionByChannel", testSegmentUnionByChannel)
     ]
 }
-
