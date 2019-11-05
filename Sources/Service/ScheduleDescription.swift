@@ -57,4 +57,3 @@ struct ScheduleStepDescription: Codable {
     var intensity: Intensity?
     var brightness: Brightness?
 }
-

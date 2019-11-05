@@ -29,7 +29,7 @@ public struct DayTime: Codable {
     enum DecodeError: Error {
         case unableToParse
     }
-    
+
     public internal(set) var dateComponents: DateComponents
 
     private static let Formatter: DateFormatter = {
@@ -87,13 +87,12 @@ extension DayTime: CustomDebugStringConvertible {
     }
 }
 
-
 // MARK: Wrapper for DateComponent Access
 
 public extension DayTime {
-    var hour: Int? { get { return dateComponents.hour }}
-    var minute: Int? { get { return dateComponents.minute }}
-    var second: Int? { get { return dateComponents.second }}
+    var hour: Int? { return dateComponents.hour }
+    var minute: Int? { return dateComponents.minute }
+    var second: Int? { return dateComponents.second }
 }
 
 public extension DayTime {
@@ -119,7 +118,7 @@ public extension DayTime {
         #endif
 
     }
-    
+
     // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
     // but may not be very relevant for any other package.
     internal func calcNextDateCustom(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
