@@ -24,6 +24,10 @@
             "label": "lint",
             "type": "shell",
             "command": "swiftlint",
+            "args": [
+                "--quiet",
+                "--strict"
+            ],
             "presentation": {
                 "reveal": "always",
                 "clear": true

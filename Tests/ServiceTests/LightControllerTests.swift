@@ -48,8 +48,14 @@ class MockBehavior: Behavior {
 
     func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
         // Disable watchdog for these behaviors.
-        let mockSegment = MockChannelSegment(startBrightness: 0.0, endBrightness: 1.0, startDate: Date.distantPast, endDate: Date.distantFuture)
-        return LightBehaviorSegment(segment: mockSegment, update: self.nextUpdate(forController: controller, forDate: date))
+        let mockSegment = MockChannelSegment(
+            startBrightness: 0.0,
+            endBrightness: 1.0,
+            startDate: Date.distantPast,
+            endDate: Date.distantFuture)
+
+        let nextUpdate = self.nextUpdate(forController: controller, forDate: date)
+        return LightBehaviorSegment(segment: mockSegment, update: nextUpdate)
     }
 
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
@@ -86,8 +92,14 @@ class MockOneShotBehavior: Behavior {
 
     func segment(forController controller: BehaviorController, date: Date) -> LightBehaviorSegment {
         // Disable watchdog for these behaviors.
-        let mockSegment = MockChannelSegment(startBrightness: 0.0, endBrightness: 1.0, startDate: Date.distantPast, endDate: Date.distantFuture)
-        return LightBehaviorSegment(segment: mockSegment, update: self.nextUpdate(forController: controller, forDate: date))
+        let mockSegment = MockChannelSegment(
+            startBrightness: 0.0,
+            endBrightness: 1.0,
+            startDate: Date.distantPast,
+            endDate: Date.distantFuture)
+
+        let nextUpdate = self.nextUpdate(forController: controller, forDate: date)
+        return LightBehaviorSegment(segment: mockSegment, update: nextUpdate)
     }
 
     func nextUpdate(forController controller: BehaviorController, forDate date: Date) -> LightBehaviorUpdate {
@@ -111,7 +123,7 @@ class LightControllerTests: XCTestCase {
         Log.popLevel()
     }
 
-    func testChannelEvent() {        
+    func testChannelEvent() {
         // This ensures we know that we are actually getting brightness, not intensity.
         let mockConfiguration = LightControllerConfig(gamma: 2.0)
 
@@ -127,13 +139,17 @@ class LightControllerTests: XCTestCase {
 
     func testChannelBinding() {
         let mockController = MockBehaviorController(channelCount: 4)
+        let mockBehavior = MockBehavior()
         let channelControllers = mockController.channelControllers
 
         for controller in channelControllers.values {
             XCTAssertNil(controller.rootController)
         }
 
-        let testController = LightController(configuration: LightControllerConfig(gamma: 1.8), channelControllers: channelControllers, behavior: MockBehavior())
+        let testController = LightController(
+            configuration: LightControllerConfig(gamma: 1.8),
+            channelControllers: channelControllers,
+            behavior: mockBehavior)
 
         for controller in testController.channelControllers.values {
             XCTAssertNotNil(controller.rootController)
@@ -142,7 +158,11 @@ class LightControllerTests: XCTestCase {
 
     func testAutoStop() {
         let mockController = MockBehaviorController(channelCount: 4)
-        let testController = LightController(configuration: LightControllerConfig(gamma: 1.8), channelControllers: mockController.channelControllers, behavior: MockBehavior())
+        let mockBehavior = MockBehavior()
+        let testController = LightController(
+            configuration: LightControllerConfig(gamma: 1.8),
+            channelControllers: mockController.channelControllers,
+            behavior: mockBehavior)
 
         let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
@@ -159,7 +179,10 @@ class LightControllerTests: XCTestCase {
         let mockController = MockBehaviorController(channelCount: 4)
         let mockBehavior = MockBehavior()
         mockBehavior.intervalMs = 1000
-        let testController = LightController(configuration: LightControllerConfig(gamma: 1.8), channelControllers: mockController.channelControllers, behavior: mockBehavior)
+        let testController = LightController(
+            configuration: LightControllerConfig(gamma: 1.8),
+            channelControllers: mockController.channelControllers,
+            behavior: mockBehavior)
 
         let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
@@ -168,7 +191,7 @@ class LightControllerTests: XCTestCase {
         testController.start()
         testController.stop()
 
-        waitForExpectations(timeout: 0.25) { (error) in
+        waitForExpectations(timeout: 0.25) { (_) in
             // Shouldn't have waited until a refresh to stop the controller
             XCTAssertFalse(mockBehavior.didStop)
         }
@@ -179,7 +202,10 @@ class LightControllerTests: XCTestCase {
     func testOneShot() {
         let mockController = MockBehaviorController(channelCount: 4)
         let mockBehavior = MockOneShotBehavior()
-        let testController = LightController(configuration: LightControllerConfig(gamma: 1.8), channelControllers: mockController.channelControllers, behavior: mockBehavior)
+        let testController = LightController(
+            configuration: LightControllerConfig(gamma: 1.8),
+            channelControllers: mockController.channelControllers,
+            behavior: mockBehavior)
 
         let controllerStopped = expectation(description: "Controller Stops")
         testController.setStopHandler { (_) in
@@ -187,7 +213,7 @@ class LightControllerTests: XCTestCase {
         }
         testController.start()
 
-        waitForExpectations(timeout: 0.25) { (error) in
+        waitForExpectations(timeout: 0.25) { (_) in
             XCTAssertEqual(mockBehavior.refreshCount, mockBehavior.stopAfter)
             XCTAssertEqual(mockBehavior.updateCount, mockBehavior.stopAfter)
             XCTAssertTrue(mockBehavior.didStop)
@@ -210,4 +236,3 @@ class LightControllerTests: XCTestCase {
         return dateFormatter
     }()
 }
-

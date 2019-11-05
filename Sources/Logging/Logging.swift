@@ -141,7 +141,7 @@ public struct Log {
     }
 
     public static func popLevel() {
-        let _ = Log.logLevelStack.popLast()
+        _ = Log.logLevelStack.popLast()
     }
 
     private static var logLevelStack: [LogLevel] = []
