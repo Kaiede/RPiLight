@@ -122,7 +122,7 @@ class LightControllerTests: XCTestCase {
         let testEvent = ChannelPointWrapper(configuration: mockConfiguration, event: eventConfig)
 
         XCTAssertEqual(testEvent.time, eventComponents)
-        XCTAssertEqual(testEvent.brightness.rawValue, pow(0.5, (1/mockConfiguration.gamma)))
+        XCTAssertEqual(testEvent.brightness.rawValue, pow(0.5, (1.0/mockConfiguration.gamma.rawValue)))
     }
 
     func testChannelBinding() {

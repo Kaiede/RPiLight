@@ -25,6 +25,8 @@
 
 import Foundation
 
+import LED
+
 public enum ServiceLoggingLevel: String, Codable {
     case debug
     case info
@@ -68,7 +70,7 @@ public struct ServiceConfiguration {
 
     // LED Controller Settings
     public let board: ServiceBoardType
-    public let gamma: Double
+    public let gamma: Gamma
     public let controllers: [ServiceControllerConfiguration]
 
     // FUTURE: MQTT Broker Config
@@ -99,11 +101,11 @@ extension ServiceConfiguration: Decodable {
         controllers = try container.decode([ServiceControllerConfiguration].self, forKey: .controllers)
 
         // Controller Gamma
-        let minimumGamma = 1.0
-        let defaultGamma = 1.8
-        let maximumGamma = 3.0
+        let minimumGamma: Gamma = 1.0
+        let defaultGamma: Gamma = 1.8
+        let maximumGamma: Gamma = 3.0
         if container.contains(.gamma) {
-            let decodedGamma = try container.decode(Double.self, forKey: .gamma)
+            let decodedGamma = try container.decode(Gamma.self, forKey: .gamma)
             gamma = decodedGamma <= 0 ? defaultGamma : max(min(decodedGamma, maximumGamma), minimumGamma)
         } else {
             gamma = 1.8

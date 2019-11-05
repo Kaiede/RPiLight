@@ -25,6 +25,8 @@
 
 import Foundation
 
+import LED
+
 public struct ServiceDescription: Codable {
     // Service Properties
     public let username: String
@@ -32,7 +34,7 @@ public struct ServiceDescription: Codable {
 
     // LED Controller Settings
     public let board: ServiceBoardType
-    public let gamma: Double?
+    public let gamma: Gamma?
     public let controllers: [ServiceControllerDescription]
 
     // FUTURE: MQTT Broker Config

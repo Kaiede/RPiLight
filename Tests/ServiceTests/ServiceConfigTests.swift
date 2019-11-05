@@ -40,7 +40,7 @@ class ServiceConfigTests: XCTestCase {
 
     /*
     public let type: ServiceControllerType
-    public let gamma: Double
+    public let gamma: Gamma
     public let channels: [String : Int]
 
     // Conditional Controller Settings

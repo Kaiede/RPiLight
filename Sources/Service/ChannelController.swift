@@ -135,7 +135,7 @@ public class ChannelController: BehaviorChannel {
     var layers: [ChannelLayer?]
 
     public var channelGamma: Gamma {
-        return Gamma(rawValue: rootController?.configuration.gamma ?? 1.8)
+        return rootController?.configuration.gamma ?? 1.8
     }
 
     var activeLayers: [ChannelLayer] {

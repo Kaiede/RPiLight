@@ -62,7 +62,7 @@ public protocol BehaviorChannel {
 }
 
 public protocol BehaviorControllerConfig {
-    var gamma: Double { get }
+    var gamma: Gamma { get }
 }
 
 public protocol BehaviorController {

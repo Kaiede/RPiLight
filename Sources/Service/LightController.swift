@@ -56,7 +56,7 @@ struct ChannelPointWrapper: LayerPoint {
     }
 
     var brightness: Brightness {
-        let gamma = Gamma(rawValue: self.configuration.gamma)
+        let gamma = self.configuration.gamma
         return Brightness(setting: self.event.setting, gamma: gamma)
     }
 
@@ -73,9 +73,9 @@ struct ChannelPointWrapper: LayerPoint {
 // The Light Controller Configuration
 //
 public class LightControllerConfig: BehaviorControllerConfig {
-    public let gamma: Double
+    public let gamma: Gamma
 
-    init(gamma: Double) {
+    init(gamma: Gamma) {
         self.gamma = gamma
     }
 }
@@ -151,7 +151,7 @@ public class LightController: BehaviorController {
         self.eventTimer.setHandler { self.fireEvent() }
     }
 
-    public convenience init(gamma: Double,
+    public convenience init(gamma: Gamma,
                             channels: [Channel],
                             withSchedule schedule: [String: ChannelSchedule],
                             behavior: Behavior = DefaultLightBehavior()) throws {
