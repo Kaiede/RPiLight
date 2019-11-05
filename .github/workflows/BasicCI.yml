@@ -52,4 +52,4 @@ jobs:
       - name: Swiftlint
         run: |
           brew install swiftlint
-          swiftlint --strict
+          swiftlint
