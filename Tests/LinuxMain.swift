@@ -16,9 +16,7 @@ XCTMain([
     testCase(EventTests.allTests),
     testCase(LayerTests.allTests),
     testCase(LightControllerTests.allTests),
-    testCase(ScheduleConfigTests.allTests),
     testCase(ScheduleDescriptionTests.allTests),
-    testCase(ServiceConfigTests.allTests),
     testCase(ServiceDescriptionTests.allTests),
     testCase(SwiftExtensionsTests.allTests),
 ])
