@@ -28,14 +28,14 @@ import XCTest
 import Yams
 @testable import Service
 
-
+// swiftlint:disable trailing_comma
 
 class ServiceDescriptionTests: XCTestCase {
     func testEmptyControllerConfiguration() {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(ServiceControllerDescription.self, from: jsonData)
+            _ = try decoder.decode(ServiceControllerDescription.self, from: jsonData)
             XCTFail("Empty configuration should throw, because of missing properties")
         } catch {
             // Pass
@@ -150,7 +150,7 @@ class ServiceDescriptionTests: XCTestCase {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(ServiceDescription.self, from: jsonData)
+            _ = try decoder.decode(ServiceDescription.self, from: jsonData)
             XCTFail("Empty configuration should throw, because of missing properties")
         } catch {
             // Pass
@@ -165,7 +165,7 @@ class ServiceDescriptionTests: XCTestCase {
         ]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(ServiceDescription.self, from: jsonData)
+            _ = try decoder.decode(ServiceDescription.self, from: jsonData)
             XCTFail("Incomplete configuration (missing controllers) should throw an exception")
         } catch {
             // Pass
@@ -231,7 +231,7 @@ class ServiceDescriptionTests: XCTestCase {
             XCTFail("\(error)")
         }
     }
-    
+
     func testHardwareConfiguration_RaspberryPiExample_Yaml() {
         let yamlString = """
         user: pi
@@ -245,7 +245,7 @@ class ServiceDescriptionTests: XCTestCase {
                 primary: 0
                 secondary: 1
         """
-        
+
         do {
             let decoder = YAMLDecoder()
             let config = try decoder.decode(ServiceDescription.self, from: yamlString)

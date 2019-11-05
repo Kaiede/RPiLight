@@ -26,9 +26,11 @@
 import XCTest
 @testable import Service
 
+// swiftlint:disable trailing_comma
+
 class DayTimeTests: XCTestCase {
     func testCalcNextDate() {
-        let dayInSeconds: TimeInterval = 86400 
+        let dayInSeconds: TimeInterval = 86400
         let testExpectations = [
             // Start Time, Target Time, Search Direction
             ( "08:00:00", "08:00:00", Calendar.SearchDirection.forward ),
@@ -69,7 +71,7 @@ class DayTimeTests: XCTestCase {
     }
 
     func testCalcNextDate_Boundaries() {
-        let dayInSeconds: TimeInterval = 86400 
+        let dayInSeconds: TimeInterval = 86400
         let testExpectations = [
             // Start Time, Target Time, Search Direction
             ( "31 Aug 09:00:00", "08:00:00", Calendar.SearchDirection.forward ),
@@ -108,7 +110,7 @@ class DayTimeTests: XCTestCase {
     }
 
     func testCalcNextDateCustom() {
-        let dayInSeconds: TimeInterval = 86400 
+        let dayInSeconds: TimeInterval = 86400
         let testExpectations = [
             // Start Time, Target Time, Search Direction
             ( "08:00:00", "08:00:00", Calendar.SearchDirection.forward ),
@@ -149,7 +151,7 @@ class DayTimeTests: XCTestCase {
     }
 
     func testCalcNextDateCustom_Boundaries() {
-        let dayInSeconds: TimeInterval = 86400 
+        let dayInSeconds: TimeInterval = 86400
         let testExpectations = [
             // Start Time, Target Time, Search Direction
             ( "31 Aug 09:00:00", "08:00:00", Calendar.SearchDirection.forward ),
@@ -210,4 +212,3 @@ class DayTimeTests: XCTestCase {
         return dateFormatter
     }()
 }
-

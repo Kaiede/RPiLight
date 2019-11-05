@@ -173,7 +173,7 @@ class ChannelControllerTests: XCTestCase {
         // of the brightness in one segment, multiplied by the start brightness in the other.
         //
         // startBrightness + delta(5 into segment)... then multiplied by other segment's start brightness
-        XCTAssertEqual(targetSegment.startBrightness, 0.4722222222, accuracy: 0.0000000001)
+        XCTAssertEqual(targetSegment.startBrightness.rawValue, 0.4722222222, accuracy: 0.0000000001)
         XCTAssertEqual(targetSegment.endBrightness, 0.25)
 
         // Case 2: Segment should represent the smallest slice of time.
@@ -205,7 +205,7 @@ class ChannelControllerTests: XCTestCase {
         // of the brightness in one segment, multiplied by the start brightness in the other.
         //
         // startBrightness + delta(5 into segment)... then multiplied by other segment's start brightness
-        XCTAssertEqual(targetSegment.startBrightness, 0.9444444444, accuracy: 0.0000000001)
+        XCTAssertEqual(targetSegment.startBrightness.rawValue, 0.9444444444, accuracy: 0.0000000001)
         XCTAssertEqual(targetSegment.endBrightness, 0.5)
 
         // Case 2: Segment should represent the smallest slice of time.

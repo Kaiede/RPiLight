@@ -29,12 +29,15 @@ import LED
 import Yams
 @testable import Service
 
+// swiftlint:disable function_body_length
+// swiftlint:disable type_body_length
+
 class ScheduleDescriptionTests: XCTestCase {
     func testLunarSchedule_Empty() {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(LunarCycleDescription.self, from: jsonData)
+            _ = try decoder.decode(LunarCycleDescription.self, from: jsonData)
             XCTFail("Empty is invalid")
         } catch {
             // Pass
@@ -47,7 +50,7 @@ class ScheduleDescriptionTests: XCTestCase {
         ]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(LunarCycleDescription.self, from: jsonData)
+            _ = try decoder.decode(LunarCycleDescription.self, from: jsonData)
             XCTFail("Partial is invalid")
         } catch {
             // Pass
@@ -79,7 +82,7 @@ class ScheduleDescriptionTests: XCTestCase {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(ChannelScheduleDescription.self, from: jsonData)
+            _ = try decoder.decode(ChannelScheduleDescription.self, from: jsonData)
             XCTFail("Empty is invalid")
         } catch {
             // Pass
@@ -91,7 +94,7 @@ class ScheduleDescriptionTests: XCTestCase {
             "steps": [[
                 "time": "10:30:00",
                 "brightness": 0.30
-            ],[
+            ], [
                 "time": "11:30:00",
                 "brightness": 0.50
             ]]
@@ -118,7 +121,7 @@ class ScheduleDescriptionTests: XCTestCase {
             "steps": [[
                 "time": "10:30:00",
                 "brightness": 0.30
-            ],[
+            ], [
                 "time": "11:30:00",
                 "brightness": 0.50
             ]]
@@ -143,7 +146,7 @@ class ScheduleDescriptionTests: XCTestCase {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(ScheduleStepDescription.self, from: jsonData)
+            _ = try decoder.decode(ScheduleStepDescription.self, from: jsonData)
             XCTFail("Empty is invalid")
         } catch {
             // Pass
@@ -192,7 +195,7 @@ class ScheduleDescriptionTests: XCTestCase {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(ScheduleDescription.self, from: jsonData)
+            _ = try decoder.decode(ScheduleDescription.self, from: jsonData)
 
             XCTFail("Empty schedule isn't valid")
         } catch {
@@ -212,7 +215,7 @@ class ScheduleDescriptionTests: XCTestCase {
                     "steps": [[
                         "time": "10:30:00",
                         "brightness": 0.30
-                        ],[
+                        ], [
                             "time": "11:30:00",
                             "brightness": 0.50
                         ]]
@@ -222,7 +225,7 @@ class ScheduleDescriptionTests: XCTestCase {
                     "steps": [[
                         "time": "10:30:00",
                         "brightness": 0.30
-                        ],[
+                        ], [
                             "time": "11:30:00",
                             "brightness": 0.50
                         ]]
@@ -319,7 +322,7 @@ class ScheduleDescriptionTests: XCTestCase {
             XCTFail("\(error)")
         }
     }
-    
+
     func testCompleteSchedule_Example_Yaml() {
         let yamlString = """
         lunar-cycle:

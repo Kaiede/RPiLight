@@ -27,12 +27,14 @@ import Foundation
 import XCTest
 @testable import LED
 
+// swiftlint:disable trailing_comma
+
 typealias JsonDictionary = [String: Any]
 
 extension JSONDecoder {
     // Helper function for testing.
     // Enables using Dictionaries directly
-    func decode<T>(_ type: T.Type, from dict: JsonDictionary) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type, from dict: JsonDictionary) throws -> T where T: Decodable {
         let data: Data = try JSONSerialization.data(withJSONObject: dict)
         return try self.decode(type, from: data)
     }
@@ -82,14 +84,14 @@ class TypeTests: XCTestCase {
             XCTFail("\(error)")
         }
     }
-    
+
     func testIntensitySteps() {
         let maxSteps: UInt = 4095
         XCTAssertEqual(Intensity(rawValue: 0.0).toSteps(max: maxSteps), 0) // Can Hit True Zero
         XCTAssertEqual(Intensity(rawValue: 0.25).toSteps(max: maxSteps), 1023) // Rounds Down
         XCTAssertEqual(Intensity(rawValue: 1.0).toSteps(max: maxSteps), 4095) // Can Hit True Max
     }
-    
+
     func testIntensityPercent() {
         XCTAssertEqual(Intensity(rawValue: 0.0).toPercentage(), 0.0) // Can Hit True Zero
         XCTAssertEqual(Intensity(rawValue: 0.25).toPercentage(), 25.0)

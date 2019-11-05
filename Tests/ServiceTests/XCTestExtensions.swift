@@ -43,7 +43,7 @@ typealias JsonDictionary = [String: Any]
 extension JSONDecoder {
     // Helper function for testing.
     // Enables using Dictionaries directly
-    func decode<T>(_ type: T.Type, from dict: JsonDictionary) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type, from dict: JsonDictionary) throws -> T where T: Decodable {
         let data: Data = try JSONSerialization.data(withJSONObject: dict)
         return try self.decode(type, from: data)
     }
