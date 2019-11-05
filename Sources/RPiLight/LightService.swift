@@ -191,29 +191,16 @@ class LightService {
     }
 
     static private func loadConfiguration(file: String) -> ServiceDescription {
-        let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
-        let configUrl = configDir.appendingPathComponent(file)
-        Log.debug("Opening Configuration: \(configUrl.absoluteString)")
-
         do {
-            let configuration = try decodeJson(ServiceDescription.self, file: configUrl)
-
-            return configuration
+            return try loadDescription(ServiceDescription.self, file: file, name: "Configuration")
         } catch {
             fatalError("\(error)")
         }
     }
 
     static private func loadSchedule(file: String) -> ScheduleDescription {
-
-        let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
-        let configUrl = configDir.appendingPathComponent(file)
-        Log.debug("Opening Schedule: \(configUrl.absoluteString)")
-
         do {
-            let schedule = try decodeJson(ScheduleDescription.self, file: configUrl)
-
-            return schedule
+            return try loadDescription(ScheduleDescription.self, file: file, name: "Schedule")
         } catch {
             fatalError("\(error)")
         }
