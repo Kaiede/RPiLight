@@ -71,7 +71,7 @@ class PwmViaRaspberryPi: LEDModuleImpl {
             output.enable(pins: output.pins)
             self.arePinsEnabled[channel] = true
         }
-        
+
         output.start(period: self.period, dutyCycle: intensity.toPercentage())
     }
 }

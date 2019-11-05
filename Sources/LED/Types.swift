@@ -26,21 +26,21 @@
 import Foundation
 
 public protocol UnitType: RawRepresentable, Comparable, ExpressibleByFloatLiteral, SignedNumeric, Codable {
-    var rawValue: Double { set get }
+    var rawValue: Double { get set }
     init(rawValue: Double)
 }
 
 public extension UnitType {
-    init?<T>(exactly source: T) where T : BinaryInteger {
+    init?<T>(exactly source: T) where T: BinaryInteger {
         guard let value = Double(exactly: source) else { return nil }
-        
+
         self.init(rawValue: value)
     }
-    
-    init(floatLiteral value: Double)  {
+
+    init(floatLiteral value: Double) {
         self.init(rawValue: Double(value))
     }
-    
+
     init(integerLiteral value: Int) {
         self.init(rawValue: Double(value))
     }
@@ -82,12 +82,11 @@ public func < <T: UnitType> (lhs: T, rhs: T) -> Bool {
     return lhs.rawValue < rhs.rawValue
 }
 
-
 public struct Gamma: UnitType {
     public typealias Magnitude = Gamma
     public typealias IntegerLiteralType = Int
     public typealias FloatLiteralType = Double
-    
+
     public var rawValue: Double
     public init(rawValue: Double) { self.rawValue = rawValue }
 }
@@ -96,15 +95,17 @@ public struct Intensity: UnitType {
     public typealias Magnitude = Intensity
     public typealias IntegerLiteralType = Int
     public typealias FloatLiteralType = Double
-    
+
     public var rawValue: Double
     public init(rawValue: Double) { self.rawValue = rawValue }
-    public init(_ brightness: Brightness, gamma: Gamma) { self.rawValue = pow(brightness.rawValue, gamma.rawValue) }
-    
+    public init(_ brightness: Brightness, gamma: Gamma) {
+        self.rawValue = pow(brightness.rawValue, gamma.rawValue)
+    }
+
     internal func toSteps(max: UInt) -> UInt {
         return UInt(self.rawValue * Double(max))
     }
-    
+
     internal func toPercentage() -> Float {
         return Float(self.rawValue * 100.0)
     }
@@ -114,8 +115,10 @@ public struct Brightness: UnitType {
     public typealias Magnitude = Brightness
     public typealias IntegerLiteralType = Int
     public typealias FloatLiteralType = Double
-    
+
     public var rawValue: Double
     public init(rawValue: Double) { self.rawValue = rawValue }
-    public init(_ intensity: Intensity, gamma: Gamma) { self.rawValue = pow(intensity.rawValue, (1.0 / gamma.rawValue)) }
+    public init(_ intensity: Intensity, gamma: Gamma) {
+        self.rawValue = pow(intensity.rawValue, (1.0 / gamma.rawValue))
+    }
 }
