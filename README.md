@@ -11,15 +11,13 @@ An Aquarium Light Controller for the Raspberry Pi
 
 ![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Buster-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-5.0.3-brightgreen.svg)
 
-Raspbian Buster on any supported Raspberry Pi (Zero, 1, 2, 3, or 4) is the recommended configuration. This matches up with what is used in testing.
+Raspbian Buster on any supported Raspberry Pi (Zero, 1, 2, 3, or 4) is the recommended configuration. This matches up with what is used in testing. 
 
-![Supported](https://img.shields.io/badge/-Supported-yellow.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Stretch-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
-
-Raspbian Stretch and Swift 4.1.3 should also work, but isn't tested day to day. Reported bugs will be investigated.
+Raspbian Stretch is also supported, but not recommended.
 
 ![Experimental](https://img.shields.io/badge/-Experimental-orange.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian-orange.svg) ![Ubuntu](https://img.shields.io/badge/ARM64-Ubuntu-orange.svg)
 
-Running on ARM64 Ubuntu 16.04 or 18.04, or Debian Buster is possible, but may have some issues. Generally, this means that hardware LED controllers may be more limited, and access to the PWM hardware on a Raspberry Pi is more locked down. Stick to I2C-based controllers like the PC!9685 or MCP4725 if you can.
+Running on ARM64 Ubuntu 16.04 or 18.04, or Debian Buster is possible, but may have some issues. Generally, this means that hardware LED controllers may be more limited, and access to the PWM hardware on a Raspberry Pi is more locked down. Stick to I2C-based controllers like the PCA9685 or MCP4725 if you can.
 
 ## Getting Started
 
