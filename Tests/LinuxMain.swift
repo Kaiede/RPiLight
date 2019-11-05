@@ -1,9 +1,6 @@
 import XCTest
-import Logging
 @testable import ServiceTests
 @testable import LEDTests
-
-Log.setLoggingLevel(.warn)
 
 XCTMain([
     // LED Tests
