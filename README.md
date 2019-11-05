@@ -2,18 +2,18 @@
 
 [![Actions Status](https://github.com/Kaiede/RPiLight/workflows/Full%20CI/badge.svg)](https://github.com/Kaiede/RPiLight/actions)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-![Swift](https://img.shields.io/badge/Swift-5.0.3-brightgreen.svg)
-![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
+![Swift](https://img.shields.io/badge/Swift-5.1-brightgreen.svg)
+![Swift](https://img.shields.io/badge/Swift-5.0-green.svg)
 
 An Aquarium Light Controller for the Raspberry Pi
 
 ### Hardware / OS
 
-![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Buster-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-5.0.3-brightgreen.svg)
+![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Buster-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-5.1-brightgreen.svg)
 
-Raspbian Buster on any supported Raspberry Pi (Zero, 1, 2, 3, or 4) is the recommended configuration. This matches up with what is used in testing. 
+Raspbian Buster on any supported Raspberry Pi (Zero, 1, 2, 3, or 4) is the recommended configuration. Swift 5.1 is the official Swift version used. These both match up with what is used during testing.
 
-Raspbian Stretch is also supported, but not recommended.
+Raspbian Stretch and Swift 5.0 are also supported, but are older. It's recommended to upgrade if you are still on these versions.
 
 ![Experimental](https://img.shields.io/badge/-Experimental-orange.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian-orange.svg) ![Ubuntu](https://img.shields.io/badge/ARM64-Ubuntu-orange.svg)
 
