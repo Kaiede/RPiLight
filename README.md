@@ -1,6 +1,6 @@
 # RPiLight
 
-[![Build Status](https://travis-ci.org/Kaiede/RPiLight.svg?branch=master)](https://travis-ci.org/Kaiede/RPiLight)
+[![Actions Status](https://github.com/Kaiede/RPiLight/workflows/Full%20CI/badge.svg)](https://github.com/Kaiede/RPiLight/actions)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 ![Swift](https://img.shields.io/badge/Swift-5.0.3-brightgreen.svg)
 ![Swift](https://img.shields.io/badge/Swift-4.1.3-brightgreen.svg)
