@@ -26,12 +26,16 @@
 import XCTest
 @testable import Service
 
+// swiftlint:disable type_body_length
+// swiftlint:disable function_body_length
+// swiftlint:disable trailing_comma
+
 class ScheduleConfigTests: XCTestCase {
     func testLunarSchedule_Empty() {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(LunarSchedule.self, from: jsonData)
+            _ = try decoder.decode(LunarSchedule.self, from: jsonData)
             XCTFail("Empty is invalid")
         } catch {
             // Pass
@@ -44,7 +48,7 @@ class ScheduleConfigTests: XCTestCase {
         ]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(LunarSchedule.self, from: jsonData)
+            _ = try decoder.decode(LunarSchedule.self, from: jsonData)
             XCTFail("Partial is invalid")
         } catch {
             // Pass
@@ -76,7 +80,7 @@ class ScheduleConfigTests: XCTestCase {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(ChannelSchedule.self, from: jsonData)
+            _ = try decoder.decode(ChannelSchedule.self, from: jsonData)
             XCTFail("Empty is invalid")
         } catch {
             // Pass
@@ -88,7 +92,7 @@ class ScheduleConfigTests: XCTestCase {
             "schedule": [[
                 "time": "10:30:00",
                 "brightness": 0.30
-            ],[
+            ], [
                 "time": "11:30:00",
                 "brightness": 0.50
             ]]
@@ -115,7 +119,7 @@ class ScheduleConfigTests: XCTestCase {
             "schedule": [[
                 "time": "10:30:00",
                 "brightness": 0.30
-            ],[
+            ], [
                 "time": "11:30:00",
                 "brightness": 0.50
             ]]
@@ -140,7 +144,7 @@ class ScheduleConfigTests: XCTestCase {
         let jsonData: JsonDictionary = [:]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(SchedulePoint.self, from: jsonData)
+            _ = try decoder.decode(SchedulePoint.self, from: jsonData)
             XCTFail("Empty is invalid")
         } catch {
             // Pass
@@ -155,7 +159,7 @@ class ScheduleConfigTests: XCTestCase {
         ]
         do {
             let decoder = JSONDecoder()
-            let _ = try decoder.decode(SchedulePoint.self, from: jsonData)
+            _ = try decoder.decode(SchedulePoint.self, from: jsonData)
             XCTFail("Both intensity and brightness being set is invalid")
         } catch {
             // Pass
@@ -174,11 +178,11 @@ class ScheduleConfigTests: XCTestCase {
             XCTAssertEqual(point.time.minute, 30)
             XCTAssertEqual(point.time.second, 25)
 
-            switch(point.setting) {
+            switch point.setting {
             case .brightness(let brightness):
                 XCTAssertEqual(brightness, 0.25)
-            case .intensity(_):
-                XCTFail("Didn't expect intensity")                
+            case .intensity:
+                XCTFail("Didn't expect intensity")
             }
         } catch {
             XCTFail("\(error)")
@@ -197,8 +201,8 @@ class ScheduleConfigTests: XCTestCase {
             XCTAssertEqual(point.time.minute, 30)
             XCTAssertEqual(point.time.second, 25)
 
-            switch(point.setting) {
-            case .brightness(_):
+            switch point.setting {
+            case .brightness:
                 XCTFail("Didn't expect brightness")
             case .intensity(let intensity):
                 XCTAssertEqual(intensity, 0.25)
@@ -233,7 +237,7 @@ class ScheduleConfigTests: XCTestCase {
                 "schedule": [[
                     "time": "10:30:00",
                     "brightness": 0.30
-                    ],[
+                    ], [
                         "time": "11:30:00",
                         "brightness": 0.50
                     ]]
@@ -243,7 +247,7 @@ class ScheduleConfigTests: XCTestCase {
                 "schedule": [[
                     "time": "10:30:00",
                     "brightness": 0.30
-                    ],[
+                    ], [
                         "time": "11:30:00",
                         "brightness": 0.50
                     ]]
@@ -351,6 +355,6 @@ class ScheduleConfigTests: XCTestCase {
         ("testSchedulePoint_Intensity", testSchedulePoint_Intensity),
         ("testCompleteSchedule_Empty", testCompleteSchedule_Empty),
         ("testCompleteSchedule", testCompleteSchedule),
-        ("testCompleteSchedule_Example", testCompleteSchedule_Example)
+        ("testCompleteSchedule_Example", testCompleteSchedule_Example),
     ]
 }

@@ -2,6 +2,8 @@ import XCTest
 @testable import ServiceTests
 @testable import LEDTests
 
+// swiftlint:disable trailing_comma
+
 XCTMain([
     // LED Tests
     testCase(ChannelTests.allTests),

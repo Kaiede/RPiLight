@@ -48,7 +48,7 @@ extension DispatchTimeInterval {
 }
 
 class MockBehaviorController: BehaviorController {
-    var channelControllers: [String : BehaviorChannel] = [:]
+    var channelControllers: [String: BehaviorChannel] = [:]
     var configuration: BehaviorControllerConfig = LightControllerConfig(gamma: 1.8)
     var didInvalidate: Bool = false
 
@@ -78,7 +78,11 @@ class MockBehaviorChannel: BehaviorChannel {
     func segment(forDate date: Date) -> ChannelSegment {
         let startDate = date.addingTimeInterval(-self.interval)
         let endDate = date.addingTimeInterval(self.interval)
-        return MockChannelSegment(startBrightness: 0.0, endBrightness: brightnessDelta, startDate: startDate, endDate: endDate)
+        return MockChannelSegment(
+            startBrightness: 0.0,
+            endBrightness: brightnessDelta,
+            startDate: startDate,
+            endDate: endDate)
     }
 
     func update(forDate date: Date) {
@@ -124,9 +128,9 @@ class BehaviorTests: XCTestCase {
 
         switch result {
         case .stop:
-            XCTFail()
-        case .oneShot(_):
-            XCTFail()
+            XCTFail("Unexpected stop result")
+        case .oneShot:
+            XCTFail("Unexpected oneShot result")
         case .repeating(let date, let interval):
             XCTAssertEqual(date, refreshDate.addingTimeInterval(-30))
             XCTAssertEqual(interval.asMicroseconds(), expectedInterval.asMicroseconds())
@@ -160,7 +164,7 @@ class BehaviorTests: XCTestCase {
 
             switch result {
             case .stop:
-                XCTFail()
+                XCTFail("Unexpected stop result")
             case .oneShot(let date):
                 if expectSleep {
                     // Works because the mocks always add 30 seconds to the refreshDate to get the end of the segment.
@@ -170,13 +174,21 @@ class BehaviorTests: XCTestCase {
                 }
             case .repeating(_, let interval):
                 // Interval cannot be more than the duration (60 seconds)
-                XCTAssertLessThanOrEqual(interval.asMicroseconds(), DispatchTimeInterval.seconds(60).asMicroseconds(), "\(brightnessDelta) created too long an interval")
-                // There shouldn't be any events firing after the end of the segment, but it isn't possible to be perfect
-                // if the interval is an integer. The live code has migrated to using microseconds to minimize this error, but
-                // in practice, the maximum possible error is about 4096 units of time that nextUpdate() is returning.
-                // Previously that was milliseconds (4s) but now it is microseconds (4ms), which should be fine in practice.
+                XCTAssertLessThanOrEqual(
+                    interval.asMicroseconds(),
+                    DispatchTimeInterval.seconds(60).asMicroseconds(),
+                    "\(brightnessDelta) created too long an interval")
+                // There shouldn't be any events firing after the end of the segment, but it isn't possible to be 
+                // perfect if the interval is an integer. The live code has migrated to using microseconds to minimize
+                // this error, but in practice, the maximum possible error is about 4096 units of time that 
+                // nextUpdate() is returning. Previously that was milliseconds (4s) but now it is microseconds (4ms), 
+                // which should be fine in practice.
+                //
                 // Being off by 4 milliseconds isn't really going to be noticeable by users.
-                XCTAssertLessThanOrEqual(DispatchTimeInterval.seconds(60).asMicroseconds() % (interval.asMicroseconds()), 2048, "\(brightnessDelta) should stay under the allowable 30 ms drift")
+                XCTAssertLessThanOrEqual(
+                    DispatchTimeInterval.seconds(60).asMicroseconds() % (interval.asMicroseconds()),
+                    2048,
+                    "\(brightnessDelta) should stay under the allowable 30 ms drift")
                 if expectSleep {
                     XCTFail("\(brightnessDelta) should sleep")
                 }
@@ -270,8 +282,8 @@ class BehaviorTests: XCTestCase {
             switch result {
             case .stop:
                 XCTAssertEqual(shouldBeRunning, false)
-            case .oneShot(_):
-                XCTFail()
+            case .oneShot:
+                XCTFail("Unexpected oneShot Result")
             case .repeating(let date, let interval):
                 XCTAssertEqual(shouldBeRunning, true)
                 XCTAssertEqual(date, refreshDate)
@@ -289,4 +301,3 @@ class BehaviorTests: XCTestCase {
         ("testPreviewNextUpdate", testPreviewNextUpdate)
     ]
 }
-

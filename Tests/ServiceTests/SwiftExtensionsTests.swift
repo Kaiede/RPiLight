@@ -138,4 +138,3 @@ class SwiftExtensionsTests: XCTestCase {
         return dateFormatter
     }()
 }
-
