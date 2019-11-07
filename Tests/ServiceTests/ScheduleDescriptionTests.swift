@@ -32,6 +32,17 @@ import Yams
 // swiftlint:disable function_body_length
 // swiftlint:disable type_body_length
 
+typealias JsonDictionary = [String: Any]
+
+extension JSONDecoder {
+    // Helper function for testing.
+    // Enables using Dictionaries directly
+    func decode<T>(_ type: T.Type, from dict: JsonDictionary) throws -> T where T: Decodable {
+        let data: Data = try JSONSerialization.data(withJSONObject: dict)
+        return try self.decode(type, from: data)
+    }
+}
+
 class ScheduleDescriptionTests: XCTestCase {
     func testLunarSchedule_Empty() {
         let jsonData: JsonDictionary = [:]
