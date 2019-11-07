@@ -31,6 +31,7 @@ import Yams
 
 // swiftlint:disable function_body_length
 // swiftlint:disable type_body_length
+// swiftlint:disable file_length
 
 typealias JsonDictionary = [String: Any]
 
