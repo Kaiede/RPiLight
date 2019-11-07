@@ -43,6 +43,8 @@ extension DispatchTimeInterval {
             return nanoseconds / 1_000
         case .never:
             return Int.max
+        @unknown default:
+            fatalError("Unspecified DispatchTimeInterval")
         }
     }
 }

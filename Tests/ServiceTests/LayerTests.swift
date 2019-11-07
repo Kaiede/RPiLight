@@ -175,8 +175,8 @@ class LayerTests: XCTestCase {
             let endDate = MockLayerPoint.dateFormatter.date(from: expectedEnd)!
             let startComponents = DayTime(from: startDate)
             let endComponents = DayTime(from: endDate)
-            let startDateCorrected = startComponents.calcNextDateCustom(after: testDate, direction: .backward)!
-            let endDateCorrected = endComponents.calcNextDateCustom(after: testDate, direction: .forward)!
+            let startDateCorrected = startComponents.calcNextDate(after: testDate, direction: .backward)!
+            let endDateCorrected = endComponents.calcNextDate(after: testDate, direction: .forward)!
 
             let layerSegment = testLayer.segment(forDate: testDate)
             XCTAssertEqual(layerSegment.totalBrightnessChange, expectedChange)
