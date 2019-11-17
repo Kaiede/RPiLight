@@ -45,10 +45,10 @@ let verbose = moderator.add(.option("v", "verbose", description: "Provide Additi
 let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
 let configFile = moderator.add(Argument<String>
                     .singleArgument(name: "config file", description: "Configuration file to load")
-                    .default("config.yaml"))
+                    .default("config.yml"))
 let scheduleFile = moderator.add(Argument<String>
                     .singleArgument(name: "schedule file", description: "Schedule file to load")
-                    .default("schedule.yaml"))
+                    .default("schedule.yml"))
 
 do {
     try moderator.parse()
