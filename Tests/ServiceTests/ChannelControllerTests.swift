@@ -24,23 +24,24 @@
  */
 
 import XCTest
+
 import LED
 @testable import Service
 
 class MockChannel: Channel {
     var token: String = ""
-    var minIntensity: Double = 0.0
+    var minIntensity: Intensity = 0.0
 
-    var intensity: Double = 0.0
+    var intensity: Intensity = 0.0
 }
 
 class MockChannelSegment: ChannelSegment {
-    var startBrightness: Double
-    var endBrightness: Double
+    var startBrightness: Brightness
+    var endBrightness: Brightness
     var startDate: Date
     var endDate: Date
 
-    init(startBrightness: Double, endBrightness: Double, startDate: Date, endDate: Date) {
+    init(startBrightness: Brightness, endBrightness: Brightness, startDate: Date, endDate: Date) {
         self.startBrightness = startBrightness
         self.endBrightness = endBrightness
         self.startDate = startDate
@@ -50,7 +51,7 @@ class MockChannelSegment: ChannelSegment {
 
 class MockLayer: ChannelLayer {
     var activeIndex: Int = 0
-    var lightLevel: Double = 0.0
+    var lightLevel: Brightness = 0.0
 
     func segment(forDate date: Date) -> ChannelSegment {
         let startDate = date.addingTimeInterval(-30.0)
@@ -58,7 +59,7 @@ class MockLayer: ChannelLayer {
         return MockChannelSegment(startBrightness: 0.0, endBrightness: 1.0, startDate: startDate, endDate: endDate)
     }
 
-    func lightLevel(forDate now: Date) -> Double {
+    func lightLevel(forDate now: Date) -> Brightness {
         self.activeIndex += 1
         return self.lightLevel
     }
@@ -77,12 +78,12 @@ class ChannelControllerTests: XCTestCase {
         testController.set(layer: layer1)
 
         XCTAssertEqual(testController.activeLayers.count, 1)
-        XCTAssertEqual(testController.layers[0]?.lightLevel(forDate: Date()), 1.0)
+        XCTAssertEqual(testController.layers[0]?.lightLevel(forDate: Date()).rawValue, 1.0)
 
         testController.set(layer: layer2)
 
         XCTAssertEqual(testController.activeLayers.count, 1)
-        XCTAssertEqual(testController.layers[0]?.lightLevel(forDate: Date()), 0.5)
+        XCTAssertEqual(testController.layers[0]?.lightLevel(forDate: Date()).rawValue, 0.5)
     }
 
     func testUpdateNoLayer() {
@@ -92,7 +93,7 @@ class ChannelControllerTests: XCTestCase {
         testChannel.intensity = 1.0
 
         testController.update(forDate: Date())
-        XCTAssertEqual(testChannel.intensity, 0.0)
+        XCTAssertEqual(testChannel.intensity.rawValue, 0.0)
     }
 
     func testChannelUpdate() {
@@ -107,10 +108,11 @@ class ChannelControllerTests: XCTestCase {
 
         let testData = [ 0.0, 0.25, 0.50, 0.75, 1.0 ]
         for testValue in testData {
-            testLayer.lightLevel = testValue
+            let expectedValue = Intensity(rawValue: testValue)
+            testLayer.lightLevel = Brightness(rawValue: testValue)
             testController.update(forDate: Date())
 
-            XCTAssertEqual(testChannel.intensity, testValue)
+            XCTAssertEqual(testChannel.intensity, expectedValue)
         }
     }
 
@@ -171,7 +173,7 @@ class ChannelControllerTests: XCTestCase {
         // of the brightness in one segment, multiplied by the start brightness in the other.
         //
         // startBrightness + delta(5 into segment)... then multiplied by other segment's start brightness
-        XCTAssertEqual(targetSegment.startBrightness, 0.4722222222, accuracy: 0.0000000001)
+        XCTAssertEqual(targetSegment.startBrightness.rawValue, 0.4722222222, accuracy: 0.0000000001)
         XCTAssertEqual(targetSegment.endBrightness, 0.25)
 
         // Case 2: Segment should represent the smallest slice of time.
@@ -203,7 +205,7 @@ class ChannelControllerTests: XCTestCase {
         // of the brightness in one segment, multiplied by the start brightness in the other.
         //
         // startBrightness + delta(5 into segment)... then multiplied by other segment's start brightness
-        XCTAssertEqual(targetSegment.startBrightness, 0.9444444444, accuracy: 0.0000000001)
+        XCTAssertEqual(targetSegment.startBrightness.rawValue, 0.9444444444, accuracy: 0.0000000001)
         XCTAssertEqual(targetSegment.endBrightness, 0.5)
 
         // Case 2: Segment should represent the smallest slice of time.

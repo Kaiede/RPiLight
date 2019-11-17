@@ -25,22 +25,39 @@
 
 import Foundation
 
-import Service
+import LED
 import Logging
+import Service
 
-extension JSONDecoder {
-    // Helper to decode files directly
-    func decode<T>(_ type: T.Type, fromFile file: URL) throws -> T where T: Decodable {
-        let data = try Data(contentsOf: file)
-        Log.withDebug {
-            guard let content = String(data: data, encoding: .utf8) else { return }
-            Log.debug("Json From: \(file.absoluteString)")
-            Log.debug(content)
+// MARK: Casting Support between LED and Service types
+//
+//
+extension LEDBoardType {
+    init(configType: ServiceBoardType) {
+        switch configType {
+        case .raspberryPi: self = .raspberryPi
         }
-        return try self.decode(type, from: data)
     }
 }
 
+extension LEDModuleType {
+    init(configType: ServiceControllerType) {
+        switch configType {
+        case .simulated: self = .simulated
+        case .pca9685: self = .pca9685
+        case .raspberryPwm: self = .hardware
+        case .mcp4725: self = .mcp4725
+        }
+    }
+}
+
+extension LEDChannel: Channel {}
+
+extension ServiceControllerDescription: LEDModuleConfig {}
+
+// MARK: Casting Support between Logging and Service types
+//
+//
 extension LogLevel {
     init(_ serviceLevel: ServiceLoggingLevel) {
         self.init(fromString: serviceLevel.rawValue)

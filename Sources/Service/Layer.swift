@@ -29,8 +29,8 @@ import Logging
 import LED
 
 protocol LayerPoint {
-    var time: DateComponents { get }
-    var brightness: Double { get }
+    var time: DayTime { get }
+    var brightness: Brightness { get }
 }
 
 class Layer: ChannelLayer {
@@ -61,7 +61,7 @@ class Layer: ChannelLayer {
         return activeSegment
     }
 
-    func lightLevel(forDate now: Date) -> Double {
+    func lightLevel(forDate now: Date) -> Brightness {
         if now >= self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
             Log.withInfo {
@@ -117,11 +117,11 @@ struct LayerSegment: ChannelSegment {
     var startDate: Date
     var endDate: Date
 
-    var startBrightness: Double {
+    var startBrightness: Brightness {
         return range.origin
     }
 
-    var endBrightness: Double {
+    var endBrightness: Brightness {
         return range.end
     }
 
@@ -135,31 +135,31 @@ struct LayerSegment: ChannelSegment {
         self.range = range
     }
 
-    func lightLevel(forDate now: Date) -> Double {
+    func lightLevel(forDate now: Date) -> Brightness {
         return self.range.bound(self.interpolateBrightness(forDate: now))
     }
 }
 
 struct SegmentRange: CustomStringConvertible {
-    var origin: Double
-    var end: Double
+    var origin: Brightness
+    var end: Brightness
 
     var delta: Double {
-        return self.end - self.origin
+        return self.end.rawValue - self.origin.rawValue
     }
 
-    init(origin: Double, end: Double) {
+    init(origin: Brightness, end: Brightness) {
         self.origin = origin
         self.end = end
     }
 
-    func bound(_ value: Double) -> Double {
+    func bound(_ value: Brightness) -> Brightness {
         let highBound = max(self.origin, self.end)
         let lowBound = min(self.origin, self.end)
         return max(lowBound, min(highBound, value))
     }
 
     var description: String {
-        return "(\(self.origin), ∆\(self.delta))"
+        return "(\(self.origin.rawValue), ∆\(self.delta))"
     }
 }

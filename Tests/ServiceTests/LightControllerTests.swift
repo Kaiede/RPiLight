@@ -69,10 +69,10 @@ class MockBehavior: Behavior {
 }
 
 struct MockChannelPoint: ChannelPoint {
-    var time: DateComponents
+    var time: DayTime
     var setting: ChannelSetting
 
-    init(time: DateComponents, setting: ChannelSetting) {
+    init(time: DayTime, setting: ChannelSetting) {
         self.time = time
         self.setting = setting
     }
@@ -128,13 +128,13 @@ class LightControllerTests: XCTestCase {
         let mockConfiguration = LightControllerConfig(gamma: 2.0)
 
         let eventDate = LightControllerTests.dateFormatter.date(from: "08:00:00")!
-        let eventComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: eventDate)
-        let eventConfig = MockChannelPoint(time: eventComponents, setting: .intensity(0.5))
+        let eventComponents = DayTime(from: eventDate)
+        let eventConfig = MockChannelPoint(time: eventComponents, setting: .intensity(Intensity(rawValue: 0.5)))
 
         let testEvent = ChannelPointWrapper(configuration: mockConfiguration, event: eventConfig)
 
         XCTAssertEqual(testEvent.time, eventComponents)
-        XCTAssertEqual(testEvent.brightness, pow(0.5, (1/mockConfiguration.gamma)))
+        XCTAssertEqual(testEvent.brightness.rawValue, pow(0.5, (1.0/mockConfiguration.gamma.rawValue)))
     }
 
     func testChannelBinding() {

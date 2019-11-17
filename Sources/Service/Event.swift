@@ -34,7 +34,7 @@ public enum EventId: Equatable {
 }
 
 public protocol EventController {
-    var time: DateComponents { get }
+    var time: DayTime { get }
     var token: EventId { get }
 
     var firesOnStart: Bool { get }
@@ -48,14 +48,14 @@ public class LunarCycleController: EventController {
     public let token: EventId = .lunar
     public let firesOnStart: Bool = true
 
-    public let time: DateComponents
-    let endTime: DateComponents
+    public let time: DayTime
+    let endTime: DayTime
 
-    public convenience init(schedule: LunarSchedule) {
-        self.init(startTime: schedule.startTime, endTime: schedule.endTime)
+    public convenience init(schedule: LunarCycleDescription) {
+        self.init(startTime: schedule.start, endTime: schedule.end)
     }
 
-    init(startTime: DateComponents, endTime: DateComponents) {
+    init(startTime: DayTime, endTime: DayTime) {
         self.time = startTime
         self.endTime = endTime
     }
@@ -72,8 +72,8 @@ public class LunarCycleController: EventController {
 
         let illuminationStart = Moon.fastIllumination(forDate: nightStart.toJ2000Date())
         let illuminationEnd = Moon.fastIllumination(forDate: nightEnd.toJ2000Date())
-        let intensityFactorStart: ChannelSetting = .intensity(illuminationStart.fraction)
-        let intensityFactorEnd: ChannelSetting = .intensity(illuminationEnd.fraction)
+        let intensityFactorStart = Intensity(rawValue: illuminationStart.fraction)
+        let intensityFactorEnd = Intensity(rawValue: illuminationEnd.fraction)
 
         Log.info {
             let startString = Log.timeFormatter.string(from: nightStart)
@@ -86,8 +86,8 @@ public class LunarCycleController: EventController {
             let gamma = channelController.channelGamma
             let layer = Layer(nightStart: nightStart,
                               end: nightEnd,
-                              brightnessFactorStart: intensityFactorStart.asBrightness(withGamma: gamma),
-                              end: intensityFactorEnd.asBrightness(withGamma: gamma))
+                              brightnessFactorStart: Brightness(intensityFactorStart, gamma: gamma),
+                              end: Brightness(intensityFactorEnd, gamma: gamma))
 
             channelController.set(layer: layer, forType: .lunar)
         }
@@ -95,15 +95,15 @@ public class LunarCycleController: EventController {
 }
 
 struct LunarPoint: LayerPoint {
-    let time: DateComponents
-    let brightness: Double
+    let time: DayTime
+    let brightness: Brightness
 }
 
 extension Layer {
     convenience init(nightStart: Date,
                      end nightEnd: Date,
-                     brightnessFactorStart brightnessStart: Double,
-                     end brightnessEnd: Double) {
+                     brightnessFactorStart brightnessStart: Brightness,
+                     end brightnessEnd: Brightness) {
         let desiredTransitionTime: TimeInterval = 60.0 * 5.0
         let nightInterval = nightEnd.timeIntervalSince(nightStart)
         let transitionInterval: TimeInterval = nightInterval > desiredTransitionTime * 2 ?
@@ -112,11 +112,10 @@ extension Layer {
         let nightFullStart = nightStart.addingTimeInterval(transitionInterval)
         let nightFullEnd = nightEnd.addingTimeInterval(-transitionInterval)
 
-        let calendar = Calendar.current
-        let nightStartPoint = calendar.dateComponents([.hour, .minute, .second], from: nightStart)
-        let nightFullStartPoint = calendar.dateComponents([.hour, .minute, .second], from: nightFullStart)
-        let nightFullEndPoint = calendar.dateComponents([.hour, .minute, .second], from: nightFullEnd)
-        let nightEndPoint = calendar.dateComponents([.hour, .minute, .second], from: nightEnd)
+        let nightStartPoint = DayTime(from: nightStart)
+        let nightFullStartPoint = DayTime(from: nightFullStart)
+        let nightFullEndPoint = DayTime(from: nightFullEnd)
+        let nightEndPoint = DayTime(from: nightEnd)
 
         var layerPoints: [LunarPoint] = []
         layerPoints.append(LunarPoint(time: nightStartPoint, brightness: 1.0))

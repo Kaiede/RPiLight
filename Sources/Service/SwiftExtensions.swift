@@ -35,37 +35,6 @@ import Foundation
 //
 // MARK: Foundation Extensions
 //
-extension Calendar {
-    func intervalBetweenDateComponents(_ components: DateComponents,
-                                       since olderComponents: DateComponents) -> TimeInterval? {
-        let startOfDay = self.startOfDay(for: Date())
-        guard let olderDate = self.date(byAdding: olderComponents, to: startOfDay) else { return nil }
-        guard let date = components.calcNextDate(after: olderDate) else { return nil }
-
-        return date.timeIntervalSince(olderDate)
-    }
-}
-
-public extension DateComponents {
-    func asTimeOfDay() -> DateComponents {
-        return DateComponents(calendar: self.calendar,
-                              timeZone: self.timeZone,
-                              hour: self.hour,
-                              minute: self.minute,
-                              second: self.second,
-                              nanosecond: self.nanosecond)
-    }
-
-    func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
-        return Calendar.current.nextDate(
-            after: date,
-            matching: self,
-            matchingPolicy: .nextTime,
-            repeatedTimePolicy: .first,
-            direction: direction)
-    }
-}
-
 public extension FileManager {
     var currentDirectoryUrl: URL {
         return URL(fileURLWithPath: self.currentDirectoryPath)

@@ -67,7 +67,7 @@ class MockBehaviorController: BehaviorController {
 }
 
 class MockBehaviorChannel: BehaviorChannel {
-    var channelGamma: Double = 1.8
+    var channelGamma: Gamma = 1.8
     var rootController: BehaviorController?
     var lastUpdate: Date = Date.distantPast
     var brightnessDelta: Double = 1.0
@@ -80,9 +80,10 @@ class MockBehaviorChannel: BehaviorChannel {
     func segment(forDate date: Date) -> ChannelSegment {
         let startDate = date.addingTimeInterval(-self.interval)
         let endDate = date.addingTimeInterval(self.interval)
+        let endBrightness = Brightness(rawValue: brightnessDelta)
         return MockChannelSegment(
             startBrightness: 0.0,
-            endBrightness: brightnessDelta,
+            endBrightness: endBrightness,
             startDate: startDate,
             endDate: endDate)
     }

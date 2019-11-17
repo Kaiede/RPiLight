@@ -36,9 +36,9 @@ class MockModuleImpl: LEDModuleImpl {
 
     var lastIntensity: Double
     var lastChannel: Int
-    func applyIntensity(_ intensity: Double, toChannel channel: Int) {
+    func applyIntensity(_ intensity: Intensity, toChannel channel: Int) {
         self.lastChannel = channel
-        self.lastIntensity = intensity
+        self.lastIntensity = intensity.rawValue
     }
 }
 

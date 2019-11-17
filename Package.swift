@@ -12,9 +12,11 @@ let package = Package(
             targets: ["RPiLight"]),
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
+        // External Dependencies
+        .package(url: "https://github.com/kareman/Moderator.git", from: "0.5.1"), // Need merging
+        .package(url: "https://github.com/jpsim/Yams.git", from: "2.0.0"),
+        // Internal Dependencies
         .package(url: "https://github.com/Kaiede/Ephemeris.git", from: "1.0.2"),
-        .package(url: "https://github.com/Kaiede/Moderator.git", .branch("swift5compat")), // Need merging
         .package(url: "https://github.com/Kaiede/PCA9685.git", from: "3.0.0"),
         .package(url: "https://github.com/Kaiede/MCP4725.git", from: "0.1.0"),
         .package(url: "https://github.com/Kaiede/SingleBoard.git", from: "1.0.0")
@@ -27,7 +29,7 @@ let package = Package(
             dependencies: ["Service", "Moderator"]),
         .target(
             name: "Service",
-            dependencies: ["LED", "Logging", "Ephemeris"]),
+            dependencies: ["LED", "Logging", "Ephemeris", "Yams"]),
         .target(
             name: "LED",
             dependencies: ["Logging", "MCP4725", "PCA9685", "SingleBoard"]),

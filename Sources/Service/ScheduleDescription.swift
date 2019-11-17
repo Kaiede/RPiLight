@@ -25,27 +25,35 @@
 
 import Foundation
 
-//
-// Module Implementation
-//
-// What's required for the public-facing LEDModule to operate.
-//
+import LED
 
-internal protocol LEDModuleImpl {
-    func applyIntensity(_ intensity: Intensity, toChannel channel: Int)
-    var channelMap: [String: Int] { get }
+public struct ScheduleDescription: Codable {
+    public var lunarCycle: LunarCycleDescription?
+    public var schedule: [String: ChannelScheduleDescription]
+
+    enum CodingKeys: String, CodingKey {
+        case lunarCycle = "lunar-cycle"
+        case schedule
+    }
 }
 
-//
-// Extensions
-//
+public struct LunarCycleDescription: Codable {
+    public var start: DayTime
+    public var end: DayTime
+}
 
-extension LEDModuleConfig {
-    var addressAsI2C: UInt8? {
-        if let address = self.address {
-            return UInt8(address)
-        }
+public struct ChannelScheduleDescription: Codable {
+    public var minIntensity: Intensity?
+    public var steps: [ScheduleStepDescription]
 
-        return nil
+    enum CodingKeys: String, CodingKey {
+        case minIntensity = "min-intensity"
+        case steps
     }
+}
+
+public struct ScheduleStepDescription: Codable {
+    public var time: DayTime
+    public var intensity: Intensity?
+    public var brightness: Brightness?
 }
