@@ -30,6 +30,12 @@ public struct DayTime: Codable {
         case unableToParse
     }
 
+    enum EncodeError: Error {
+        case unableToGetDate
+    }
+
+    internal static let Components: Set<Calendar.Component> = [.calendar, .timeZone, .hour, .minute, .second]
+
     public internal(set) var dateComponents: DateComponents
 
     private static let Formatter: DateFormatter = {
@@ -41,7 +47,7 @@ public struct DayTime: Codable {
     }()
 
     public init(from date: Date, calendar: Calendar = Calendar.current) {
-        self.dateComponents = calendar.dateComponents([.hour, .minute, .second], from: date)
+        self.dateComponents = calendar.dateComponents(DayTime.Components, from: date)
     }
 
     public init(_ components: DateComponents) {
@@ -54,16 +60,14 @@ public struct DayTime: Codable {
         guard let parsedTime = DayTime.Formatter.date(from: decodedString) else {
             throw DecodeError.unableToParse
         }
-        dateComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: parsedTime)
+        dateComponents = Calendar.current.dateComponents(DayTime.Components, from: parsedTime)
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        let tempDate = Calendar.current.nextDate(after: Date(),
-                                             matching: dateComponents,
-                                             matchingPolicy: .nextTime,
-                                             repeatedTimePolicy: .first,
-                                             direction: .forward)!
+        guard let tempDate = self.calcNextDate(after: Date()) else {
+            throw EncodeError.unableToGetDate
+        }
         let encodedString = DayTime.Formatter.string(from: tempDate)
         try container.encode(encodedString)
     }
@@ -97,43 +101,13 @@ public extension DayTime {
 
 public extension DayTime {
     func calcNextDate(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
-        #if swift(>=5.0)
-            return Calendar.current.nextDate(after: date,
-                                             matching: self.dateComponents,
-                                             matchingPolicy: .nextTime,
-                                             repeatedTimePolicy: .first,
-                                             direction: direction)
-        #else
-            #if os(OSX) || os(iOS) || os(watchOS) || os(tvOS)
-                return Calendar.current.nextDate(after: date,
-                                                matching: self.dateComponents,
-                                                matchingPolicy: .nextTime,
-                                                repeatedTimePolicy: .first,
-                                                direction: direction)
-            #elseif os(Linux)
-                return self.calcNextDateCustom(after: date, direction: direction)
-            #else
-                fatalError("No Implementation Available for this OS")
-            #endif
-        #endif
-
-    }
-
-    // This is a custom implementation aimed at Linux. It is specialized for the puposes of this package,
-    // but may not be very relevant for any other package.
-    internal func calcNextDateCustom(after date: Date, direction: Calendar.SearchDirection = .forward) -> Date? {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        var dateComponentAsDayTime = self.dateComponents.asTimeOfDay()
-        guard let targetDate = calendar.date(byAdding: dateComponentAsDayTime, to: startOfDay) else { return nil }
-        switch direction {
-        case .forward:
-            if targetDate <= date { dateComponentAsDayTime.day = 1 }
-        case .backward:
-            if targetDate >= date { dateComponentAsDayTime.day = -1 }
-        }
-
-        return calendar.date(byAdding: dateComponentAsDayTime, to: startOfDay, wrappingComponents: false)
+        let calendar = self.dateComponents.calendar ?? Calendar.current
+        return calendar.nextDate(
+            after: date,
+            matching: self.dateComponents,
+            matchingPolicy: .nextTime,
+            repeatedTimePolicy: .first,
+            direction: direction)
     }
 }
 
