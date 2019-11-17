@@ -3,8 +3,8 @@ board: raspberryPi
 gamma: 2.2
 
 controllers:
-		- type: pca9685
-			frequency: 960
-			channels:
-				primary: 0
-				secondary: 1
+	- type: pca9685
+		frequency: 960
+		channels:
+			primary: 0
+			secondary: 1
