@@ -1,28 +1,22 @@
 # Configuring the Light Schedule
 
-There are example configuration files in the [examples](https://github.com/Kaiede/RPiLight/examples) folder. These files are JSON-formatted, and are split into two components: The hardware configuration, and the schedule.
+There are example configuration files in the [examples](https://github.com/Kaiede/RPiLight/examples) folder. These files are YAML-formatted, and are split into two components: The hardware configuration, and the schedule. 
 
 ## Hardware Configuration
 
-Let's look at an example that uses a PWM HAT (config-example-pca9685.json):
+Let's look at an example that uses a PWM HAT (config-example-pca9685.yml):
 
 ```
-{
-    "user": "pi",
-    "board": "raspberryPi",
+user: pi
+board: raspberryPi
+gamma: 2.2
 
-    "controllers": [
-        {
-            "type": "hardware",
-            "frequency": 960,
-            "gamma": 2.2,
-            "channels": {
-                "primary": 0,
-                "secondary": 1
-            }
-        }
-    ]
-}
+controllers:
+  - type: pca9685
+    frequency: 960
+    channels:
+    primary: 0
+    secondary: 1
 ```
 
 * `user` can be any valid user on the OS. `pi` is recommended.
@@ -40,15 +34,12 @@ This controls how brightness is converted into light intensity. The human eye is
 This is an array of hardware you want to control. It's possible to have multiple controllers handling many channels of lighting.
 
 ```
-{
-    "type": "raspberryPwm",
-    "frequency": 960,
-    "address": 0x61,
-    "channels": {
-        "primary": 0,
-        "secondary": 1
-    }
-}
+type: raspberryPwm
+frequency: 960
+address: 0x61
+channels:
+  primary: 0
+  secondary: 1
 ```
 
 * `type` can be `raspberryPwm`, `pca9685`, `mcp4725` or `simulated`
@@ -79,27 +70,26 @@ Valid indexes are:
 
 ## Schedule
 
-The schedule.json file contains the schedule for the lighting. It doesn't contain any information related to the hardware, so it can be configured separately from the underlying hardware configuration, making it easier to share settings.
+The schedule.yml file contains the schedule for the lighting. It doesn't contain any information related to the hardware, so it can be configured separately from the underlying hardware configuration, making it easier to share settings.
 
-### Channel Configuration
+### Schedule Configuration
 
 ```
-"primary": {
-        "minIntensity": 0.0025
-        "schedule": [
-        { "time": "08:00:00", "brightness": 0.0 },
-        { "time": "08:30:00", "brightness": 0.25 },
-        { "time": "12:00:00", "brightness": 0.25 },
-        { "time": "14:00:00", "brightness": 0.50 },
-        { "time": "18:00:00", "brightness": 0.50 },
-        { "time": "20:00:00", "brightness": 0.10 },
-        { "time": "22:30:00", "brightness": 0.10 },
-        { "time": "23:00:00", "brightness": 0.0 }
-    ]
-}
+schedule:
+  primary: 
+    min-intensity: 0.0025
+    steps:
+      - { time: 08:00:00, brightness: 0.0 }
+      - { time: 08:30:00, brightness: 0.25 }
+      - { time: 12:00:00, brightness: 0.25 }
+      - { time: 14:00:00, brightness: 0.50 }
+      - { time: 18:00:00, brightness: 0.50 }
+      - { time: 20:00:00, brightness: 0.10 }
+      - { time: 22:30:00, brightness: 0.10 }
+      - { time: 23:00:00, brightness: 0.0 }
 ```
 
-Each channel has its settings and schedule bound to it. The channel name is used to name the settings/schedule assoicated with it, and depends on what you named your channels in the config.json file earlier.
+Each channel has its settings and schedule bound to it. The channel name is used to name the schedule assoicated with it, and depends on what you named your channels in the config.yml file earlier.
 
 `minIntensity` is used to adjust the cut-off of the light, and is optional. The default is `0.0`. This will treat the channel as off at any intensity level or lower. In this example it will turn of at `0.25%` intensity. Twinstar E lights start shutting off some LEDs but not others at around `0.2%` intensity, so this example provides a generally nicer transition for the lights when turning off or on.
 
@@ -122,10 +112,9 @@ In both cases, changes in the light level will be calculated as brightness to ma
 ### Lunar Cycle 
 
 ```
-"lunarCycle": {
-    "start": "21:00:00",
-    "end": "07:00:00",
-}
+lunar-cycle:
+  start: 21:00:00
+  end: 07:00:00
 ```
 
 The lunar cycle feature makes it possible to have light during a night period that follows the cycle of the moon phases. It works by taking your existing schedule, and adjusting it based on the current phase of the moon between `start` and `end`. 
@@ -142,6 +131,6 @@ cd /opt/rpilight
 RPiLight --preview
 ```
 
-This file is expected to be in the `./config/` directory, and by default it will look for `./config/config.json` for the hardware configuration, and `./config/schedule.json` for the schedule. For now, it is required to be root to copy either file to the service's config directory: `sudo cp <myfile> /opt/rpilight/config/config.json`. 
+This file is expected to be in the `./config/` directory, and by default it will look for `./config/config.yml` for the hardware configuration, and `./config/schedule.yml` for the schedule. For now, it is required to be root to copy either file to the service's config directory: `sudo cp <myfile> /opt/rpilight/config/config.yml`. 
 
 You should first make sure the service is stopped before running previews to avoid getting weird results.
