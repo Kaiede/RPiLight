@@ -11,7 +11,13 @@
 
 function usage()
 {
-    echo "usage: build.sh [stable | latest] [package] [install]"
+    echo "usage: build.sh [bootstrap] [stable | latest] [package] [install]"
+    echo 
+    echo "  bootstrap - Fetch latest Swift & Packages (like bootstrap.sh)"
+    echo "  stable | latest - Stable fetches latest release, latest contains newer changes"
+    echo "  install - Install to /opt/rpilight"
+    echo 
+    echo "WARNING: package option is currently unsupported"
 }
 
 #
@@ -36,10 +42,19 @@ function ensure_swift_in_path() {
 }
 
 #
+# Run Bootstrap Again for Swift/Packages
+#
+function run_bootstrap() {
+    echo "Running Bootstrap"
+    bash ./bootstrap.sh nobuild
+}
+
+#
 # Grab Latest Tag
 #
 function update_latest_source() {
     echo "Fetching Latest Source"
+    git checkout master
     git pull --rebase
 }
 
@@ -47,11 +62,11 @@ function update_latest_source() {
 # Grab Latest Git State
 #
 function update_stable_source() {
-        echo "Fetching Tags"
-        git fetch
-        LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-        echo "Updating to $LATEST_TAG..."
-        git checkout $LATEST_TAG
+    echo "Fetching Tags"
+    git fetch
+    LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+    echo "Updating to $LATEST_TAG..."
+    git checkout $LATEST_TAG
 }
 
 #
@@ -198,9 +213,12 @@ function configure_service() {
 FETCH=0
 PACKAGE=0
 INSTALL=0
+BOOTSTRAP=0
 
 while [ "$1" != "" ]; do
     case $1 in
+        bootstrap)              BOOTSTRAP=1
+                                ;;
         stable | latest )       FETCH=$1
                                 ;;
         package )               PACKAGE=1
@@ -239,6 +257,10 @@ if [ "$FETCH" == "stable" ]; then
     update_stable_source
 elif [ "$FETCH" == "latest" ]; then
     update_latest_source
+fi
+
+if [ "$BOOTSTRAP" == "1" ]; then
+    run_bootstrap
 fi
 
 build_rpilight
