@@ -3,6 +3,11 @@
 # Bootstraps RPiLight on a Fresh Raspberry Pi
 #
 
+function usage()
+{
+    echo "usage: bootstrap.sh [nobuild]"
+}
+
 #
 # Detecting Distro
 #
@@ -123,6 +128,18 @@ function install_dependencies() {
 #
 # Script Flow
 #
+BUILD=1
+
+while [ "$1" != "" ]; do
+    case $1 in
+        nobuild )       BUILD=0
+                        ;;
+        * )             usage
+                        exit 1
+    esac
+    shift
+done
+
 process_distro
 cd ~
 
@@ -132,9 +149,11 @@ install_dependencies
 #
 # Clone & Build
 #
-git clone https://github.com/Kaiede/RPiLight.git
-pushd ~/RPiLight > /dev/null
+if [ "$BUILD" == "1" ]; then
+    git clone https://github.com/Kaiede/RPiLight.git
+    pushd ~/RPiLight > /dev/null
 
-./build.sh stable install
+    ./build.sh stable install
+fi
 
 popd > /dev/null
