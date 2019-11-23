@@ -6,10 +6,11 @@
 ##### SWIFT BUILD
 .DS_Store
 /.build
+/.swiftpm
 /Packages
-/*.xcodeproj
 /Package.resolved
 /Package.pins
+/*.xcodeproj
 
 ##### PYTHON
 
