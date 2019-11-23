@@ -73,7 +73,7 @@ public extension LogLevel {
 
 public struct Log {
     public typealias LogAnyClosure = () -> Any
-    
+
     private static var stdOut: StdoutOutputStream = StdoutOutputStream()
     private static var stdErr: StderrOutputStream = StderrOutputStream()
 
@@ -112,17 +112,15 @@ public struct Log {
     private static var logLevelStack: [LogLevel] = []
 
     private static var logLevel: LogLevel {
-        get {
-            return Log.logLevelStack.last ?? Log.defaultLogLevel
-        }
+        return Log.logLevelStack.last ?? Log.defaultLogLevel
     }
 
     private static func logAnyClosure(
         _ closure: LogAnyClosure,
         level: LogLevel,
         file: String = #file,
-        line: Int = #line)
-    {
+        line: Int = #line
+    ) {
         guard level >= Log.logLevel else { return }
 
         let message = closure()

@@ -45,11 +45,11 @@ class Layer: ChannelLayer {
         self.identifier = identifier
         self.points = points
         (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: startTime, withPoints: points)
-        Log.info( {
+        Log.info({
             let startString = Log.time.string(from: activeSegment.startDate)
             let endString = Log.time.string(from: activeSegment.endDate)
             return "Initial Segment Guess: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
-        }() )
+        }())
     }
 
     func segment(forDate date: Date) -> ChannelSegment {
@@ -61,11 +61,11 @@ class Layer: ChannelLayer {
     func lightLevel(forDate now: Date) -> Brightness {
         if now >= self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
-            Log.info( {
+            Log.info({
                 let startString = Log.time.string(from: activeSegment.startDate)
                 let endString = Log.time.string(from: activeSegment.endDate)
                 return "Switched to Segment: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
-            }() )
+            }())
         }
 
         return self.activeSegment.lightLevel(forDate: now)

@@ -75,11 +75,11 @@ public class LunarCycleController: EventController {
         let intensityFactorStart = Intensity(rawValue: illuminationStart.fraction)
         let intensityFactorEnd = Intensity(rawValue: illuminationEnd.fraction)
 
-        Log.info( {
+        Log.info({
             let startString = Log.time.string(from: nightStart)
             let endString = Log.time.string(from: nightEnd)
             return "Lunar Night Period: \(startString) -> \(endString)"
-        }() )
+        }())
         Log.info("Calculated Lunar Light: \(illuminationStart.fraction) -> \(illuminationEnd.fraction)")
 
         for channelController in controller.channelControllers.values {
