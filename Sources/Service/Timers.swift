@@ -65,10 +65,10 @@ class Timer<IDType> {
         self.source.schedulePrecise(forDate: date, repeating: interval)
         start()
 
-        Log.withDebug {
+        Log.debug( {
             let intervalMs = interval.toTimeInterval() * 1_000.0
-            Log.debug("[\(timerId)] Scheduled For \(Log.dateFormatter.string(from: date)), Repeating \(intervalMs) ms")
-        }
+            return "[\(timerId)] Scheduled For \(Log.dateFormatter.string(from: date)), Repeating \(intervalMs) ms"
+        }() )
     }
 
     public func pause() {
@@ -94,10 +94,10 @@ class Timer<IDType> {
     }
 
     private func onEvent() {
-        Log.withDebug {
+        Log.debug( {
             let hasHandler = self.handler != nil
-            Log.debug("[\(timerId)] Event Fired. Valid Handler: \(hasHandler)")
-        }
+            return "[\(timerId)] Event Fired. Valid Handler: \(hasHandler)"
+        }() )
         self.handler?()
     }
 }

@@ -356,10 +356,10 @@ public class LightController: BehaviorController {
         case .repeating(let restartDate, let updateInterval):
             self.isRefreshOneShot = false
             self.refreshTimer.schedule(startingAt: restartDate, repeating: updateInterval)
-            Log.withDebug {
+            Log.debug( {
                 let intervalMs = updateInterval.toTimeInterval() * 1_000.0
-                Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(intervalMs) ms")
-            }
+                return "Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(intervalMs) ms"
+            }() )
 
             self.watchdogInterval = updateInterval.toTimeInterval()
             self.watchdogLastRefresh = now
