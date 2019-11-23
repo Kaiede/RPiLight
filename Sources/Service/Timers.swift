@@ -57,7 +57,7 @@ class Timer<IDType> {
         self.source.schedulePrecise(forDate: date)
         start()
 
-        Log.debug("[\(timerId)] Scheduled For \(Log.dateFormatter.string(from: date))")
+        Log.debug("[\(timerId)] Scheduled For \(Log.date.string(from: date))")
     }
 
     public func schedule(startingAt date: Date, repeating interval: DispatchTimeInterval) {
@@ -67,7 +67,7 @@ class Timer<IDType> {
 
         Log.debug( {
             let intervalMs = interval.toTimeInterval() * 1_000.0
-            return "[\(timerId)] Scheduled For \(Log.dateFormatter.string(from: date)), Repeating \(intervalMs) ms"
+            return "[\(timerId)] Scheduled For \(Log.date.string(from: date)), Repeating \(intervalMs) ms"
         }() )
     }
 
