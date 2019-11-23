@@ -49,8 +49,9 @@ class LightService {
     }
 
     func applyLoggingLevel() {
-        let loggingLevel = configuration.logLevel ?? .info
-        Log.setLoggingLevel(LogLevel(loggingLevel))
+        if let loggingLevel = configuration.logLevel {
+            Log.setLevel(default: LogLevel(loggingLevel))
+        }
     }
 
     func run(withPreview: Bool = false) {

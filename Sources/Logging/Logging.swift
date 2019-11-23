@@ -31,13 +31,19 @@ import Darwin
 
 import Foundation
 
+//
+// MARK: Log Level Type
+//
+
 public enum LogLevel: Int, Comparable {
     case debug
     case info
     case warn
     case error
+}
 
-    public init(fromString levelString: String) {
+public extension LogLevel {
+    init(fromString levelString: String) {
         switch levelString.lowercased() {
         case "debug":
             self = .debug
@@ -52,19 +58,22 @@ public enum LogLevel: Int, Comparable {
         }
     }
 
-    public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
+    static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
         return lhs.rawValue < rhs.rawValue
     }
 
-    public static func == (lhs: LogLevel, rhs: LogLevel) -> Bool {
+    static func == (lhs: LogLevel, rhs: LogLevel) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
 }
 
-public typealias LogClosure = () -> Void
-public typealias LogAnyClosure = () -> Any
+//
+// MARK: Log Interface
+//
 
 public struct Log {
+    public typealias LogAnyClosure = () -> Any
+    
     private static var stdOut: StdoutOutputStream = StdoutOutputStream()
     private static var stdErr: StderrOutputStream = StderrOutputStream()
 
@@ -100,8 +109,8 @@ public struct Log {
         Log.logAnyClosure(closure, level: .error, file: file, line: line)
     }
 
-    public static func setLoggingLevel(_ level: LogLevel) {
-        Log.logLevel = level
+    public static func setLevel(default level: LogLevel) {
+        Log.defaultLogLevel = level
     }
 
     public static func pushLevel(_ level: LogLevel) {
@@ -112,19 +121,12 @@ public struct Log {
         _ = Log.logLevelStack.popLast()
     }
 
+    private static var defaultLogLevel: LogLevel = .info
     private static var logLevelStack: [LogLevel] = []
 
     private static var logLevel: LogLevel {
         get {
-            return Log.logLevelStack.last ?? .info
-        }
-        set {
-            let count = Log.logLevelStack.count
-            if count > 0 {
-                Log.logLevelStack[count - 1] = newValue
-            } else {
-                Log.logLevelStack.append(newValue)
-            }
+            return Log.logLevelStack.last ?? Log.defaultLogLevel
         }
     }
 
@@ -160,6 +162,10 @@ public struct Log {
         }
     }
 }
+
+//
+// MARK: Internal Types
+//
 
 private struct StderrOutputStream: TextOutputStream {
     public mutating func write(_ string: String) { fputs(string, stderr) }
