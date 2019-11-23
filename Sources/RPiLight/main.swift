@@ -58,7 +58,7 @@ do {
 }
 
 if verbose.value {
-    Log.setLoggingLevel(.debug)
+    Log.setLevel(default: .debug)
 }
 
 let service = LightService(configFile: configFile.value, scheduleFile: scheduleFile.value)
