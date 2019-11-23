@@ -46,9 +46,8 @@ class Layer: ChannelLayer {
         self.points = points
         (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: startTime, withPoints: points)
         Log.info( {
-            let formatter = Log.timeFormatter
-            let startString = formatter.string(from: activeSegment.startDate)
-            let endString = formatter.string(from: activeSegment.endDate)
+            let startString = Log.time.string(from: activeSegment.startDate)
+            let endString = Log.time.string(from: activeSegment.endDate)
             return "Initial Segment Guess: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
         }() )
     }
@@ -63,9 +62,8 @@ class Layer: ChannelLayer {
         if now >= self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
             Log.info( {
-                let formatter = Log.timeFormatter
-                let startString = formatter.string(from: activeSegment.startDate)
-                let endString = formatter.string(from: activeSegment.endDate)
+                let startString = Log.time.string(from: activeSegment.startDate)
+                let endString = Log.time.string(from: activeSegment.endDate)
                 return "Switched to Segment: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
             }() )
         }

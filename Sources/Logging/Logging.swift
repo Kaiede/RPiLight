@@ -77,21 +77,8 @@ public struct Log {
     private static var stdOut: StdoutOutputStream = StdoutOutputStream()
     private static var stdErr: StderrOutputStream = StderrOutputStream()
 
-    public private(set) static var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd MMM HH:mm:ss.SSS"
-        formatter.calendar = Calendar.current
-        formatter.timeZone = TimeZone.current
-        return formatter
-    }()
-
-    public private(set) static var timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss.SSS"
-        formatter.calendar = Calendar.current
-        formatter.timeZone = TimeZone.current
-        return formatter
-    }()
+    public private(set) static var date = DateFormatter(currentWithFormat: "dd MMM HH:mm:ss.SSS")
+    public private(set) static var time = DateFormatter(currentWithFormat: "HH:mm:ss.SSS")
 
     public static func debug(_ closure: @autoclosure LogAnyClosure, file: String = #file, line: Int = #line) {
         Log.logAnyClosure(closure, level: .debug, file: file, line: line)
@@ -145,7 +132,7 @@ public struct Log {
     private static func logItem(_ item: Any, level: LogLevel, file: String, line: Int) {
         guard level >= Log.logLevel else { return }
 
-        let nowString = Log.timeFormatter.string(from: Date())
+        let nowString = Log.time.string(from: Date())
         if Log.logLevel == .debug {
             let shortFileName = URL(fileURLWithPath: file).lastPathComponent
             print("[\(level)][\(nowString)][\(shortFileName):\(line)]",
@@ -173,4 +160,17 @@ private struct StderrOutputStream: TextOutputStream {
 
 private struct StdoutOutputStream: TextOutputStream {
     public mutating func write(_ string: String) { fputs(string, stdout) }
+}
+
+//
+// MARK: Internal Extensions
+//
+
+extension DateFormatter {
+    convenience init(currentWithFormat format: String) {
+        self.init()
+        self.dateFormat = format
+        self.calendar = Calendar.current
+        self.timeZone = TimeZone.current
+    }
 }

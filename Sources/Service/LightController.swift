@@ -282,12 +282,12 @@ public class LightController: BehaviorController {
 
     private func fireWatchdog() {
         let now = Date()
-        Log.info("Watchdog Timer Fired: \(Log.dateFormatter.string(from: now))")
+        Log.info("Watchdog Timer Fired: \(Log.date.string(from: now))")
 
         let interval = now.timeIntervalSince(self.watchdogLastRefresh)
         if interval > self.watchdogInterval {
             let expectedRefresh = self.watchdogLastRefresh.addingTimeInterval(self.watchdogInterval)
-            Log.warn("Late Refresh Detected. Expected Refresh @ \(Log.dateFormatter.string(from: expectedRefresh))")
+            Log.warn("Late Refresh Detected. Expected Refresh @ \(Log.date.string(from: expectedRefresh))")
         }
 
         self.invalidateRefreshTimer()
@@ -349,7 +349,7 @@ public class LightController: BehaviorController {
         case .oneShot(let restartDate):
             self.isRefreshOneShot = true
             self.refreshTimer.schedule(at: restartDate)
-            Log.debug("Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate))")
+            Log.debug("Scheduling Behavior: \(Log.date.string(from: restartDate))")
 
             self.watchdogInterval = restartDate.timeIntervalSince(now)
             self.watchdogLastRefresh = now
@@ -358,7 +358,7 @@ public class LightController: BehaviorController {
             self.refreshTimer.schedule(startingAt: restartDate, repeating: updateInterval)
             Log.debug( {
                 let intervalMs = updateInterval.toTimeInterval() * 1_000.0
-                return "Scheduling Behavior: \(Log.dateFormatter.string(from: restartDate)) : \(intervalMs) ms"
+                return "Scheduling Behavior: \(Log.date.string(from: restartDate)) : \(intervalMs) ms"
             }() )
 
             self.watchdogInterval = updateInterval.toTimeInterval()
@@ -367,7 +367,7 @@ public class LightController: BehaviorController {
 
         if segment.endDate != Date.distantFuture {
             self.watchdogTimer.schedule(at: segment.endDate)
-            Log.info("New Watchdog Timer: \(Log.dateFormatter.string(from: segment.endDate))")
+            Log.info("New Watchdog Timer: \(Log.date.string(from: segment.endDate))")
         } else {
             self.watchdogTimer.pause()
         }
@@ -392,7 +392,7 @@ public class LightController: BehaviorController {
 
             self.nextEvent = token
             self.eventTimer.schedule(at: eventDate)
-            Log.info("Next Event: \(token) (\(Log.dateFormatter.string(from: eventDate)))")
+            Log.info("Next Event: \(token) (\(Log.date.string(from: eventDate)))")
         } else {
             Log.error("Unable to schedule next event")
         }
