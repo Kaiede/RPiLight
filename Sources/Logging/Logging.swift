@@ -70,29 +70,29 @@ public extension LogLevel {
 //
 // MARK: Log Interface
 //
+// Known Issues:
+// - Prior to Swift 5.1, autoclosures are not allowed to use typealiases.
 
 public struct Log {
-    public typealias LogAnyClosure = () -> Any
-
     private static var stdOut: StdoutOutputStream = StdoutOutputStream()
     private static var stdErr: StderrOutputStream = StderrOutputStream()
 
     public private(set) static var date = DateFormatter(currentWithFormat: "dd MMM HH:mm:ss.SSS")
     public private(set) static var time = DateFormatter(currentWithFormat: "HH:mm:ss.SSS")
 
-    public static func debug(_ closure: @autoclosure LogAnyClosure, file: String = #file, line: Int = #line) {
+    public static func debug(_ closure: @autoclosure () -> Any, file: String = #file, line: Int = #line) {
         Log.logAnyClosure(closure, level: .debug, file: file, line: line)
     }
 
-    public static func info(_ closure: @autoclosure LogAnyClosure, file: String = #file, line: Int = #line) {
+    public static func info(_ closure: @autoclosure () -> Any, file: String = #file, line: Int = #line) {
         Log.logAnyClosure(closure, level: .info, file: file, line: line)
     }
 
-    public static func warn(_ closure: @autoclosure LogAnyClosure, file: String = #file, line: Int = #line) {
+    public static func warn(_ closure: @autoclosure () -> Any, file: String = #file, line: Int = #line) {
         Log.logAnyClosure(closure, level: .warn, file: file, line: line)
     }
 
-    public static func error(_ closure: @autoclosure LogAnyClosure, file: String = #file, line: Int = #line) {
+    public static func error(_ closure: @autoclosure () -> Any, file: String = #file, line: Int = #line) {
         Log.logAnyClosure(closure, level: .error, file: file, line: line)
     }
 
@@ -116,7 +116,7 @@ public struct Log {
     }
 
     private static func logAnyClosure(
-        _ closure: LogAnyClosure,
+        _ closure: () -> Any,
         level: LogLevel,
         file: String = #file,
         line: Int = #line
