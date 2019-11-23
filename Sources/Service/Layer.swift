@@ -45,14 +45,12 @@ class Layer: ChannelLayer {
         self.identifier = identifier
         self.points = points
         (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: startTime, withPoints: points)
-        Log.withInfo {
+        Log.info( {
             let formatter = Log.timeFormatter
-            Log.info {
-                let startString = formatter.string(from: activeSegment.startDate)
-                let endString = formatter.string(from: activeSegment.endDate)
-                return "Initial Segment Guess: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
-            }
-        }
+            let startString = formatter.string(from: activeSegment.startDate)
+            let endString = formatter.string(from: activeSegment.endDate)
+            return "Initial Segment Guess: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
+        }() )
     }
 
     func segment(forDate date: Date) -> ChannelSegment {
@@ -64,14 +62,12 @@ class Layer: ChannelLayer {
     func lightLevel(forDate now: Date) -> Brightness {
         if now >= self.activeSegment.endDate || now < self.activeSegment.startDate {
             (self.activeIndex, self.activeSegment) = Layer.activeSegment(forDate: now, withPoints: points)
-            Log.withInfo {
+            Log.info( {
                 let formatter = Log.timeFormatter
-                Log.info {
-                    let startString = formatter.string(from: activeSegment.startDate)
-                    let endString = formatter.string(from: activeSegment.endDate)
-                    return "Switched to Segment: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
-                }
-            }
+                let startString = formatter.string(from: activeSegment.startDate)
+                let endString = formatter.string(from: activeSegment.endDate)
+                return "Switched to Segment: [\(identifier)] \(activeSegment.range) \(startString) -> \(endString)"
+            }() )
         }
 
         return self.activeSegment.lightLevel(forDate: now)

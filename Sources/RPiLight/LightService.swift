@@ -175,7 +175,7 @@ class LightService {
             Log.error("Module \"\(configuration.type)\" expects frequency \(actual) to be between \(min) and \(max)")
             exit(-1)
         } catch {
-            Log.error(error)
+            Log.error(error.localizedDescription)
             exit(-1)
         }
     }
@@ -230,21 +230,17 @@ class LightService {
 
     static private func decodeJson<T>(_ type: T.Type, file: URL) throws -> T where T: Decodable {
         let encodedJson = try Data(contentsOf: file)
-        Log.withDebug {
-            guard let content = String(data: encodedJson, encoding: .utf8) else { return }
-            Log.debug("JSON From: \(file.absoluteString)")
-            Log.debug(content)
-        }
+        Log.debug("JSON From: \(file.absoluteString)")
+        Log.debug(String(data: encodedJson, encoding: .utf8) ?? "")
         let decoder = JSONDecoder()
         return try decoder.decode(type, from: encodedJson)
     }
 
     static private func decodeYaml<T>(_ type: T.Type, file: URL) throws -> T where T: Decodable {
         let encodedYaml = try String(contentsOf: file, encoding: .utf8)
-        Log.withDebug {
-            Log.debug("YAML From: \(file.absoluteString)")
-            Log.debug(encodedYaml)
-        }
+        Log.debug("YAML From: \(file.absoluteString)")
+        Log.debug(encodedYaml)
+
         let decoder = YAMLDecoder()
         return try decoder.decode(type, from: encodedYaml)
     }
