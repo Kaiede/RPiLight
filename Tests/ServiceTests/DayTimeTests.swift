@@ -123,6 +123,8 @@ class DayTimeTests: XCTestCase {
             case .forward:
                 XCTAssertGreaterThan(calculatedDate, startDate)
                 XCTAssertLessThan(calculatedDate, startDate + (dayInSeconds * 2.0))
+            @unknown default:
+                XCTFail("Unknown Search Direction")
             }
 
             // Sanity Check #2:
@@ -162,6 +164,8 @@ class DayTimeTests: XCTestCase {
             case .forward:
                 XCTAssertGreaterThan(calculatedDate, startDate)
                 XCTAssertLessThan(calculatedDate, startDate + (dayInSeconds * 2.0))
+            @unknown default:
+                XCTFail("Unknown Search Direction")
             }
 
             // Sanity Check #2:
@@ -175,7 +179,6 @@ class DayTimeTests: XCTestCase {
     }
 
     func testCalcNextDate_DaylightSavings() {
-        let dayInSeconds: TimeInterval = 86400
         let testExpectations = [
             // Start Date, Expected Date, Search Direction
             ( "2 Nov 2019 09:00:00", "3 Nov 2019 08:00:00", Calendar.SearchDirection.forward ),
