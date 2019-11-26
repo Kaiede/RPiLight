@@ -30,15 +30,10 @@ jobs:
   macOSBuild:
     name: macOS - Xcode ${{ matrix.xcode-version }}
     runs-on: macOS-latest
-    strategy:
-      matrix:
-        xcode-version: [11.0]
         
     steps:
-      - name: Configure Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/
-          xcode-select -p
+      - name: Report Xcode Version
+        run: xcode-select -p
       - name: Checkout
         uses: actions/checkout@v1
       - name: Swift Package Information
