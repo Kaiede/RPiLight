@@ -3,6 +3,24 @@ on: [push]
 
 
 jobs:
+  raspbianBuild:
+    name: Swift ${{ matrix.swift-version }} (Raspbian)
+    runs-on: [self-hosted, linux, ARM32]
+    
+    steps:
+      - name: Install Swift
+        run: echo "I'm Not Implemented"
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Swift Package Information
+        run: |
+          swift --version
+          swift package show-dependencies
+      - name: Build
+        run: swift build --build-tests
+      - name: Test
+        run: swift test
+  
   linuxBuild:
     name: Swift ${{ matrix.swift-version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
