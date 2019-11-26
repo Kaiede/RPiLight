@@ -5,7 +5,7 @@ on: [push]
 jobs:
   raspbianBuild:
     name: Swift ${{ matrix.swift-version }} (Raspbian)
-    runs-on: [self-hosted, linux, ARM32]
+    runs-on: [self-hosted, linux]
     
     steps:
       - name: Install Swift
