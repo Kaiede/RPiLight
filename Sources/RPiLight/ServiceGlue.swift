@@ -61,6 +61,8 @@ extension ServiceControllerDescription: LEDModuleConfig {}
 extension Logger.Level {
     init(_ serviceLevel: ServiceLoggingLevel) {
         switch serviceLevel {
+        case .trace:
+            self = .trace
         case .debug:
             self = .debug
         case .info:

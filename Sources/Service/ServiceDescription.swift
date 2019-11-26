@@ -28,6 +28,7 @@ import Foundation
 import LED
 
 public enum ServiceLoggingLevel: String, Codable {
+    case trace
     case debug
     case info
     case warn

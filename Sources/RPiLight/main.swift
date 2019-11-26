@@ -42,6 +42,7 @@ import LED
 //
 var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
 let verbose = moderator.add(.option("v", "verbose", description: "Provide Additional Logging"))
+let trace = moderator.add(.option("trace", description: "Provide More Detail While Logging"))
 let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
 let configFile = moderator.add(Argument<String>
                     .singleArgument(name: "config file", description: "Configuration file to load")
@@ -61,7 +62,9 @@ do {
     exit(-1)
 }
 
-if verbose.value {
+if trace.value {
+    ServiceLogHandler.logLevelOverride = .trace
+} else if verbose.value {
     ServiceLogHandler.logLevelOverride = .debug
 }
 
