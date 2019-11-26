@@ -62,11 +62,11 @@ public class LunarCycleController: EventController {
 
     public func fire(forController controller: BehaviorController, date: Date) {
         guard let nightStart = time.calcNextDate(after: date, direction: .backward) else {
-            Log.error("Unable to calculate when lunar night begins")
+            log.error("Unable to calculate when lunar night begins")
             return
         }
         guard let nightEnd = endTime.calcNextDate(after: nightStart) else {
-            Log.error("Unable to calculate when lunar night ends")
+            log.error("Unable to calculate when lunar night ends")
             return
         }
 
@@ -75,12 +75,12 @@ public class LunarCycleController: EventController {
         let intensityFactorStart = Intensity(rawValue: illuminationStart.fraction)
         let intensityFactorEnd = Intensity(rawValue: illuminationEnd.fraction)
 
-        Log.info({
-            let startString = Log.time.string(from: nightStart)
-            let endString = Log.time.string(from: nightEnd)
+        log.info({
+            let startString = logTime.string(from: nightStart)
+            let endString = logTime.string(from: nightEnd)
             return "Lunar Night Period: \(startString) -> \(endString)"
         }())
-        Log.info("Calculated Lunar Light: \(illuminationStart.fraction) -> \(illuminationEnd.fraction)")
+        log.info("Calculated Lunar Light: \(illuminationStart.fraction) -> \(illuminationEnd.fraction)")
 
         for channelController in controller.channelControllers.values {
             let gamma = channelController.channelGamma

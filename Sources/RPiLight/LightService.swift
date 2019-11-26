@@ -50,7 +50,7 @@ class LightService {
 
     func applyLoggingLevel() {
         if let loggingLevel = configuration.logLevel {
-            Log.setLevel(default: LogLevel(loggingLevel))
+            ServiceLogHandler.logLevelOverride = Logger.Level(loggingLevel)
         }
     }
 
@@ -62,22 +62,22 @@ class LightService {
         let username: String = getUsername(uid: originalUid) ?? "Unknown"
         let gamma: Gamma = configuration.gamma ?? 1.8
 
-        Log.info("Startup User: \(username)")
-        Log.info("Final User: \(configuration.username)")
-        Log.info("Configured Board: \(configuration.board.rawValue)")
-        Log.info("Configured Gamma: \(gamma)")
+        log.info("Startup User: \(username)")
+        log.info("Final User: \(configuration.username)")
+        log.info("Configured Board: \(configuration.board.rawValue)")
+        log.info("Configured Gamma: \(gamma)")
         for controller in configuration.controllers {
-            Log.info("Controller \(controller.type):")
+            log.info("Controller \(controller.type):")
             if let address = controller.address {
-                Log.info("  Address: \(address)")
+                log.info("  Address: \(address)")
             }
             if let frequency = controller.frequency {
-                Log.info("  Frequency: \(frequency) Hz")
+                log.info("  Frequency: \(frequency) Hz")
             }
 
-            Log.info("  Channels: ")
+            log.info("  Channels: ")
             for (token, index) in controller.channels {
-                Log.info("    \(token): Channel \(index)")
+                log.info("    \(token): Channel \(index)")
             }
         }
 
@@ -93,10 +93,10 @@ class LightService {
                                                   behavior: behavior)
             controller.setStopHandler { _ in
                 if withPreview {
-                    Log.info("Simulation Complete")
+                    log.info("Simulation Complete")
                     exit(0)
                 } else {
-                    Log.error("Controller unexpectedly stopped.")
+                    log.error("Controller unexpectedly stopped.")
                     exit(1)
                 }
             }
@@ -109,7 +109,7 @@ class LightService {
             controller.start()
             dispatchMain()
         } catch {
-            Log.error("Unable to create Controller")
+            log.error("Unable to create Controller")
         }
     }
 
@@ -142,7 +142,7 @@ class LightService {
                 let module = LightService.createModule(withDescription: controllerDescription, boardType: boardType)
                 try channels.add(module: module)
             } catch {
-                Log.error("Failed to create LED Controller Modules")
+                log.error("Failed to create LED Controller Modules")
                 exit(-1)
             }
         }
@@ -161,22 +161,22 @@ class LightService {
             let module = try moduleType.createModule(board: moduleBoardType, configuration: configuration)
             return module
         } catch LEDModuleError.noImplementationAvailable {
-            Log.error("No implementation available for: \(configuration.type)")
+            log.error("No implementation available for: \(configuration.type)")
             exit(-1)
         } catch LEDModuleError.noHardwareAccess {
-            Log.error("Unable to Access Hardware for: \(configuration.type)")
+            log.error("Unable to Access Hardware for: \(configuration.type)")
             exit(-1)
         } catch LEDModuleError.invalidBoardType(let board) {
-            Log.error("Module \"\(configuration.type)\" Doesn't Support Board: \(board)")
+            log.error("Module \"\(configuration.type)\" Doesn't Support Board: \(board)")
             exit(-1)
         } catch LEDModuleError.missingFrequency {
-            Log.error("Frequency must be specified for: \(configuration.type)")
+            log.error("Frequency must be specified for: \(configuration.type)")
             exit(-1)
         } catch LEDModuleError.invalidFrequency(let min, let max, let actual) {
-            Log.error("Module \"\(configuration.type)\" expects frequency \(actual) to be between \(min) and \(max)")
+            log.error("Module \"\(configuration.type)\" expects frequency \(actual) to be between \(min) and \(max)")
             exit(-1)
         } catch {
-            Log.error(error.localizedDescription)
+            log.error("\(error.localizedDescription)")
             exit(-1)
         }
     }
@@ -210,7 +210,7 @@ class LightService {
     static private func loadDescription<T>(_ type: T.Type, file: String, name: String) throws -> T where T: Decodable {
         let configDir = FileManager.default.currentDirectoryUrl.appendingPathComponent("config")
         let fileUrl = configDir.appendingPathComponent(file)
-        Log.debug("Opening \(name): \(fileUrl.absoluteString)")
+        log.debug("Opening \(name): \(fileUrl.absoluteString)")
 
         let description = try decode(type, file: fileUrl)
         return description
@@ -225,22 +225,22 @@ class LightService {
             return try decodeJson(type, file: file)
         }
 
-        Log.warn("\(file.absoluteString) has unknown file extension, assuming JSON")
+        log.warning("\(file.absoluteString) has unknown file extension, assuming JSON")
         return try decodeJson(type, file: file)
     }
 
     static private func decodeJson<T>(_ type: T.Type, file: URL) throws -> T where T: Decodable {
         let encodedJson = try Data(contentsOf: file)
-        Log.debug("JSON From: \(file.absoluteString)")
-        Log.debug(String(data: encodedJson, encoding: .utf8) ?? "")
+        log.debug("JSON From: \(file.absoluteString)")
+        log.debug("\(String(data: encodedJson, encoding: .utf8) ?? "")")
         let decoder = JSONDecoder()
         return try decoder.decode(type, from: encodedJson)
     }
 
     static private func decodeYaml<T>(_ type: T.Type, file: URL) throws -> T where T: Decodable {
         let encodedYaml = try String(contentsOf: file, encoding: .utf8)
-        Log.debug("YAML From: \(file.absoluteString)")
-        Log.debug(encodedYaml)
+        log.debug("YAML From: \(file.absoluteString)")
+        log.debug("\(encodedYaml)")
 
         let decoder = YAMLDecoder()
         return try decoder.decode(type, from: encodedYaml)

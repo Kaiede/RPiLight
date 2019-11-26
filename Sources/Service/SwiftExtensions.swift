@@ -41,6 +41,15 @@ public extension FileManager {
     }
 }
 
+public extension DateFormatter {
+    convenience init(currentWithFormat format: String) {
+        self.init()
+        self.dateFormat = format
+        self.calendar = Calendar.current
+        self.timeZone = TimeZone.current
+    }
+}
+
 //
 // MARK: Dispatch Extensions
 //

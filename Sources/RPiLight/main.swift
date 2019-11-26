@@ -50,6 +50,10 @@ let scheduleFile = moderator.add(Argument<String>
                     .singleArgument(name: "schedule file", description: "Schedule file to load")
                     .default("schedule.yml"))
 
+// Logger Object
+LoggingSystem.bootstrap(ServiceLogHandler.init)
+let log = Logger(label: "rpilight")
+
 do {
     try moderator.parse()
 } catch {
@@ -58,7 +62,7 @@ do {
 }
 
 if verbose.value {
-    Log.setLevel(default: .debug)
+    ServiceLogHandler.logLevelOverride = .debug
 }
 
 let service = LightService(configFile: configFile.value, scheduleFile: scheduleFile.value)

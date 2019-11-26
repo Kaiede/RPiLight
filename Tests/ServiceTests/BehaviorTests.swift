@@ -94,14 +94,6 @@ class MockBehaviorChannel: BehaviorChannel {
 }
 
 class BehaviorTests: XCTestCase {
-    override class func setUp() {
-        Log.pushLevel(.warn)
-    }
-
-    override class func tearDown() {
-        Log.popLevel()
-    }
-
     func testDefaultRefresh() {
         let testBehavior = DefaultLightBehavior()
 

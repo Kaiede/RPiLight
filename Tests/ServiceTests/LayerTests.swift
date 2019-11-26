@@ -49,14 +49,6 @@ struct MockLayerPoint: LayerPoint {
 }
 
 class LayerTests: XCTestCase {
-    override class func setUp() {
-        Log.pushLevel(.warn)
-    }
-
-    override class func tearDown() {
-        Log.popLevel()
-    }
-
     func testActiveIndex() {
         // Segments are considered such that they don't include their start, but do include their end.
         // It's not intuitive, hence these tests.
