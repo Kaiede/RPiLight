@@ -28,7 +28,7 @@ jobs:
       run: swift test
 
   macOSBuild:
-    name: macOS - Xcode ${{ matrix.xcode-version }}
+    name: Xcode
     runs-on: macOS-latest
         
     steps:
