@@ -38,7 +38,7 @@ struct LightServiceCmd: ParsableCommand {
         subcommands: [Service.self, Preview.self],
         defaultSubcommand: Service.self)
         
-    enum VerbosityMode: String, ExpressibleByArgument {
+    enum VerbosityMode: String, RawRepresentable, ExpressibleByArgument {
         case normal
         case verbose
         case trace
