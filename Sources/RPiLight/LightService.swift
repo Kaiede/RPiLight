@@ -25,11 +25,89 @@
 
 import Foundation
 
+import ArgumentParser
+import Logging
 import Yams
 
 import LED
-import Logging
 import Service
+
+struct LightServiceCmd: ParsableCommand {
+    static var configuration = CommandConfiguration(
+        abstract: "Aquarium Light Controller for Raspberry Pi",
+        subcommands: [Service.self, Preview.self],
+        defaultSubcommand: Service.self)
+        
+    enum VerbosityMode: String, ExpressibleByArugment {
+        case normal
+        case verbose
+        case trace
+    }    
+        
+    struct Options: ParsableArguments {
+        @Option(name: [.long, .short], default: .normal)
+        var verbosity: VerbosityMode
+                
+        @Option(name: [.long, .short], default: "config.yml")
+        var configFile: String
+        
+        @Option(name: [.long, .short], default: "schedule.yml")
+        var scheduleFile: String
+    }
+    
+    static func setLoggingLevel(_ level: VerbosityMode) {
+        switch level {
+            case .normal:
+                break
+            case .verbose:
+                ServiceLogHandler.logLevelOverride = .debug
+                break
+            case .trace:
+                ServiceLogHandler.logLevelOverride = .trace
+                break
+        }
+    }
+}
+
+extension LightServiceCmd {
+    struct Service: ParsableCommand {
+        static var configuration = CommandConfiguration(abstract: "Run the Light Service")        
+        
+        @OptionGroup()
+        var options: LightServiceCmd.Options
+
+        func run() {
+            setLoggingLevel(options.verbosity)
+            
+            let service = LightService(configFile: options.configFile, scheduleFile: options.scheduleFile)
+            service.run(withPreview: false)
+        }
+    }
+}
+
+extension LightServiceCmd {
+    struct Preview: ParsableCommand {
+        static var configuration = CommandConfiguration(abstract: "Preview the Light Service")                
+
+        @OptionGroup()
+        var options: LightServiceCmd.Options
+        
+        func run() {
+            setLoggingLevel(options.verbosity)            
+
+            let service = LightService(configFile: options.configFile, scheduleFile: options.scheduleFile)
+            service.run(withPreview: true)
+        }
+    }
+}
+
+class LightServiceRun: ParsableArgument {
+    @Argument(help: "")    
+}
+
+class LightServicePreview: ParsableCommand {
+    
+}
 
 class LightService {
     var channels: LEDChannelSet
