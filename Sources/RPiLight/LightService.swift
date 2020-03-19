@@ -38,7 +38,7 @@ struct LightServiceCmd: ParsableCommand {
         subcommands: [Service.self, Preview.self],
         defaultSubcommand: Service.self)
         
-    enum VerbosityMode: String, ExpressibleByArugment {
+    enum VerbosityMode: String, ExpressibleByArgument {
         case normal
         case verbose
         case trace
@@ -99,14 +99,6 @@ extension LightServiceCmd {
             service.run(withPreview: true)
         }
     }
-}
-
-class LightServiceRun: ParsableArgument {
-    @Argument(help: "")    
-}
-
-class LightServicePreview: ParsableCommand {
-    
 }
 
 class LightService {
