@@ -219,7 +219,7 @@ EOT
 
     pushd "$PACKAGE_PATH" >> /dev/null
 
-    PACKAGE_NAME="rpilight\_$version\_$filename_arch.deb"
+    PACKAGE_NAME="rpilight_$version_$filename_arch.deb"
 
     libraries=`find . -iname \*.so`
     dpkg-shlibdeps -S"$PACKAGE_PATH" opt/rpilight/RPiLight $libraries
