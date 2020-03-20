@@ -207,10 +207,6 @@ function build_package() {
     mkdir -p "$PACKAGE_CONTROL"
     cp "$PACKAGE_ASSETS/control.source" "$PACKAGE_CONTROL/control"
 
-    cat <<EOT > "$PACKAGE_CONTROL/control"
-Source: rpilight
-EOPT
-
     cat <<EOT > "$PACKAGE_CONTROL/substvars"
 dist:Architecture=${arch}
 dist:Version=${version}
