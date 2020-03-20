@@ -8,11 +8,12 @@ on:
 
 jobs:
   raspbianStretchBuild:
-    name: ARM Stretch - Swift ${{ matrix.swift-version }}
+    name: ARM Package - ${{ matrix.raspbian }}
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        swift-version: [5.0.3, 5.1.5]
+        swift-version: [5.1.5]
+        raspbian: [stretch, buster]
     steps:
       - name: Checkout
         uses: actions/checkout@v1.0.0
@@ -21,7 +22,7 @@ jobs:
         id: runcmd
         with:
           architecture: armv6
-          distribution: stretch
+          distribution: ${{ matrix.raspbian }}
           run: |
             apt update
             apt install -y clang-3.8 libncurses-dev libxml2-dev libicu-dev libcurl4-nss-dev
@@ -30,8 +31,11 @@ jobs:
             update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 100
             curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi0123-RaspbianStretch.tgz
             tar xzf swift-${{ matrix.swift-version }}.tgz
-            ./usr/bin/swift build -j 1
-            ./usr/bin/swift test
+            ./build.sh package
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.raspbian }}-package
+          path: .package/out
 
   swiftLintChecks:
     name: Swiftlint

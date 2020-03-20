@@ -224,11 +224,7 @@ EOT
     libraries=`find . -iname \*.so`
     dpkg-shlibdeps -S"$PACKAGE_PATH" opt/rpilight/RPiLight $libraries
     render_template "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/substvars" "$PACKAGE_DEBIAN/control"
-    fakeroot dpkg-deb --build "$PACKAGE_PATH" "$PACKAGE_NAME"
-
-    if [ -f "$PACKAGE_NAME" ]; then
-        mv "$PACKAGE_NAME" ../
-    fi
+    fakeroot dpkg-deb --build "$PACKAGE_PATH" "$PACKAGE_PATH/out/$PACKAGE_NAME"
 
     popd >> /dev/null
 }
