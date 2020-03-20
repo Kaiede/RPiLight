@@ -66,8 +66,6 @@ extension DispatchTimeInterval {
             return TimeInterval(nanoseconds) * 1_000_000_000.0
         case .never:
             return TimeInterval.infinity
-        @unknown default:
-            fatalError("Unknown DispatchTimeInterval in toTimeInterval()")
         }
     }
 }
