@@ -82,9 +82,10 @@ function build_rpilight() {
 # Copy Binaries to Output
 #
 function copy_libraries() {
-    RPILIGHT_BINARY="$1"
-    SWIFT_DIR="$2"
-    LIBRARY_DIR="$3"
+    NEED_SUDO="$1"
+    RPILIGHT_BINARY="$2"
+    SWIFT_DIR="$3"
+    LIBRARY_DIR="$4"
 
     # Start from Clean Folder
     if [ -e "$LIBRARY_DIR" ]; then
@@ -92,7 +93,11 @@ function copy_libraries() {
     fi
     $NEED_SUDO mkdir -p "$LIBRARY_PATH"
 
-    ldd "$RPILIGHT_BINARY" | grep "not found"
+    ldd "$RPILIGHT_BINARY" | grep "not found" | while read -r line ; do
+        library="$(cut -d' ' -f1 <<<'$line')"
+        echo "Copying $library"
+        $NEED_SUDO cp "$SWIFT_LIBS/$library" "$LIBRARY_DIR"
+    done
 }
 
 function copy_binaries() {
@@ -126,7 +131,7 @@ function copy_binaries() {
 
     echo "Making Self-Sufficient..."
     $NEED_SUDO chrpath -r "\$ORIGIN/lib" "$BINARY_PATH/RPiLight"
-    copy_libraries "$BINARY_PATH/RPiLight" "$SWIFT_LIB_DIR" "$LIBRARY_PATH"
+    copy_libraries "$NEED_SUDO" "$BINARY_PATH/RPiLight" "$SWIFT_LIB_DIR" "$LIBRARY_PATH"
 
     echo "Copying Examples"
     $NEED_SUDO rsync --delete -r "$RPILIGHT_EXAMPLES/" "$BINARY_PATH/examples/"
