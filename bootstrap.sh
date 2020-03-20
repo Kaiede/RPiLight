@@ -21,7 +21,7 @@ function process_distro() {
 #
 function install_swift_tarball() {
     swift_release="$1"
-    swift_version="5.1.1"
+    swift_version="5.1.5"
     tarball_url="https://github.com/uraimo/buildSwiftOnARM/releases/download/${swift_version}/swift-${swift_version}-${swift_release}.tgz"
     swift_filename="swift-${swift_version}-${swift_release}.tgz"
 
@@ -56,6 +56,7 @@ function install_swift_tarball() {
 function install_common_dependencies() {
     echo "Installing Common Dependencies..."
     sudo apt-get install --yes \
+                    chrpath \
                     git \
                     pv
 }
@@ -90,6 +91,9 @@ function update_apt() {
 
 function install_dependencies() {
     install_common_dependencies
+
+    install_swift_package
+    return
 
     case "$distro_string" in
         debian-9)

@@ -1,0 +1,9 @@
+Package: rpilight
+Maintainer: Kaiede <user@biticus.net>
+Architecture: ${dist:Architecture}
+Version: ${dist:Version}
+Depends: ${shlibs:Depends}
+Section: misc
+Priority: optional
+Homepage: https://www.github.com/Kaiede/RPiLight
+Description: Aquarium Light Controller for Raspberry Pi

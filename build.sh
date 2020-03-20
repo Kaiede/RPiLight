@@ -81,11 +81,34 @@ function build_rpilight() {
 #
 # Copy Binaries to Output
 #
+function copy_libraries() {
+    NEED_SUDO="$1"
+    RPILIGHT_BINARY="$2"
+    SWIFT_LIBS="$3"
+    LIBRARY_DIR="$4"
+
+    # Start from Clean Folder
+    if [ -e "$LIBRARY_DIR" ]; then
+        $NEED_SUDO rm -rf "$LIBRARY_DIR"
+    fi
+    $NEED_SUDO mkdir -p "$LIBRARY_PATH"
+
+    ldd "$RPILIGHT_BINARY" | grep "not found" | while read -r line ; do
+        library="$(cut -d' ' -f1 <<<"$line")"
+        echo "Copying $library"
+        $NEED_SUDO cp "$SWIFT_LIBS/$library" "$LIBRARY_DIR"
+    done
+}
+
 function copy_binaries() {
     ROOT_DIR="$1"
     NEED_SUDO="$2"
 
+    SWIFT_BINARY=`which swift`
+    SWIFT_LIB_DIR="$(dirname $(dirname $SWIFT_BINARY))/lib/swift/linux"
+
     BINARY_PATH="$ROOT_DIR/opt/rpilight"
+    LIBRARY_PATH="$ROOT_DIR/opt/rpilight/lib"
     CONFIG_PATH="$BINARY_PATH/config"
     SERVICE_PATH="$ROOT_DIR/lib/systemd/system"
 
@@ -102,8 +125,13 @@ function copy_binaries() {
     if [ ! -e "$SERVICE_PATH" ]; then
         $NEED_SUDO mkdir -p "$SERVICE_PATH"
     fi
+
     echo "Copying Binaries to $BINARY_PATH"
     $NEED_SUDO cp "$RPILIGHT_BINARY" "$BINARY_PATH/RPiLight"
+
+    echo "Making Self-Sufficient..."
+    $NEED_SUDO chrpath -r "\$ORIGIN/lib" "$BINARY_PATH/RPiLight"
+    copy_libraries "$NEED_SUDO" "$BINARY_PATH/RPiLight" "$SWIFT_LIB_DIR" "$LIBRARY_PATH"
 
     echo "Copying Examples"
     $NEED_SUDO rsync --delete -r "$RPILIGHT_EXAMPLES/" "$BINARY_PATH/examples/"
@@ -128,7 +156,19 @@ function get_package_version() {
 }
 
 function render_template() {
-  eval "echo \"$(sed 's/\"/\\\\"/g' $1)\""
+    SOURCE_FILE="$1"
+    SUBST_FILE="$2"
+    DEST_FILE="$3"
+
+    cp "$SOURCE_FILE" "$DEST_FILE"
+
+    cat "$SUBST_FILE" | while read line; do 
+        if [[ -n $line ]]; then
+            variable="${line%%=*}"
+            value="${line#*=}"
+            sed -i "s/\${$variable}/$value/g" "$DEST_FILE"
+        fi
+    done
 }
 
 #
@@ -137,9 +177,10 @@ function render_template() {
 function build_package() {
     PACKAGE_PATH=$(realpath .package)
     PACKAGE_DEBIAN="$PACKAGE_PATH/DEBIAN"
+    PACKAGE_CONTROL="$PACKAGE_PATH/debian"
     PACKAGE_INSTALL="$PACKAGE_PATH/opt/rpilight"
     PACKAGE_SYSTEMD="$PACKAGE_PATH/lib/systemd/system"
-    PACKAGE_ASSETS="$(realpath Assets/DEBIAN)"
+    PACKAGE_ASSETS="$(realpath Assets/Package)"
 
     echo "Packaging..."
     rm -rf "$PACKAGE_PATH"
@@ -152,35 +193,44 @@ function build_package() {
 
     SYSTEM_ARCH=$(uname -m)
     case $SYSTEM_ARCH in
-        aarch64 )               package_arch=
-                                swift_package="swift4"
-                                swift_version="4.1.1"
-                                arch=arm64
-                                filename_arch=aarch64
-                                ;;
-        armv6l )                package_arch="-armv6"
-                                swift_package="swift3-armv6"
-                                swift_version="3.1.1"
-                                arch=armhf
+        aarch64 )               arch=arm64
                                 filename_arch=$arch
                                 ;;
-        armv7l )                package_arch=
-                                swift_package="swift3"
-                                swift_version="3.1.1"
-                                arch=armhf
+        armv6l | armv7l )       arch=armhf
                                 filename_arch=$arch
                                 ;;
-        * )                     exit 1
+        * )                     echo "Unknown Platform Architecture"
+                                exit 1
                                 ;;
     esac
 
+    mkdir -p "$PACKAGE_CONTROL"
+    cp "$PACKAGE_ASSETS/control.source" "$PACKAGE_CONTROL/control"
 
+    cat <<EOT > "$PACKAGE_CONTROL/substvars"
+dist:Architecture=${arch}
+dist:Version=${version}
+EOT
+
+    # Package Content
     mkdir -p "$PACKAGE_DEBIAN"
-    render_template "$PACKAGE_ASSETS/control.tmpl" > "$PACKAGE_DEBIAN/control"
     cp "$PACKAGE_ASSETS/preinst" "$PACKAGE_DEBIAN/"
     cp "$PACKAGE_ASSETS/postinst" "$PACKAGE_DEBIAN/"
 
-    fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight$package_arch\_$version\_$filename_arch.deb
+    pushd "$PACKAGE_PATH" >> /dev/null
+
+    PACKAGE_NAME="rpilight_${version}_${filename_arch}.deb"
+
+    libraries=`find . -iname \*.so`
+    dpkg-shlibdeps -S"$PACKAGE_PATH" opt/rpilight/RPiLight $libraries
+    render_template "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/substvars" "$PACKAGE_DEBIAN/control"
+    fakeroot dpkg-deb --build "$PACKAGE_PATH" "$PACKAGE_NAME"
+
+    if [ -f "$PACKAGE_NAME" ]; then
+        mv "$PACKAGE_NAME" ../
+    fi
+
+    popd >> /dev/null
 }
 
 #
