@@ -165,7 +165,7 @@ function render_template() {
     cat "$SUBST_FILE" | while read line; do 
         if [[ -n $line ]]; then
             variable="${line%%=*}"
-            value="${line##*=}"
+            value="${line#*=}"
             sed -i "s/\${$variable}/$value/g" "$DEST_FILE"
         fi
     done
@@ -219,7 +219,8 @@ EOT
 
     pushd "$PACKAGE_PATH"
 
-    dpkg-shlibdeps -eopt/rpilight/RPiLight
+    libraries=`ls opt/rpilight/lib`
+    dpkg-shlibdeps -S"$PACKAGE_PATH" opt/rpilight/RPiLight $libraries
     render_template "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/substvars" "$PACKAGE_DEBIAN/control"
     fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight\_$version\_$filename_arch.deb
 
