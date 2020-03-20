@@ -94,7 +94,7 @@ function copy_libraries() {
     $NEED_SUDO mkdir -p "$LIBRARY_PATH"
 
     ldd "$RPILIGHT_BINARY" | grep "not found" | while read -r line ; do
-        library="$(cut -d' ' -f1 <<<'$line')"
+        library="$(cut -d' ' -f1 <<<"$line")"
         echo "Copying $library"
         $NEED_SUDO cp "$SWIFT_LIBS/$library" "$LIBRARY_DIR"
     done
