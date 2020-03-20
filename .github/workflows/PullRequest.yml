@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         swift-version: [5.1.5]
-        raspbian: [stretch, buster]
+        raspbian: [stretch]
     steps:
       - name: Checkout
         uses: actions/checkout@v1.0.0
@@ -31,6 +31,7 @@ jobs:
             update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 100
             curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi0123-RaspbianStretch.tgz
             tar xzf swift-${{ matrix.swift-version }}.tgz
+            PATH=$PATH:${{ env.working-directory }}/usr/bin
             ./build.sh package
       - uses: actions/upload-artifact@v1
         with:
