@@ -24,7 +24,6 @@
  */
 
 import Foundation
-import Logging
 
 //
 // Errors
@@ -169,7 +168,7 @@ public class LEDChannel {
         }
 
         impl.applyIntensity(clampedIntensity, toChannel: self.channelId)
-        Log.debug("\(self.token): Intensity Now \(clampedIntensity.rawValue * 100)")
+        log.debug("\(self.token): Intensity Now \(clampedIntensity.rawValue * 100)")
     }
 }
 

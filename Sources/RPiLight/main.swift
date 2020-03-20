@@ -42,6 +42,7 @@ import LED
 //
 var moderator = Moderator(description: "Aquarium Light Controller for Raspberry Pi")
 let verbose = moderator.add(.option("v", "verbose", description: "Provide Additional Logging"))
+let trace = moderator.add(.option("trace", description: "Provide More Detail While Logging"))
 let previewMode = moderator.add(.option("preview", description: "Run in Preview Mode"))
 let configFile = moderator.add(Argument<String>
                     .singleArgument(name: "config file", description: "Configuration file to load")
@@ -50,6 +51,10 @@ let scheduleFile = moderator.add(Argument<String>
                     .singleArgument(name: "schedule file", description: "Schedule file to load")
                     .default("schedule.yml"))
 
+// Logger Object
+LoggingSystem.bootstrap(ServiceLogHandler.init)
+let log = Logger(label: "rpilight")
+
 do {
     try moderator.parse()
 } catch {
@@ -57,8 +62,10 @@ do {
     exit(-1)
 }
 
-if verbose.value {
-    Log.setLevel(default: .debug)
+if trace.value {
+    ServiceLogHandler.logLevelOverride = .trace
+} else if verbose.value {
+    ServiceLogHandler.logLevelOverride = .debug
 }
 
 let service = LightService(configFile: configFile.value, scheduleFile: scheduleFile.value)

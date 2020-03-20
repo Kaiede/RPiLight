@@ -13,8 +13,9 @@ let package = Package(
     ],
     dependencies: [
         // External Dependencies
-        .package(url: "https://github.com/kareman/Moderator.git", from: "0.5.1"), // Need merging
+        .package(url: "https://github.com/kareman/Moderator.git", from: "0.5.1"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "2.0.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
         // Internal Dependencies
         .package(url: "https://github.com/Kaiede/Ephemeris.git", from: "1.0.2"),
         .package(url: "https://github.com/Kaiede/PCA9685.git", from: "3.0.0"),
@@ -33,7 +34,6 @@ let package = Package(
         .target(
             name: "LED",
             dependencies: ["Logging", "MCP4725", "PCA9685", "SingleBoard"]),
-        .target(name: "Logging"),
 
         // Test Targets
         .testTarget(

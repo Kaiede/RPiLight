@@ -115,14 +115,6 @@ class MockOneShotBehavior: Behavior {
 }
 
 class LightControllerTests: XCTestCase {
-    override class func setUp() {
-        Log.pushLevel(.warn)
-    }
-
-    override class func tearDown() {
-        Log.popLevel()
-    }
-
     func testChannelEvent() {
         // This ensures we know that we are actually getting brightness, not intensity.
         let mockConfiguration = LightControllerConfig(gamma: 2.0)
@@ -174,8 +166,6 @@ class LightControllerTests: XCTestCase {
     }
 
     func testForceStop() {
-        Log.pushLevel(.debug)
-
         let mockController = MockBehaviorController(channelCount: 4)
         let mockBehavior = MockBehavior()
         mockBehavior.intervalMs = 1000
@@ -195,8 +185,6 @@ class LightControllerTests: XCTestCase {
             // Shouldn't have waited until a refresh to stop the controller
             XCTAssertFalse(mockBehavior.didStop)
         }
-
-        Log.popLevel()
     }
 
     func testOneShot() {

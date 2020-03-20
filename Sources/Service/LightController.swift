@@ -25,7 +25,6 @@
 
 import Dispatch
 import Foundation
-import Logging
 import LED
 
 #if os(Linux)
@@ -38,56 +37,6 @@ public typealias StopClosure = (LightController) -> Void
 
 public enum LightControllerError: Error {
     case missingToken(String)
-}
-
-//
-// Wrapper for Channel Settings
-//
-public enum ChannelSetting {
-    case brightness(Brightness)
-    case intensity(Intensity)
-}
-
-extension Brightness {
-    public init(setting: ChannelSetting, gamma: Gamma) {
-        switch setting {
-        case .brightness(let brightness):
-            self = brightness
-        case .intensity(let intensity):
-            self.init(intensity, gamma: gamma)
-        }
-    }
-}
-
-extension Intensity {
-    public init(setting: ChannelSetting, gamma: Gamma) {
-        switch setting {
-        case .brightness(let brightness):
-            self.init(brightness, gamma: gamma)
-        case .intensity(let intensity):
-            self = intensity
-        }
-    }
-}
-
-//
-// Wrapper for Configuration that's compatible with Layers
-//
-protocol ChannelPoint {
-    var time: DayTime { get }
-    var setting: ChannelSetting { get }
-}
-
-extension ScheduleStepDescription: ChannelPoint {
-    var setting: ChannelSetting {
-        if let intensity = self.intensity {
-            return .intensity(intensity)
-        } else if let brightness = self.brightness {
-            return .brightness(brightness)
-        } else {
-            return .intensity(0.0)
-        }
-    }
 }
 
 struct ChannelPointWrapper: LayerPoint {
@@ -243,7 +192,7 @@ public class LightController: BehaviorController {
 
     public func start() {
         self.queue.async {
-            Log.info("Starting Light Controller")
+            log.info("Starting Light Controller")
             self.isRunning = true
             self.isRefreshOneShot = true
             self.fireRefresh()
@@ -282,12 +231,12 @@ public class LightController: BehaviorController {
 
     private func fireWatchdog() {
         let now = Date()
-        Log.info("Watchdog Timer Fired: \(Log.date.string(from: now))")
+        log.info("Watchdog Timer Fired: \(logDate.string(from: now))")
 
         let interval = now.timeIntervalSince(self.watchdogLastRefresh)
         if interval > self.watchdogInterval {
             let expectedRefresh = self.watchdogLastRefresh.addingTimeInterval(self.watchdogInterval)
-            Log.warn("Late Refresh Detected. Expected Refresh @ \(Log.date.string(from: expectedRefresh))")
+            log.warning("Late Refresh Detected. Expected Refresh @ \(logDate.string(from: expectedRefresh))")
         }
 
         self.invalidateRefreshTimer()
@@ -295,33 +244,33 @@ public class LightController: BehaviorController {
 
     private func fireEvent() {
         guard let eventToken = self.nextEvent else {
-            Log.warn("Event handler fired without an event token")
+            log.warning("Event handler fired without an event token")
             return
         }
 
         if let event = self.eventControllers[eventToken] {
             let now = Date()
-            Log.info("Firing Event: \(eventToken)")
+            log.info("Firing Event: \(eventToken)")
             event.fire(forController: self, date: now)
             self.scheduleEvent(forDate: now)
         } else {
-            Log.error("Event \"\(eventToken)\" not found.")
+            log.error("Event \"\(eventToken)\" not found.")
         }
     }
 
     private func fireRefresh() {
-        Log.debug("Light Controller Refresh")
+        log.debug("Light Controller Refresh")
         let now = Date()
         self.behavior.refresh(controller: self, forDate: now)
 
         if self.isRefreshOneShot {
-            Log.debug("Light Controller One Shot Rescheduling")
+            log.debug("Light Controller One Shot Rescheduling")
             self.scheduleRefresh(forDate: now)
         }
     }
 
     private func stopInternal() {
-        Log.info("Stopping Light Controller")
+        log.info("Stopping Light Controller")
         if self.isRunning {
             self.isRunning = false
             self.refreshTimer.pause()
@@ -332,7 +281,7 @@ public class LightController: BehaviorController {
                 }
             }
         } else {
-            Log.warn("Light Controller Stopped While Not Running")
+            log.warning("Light Controller Stopped While Not Running")
         }
     }
 
@@ -344,21 +293,21 @@ public class LightController: BehaviorController {
         let segment = self.behavior.segment(forController: self, date: now)
         switch segment.nextUpdate {
         case .stop:
-            Log.info("Stopping Light Controller")
+            log.info("Stopping Light Controller")
             self.stopInternal()
         case .oneShot(let restartDate):
             self.isRefreshOneShot = true
             self.refreshTimer.schedule(at: restartDate)
-            Log.debug("Scheduling Behavior: \(Log.date.string(from: restartDate))")
+            log.debug("Scheduling Behavior: \(logDate.string(from: restartDate))")
 
             self.watchdogInterval = restartDate.timeIntervalSince(now)
             self.watchdogLastRefresh = now
         case .repeating(let restartDate, let updateInterval):
             self.isRefreshOneShot = false
             self.refreshTimer.schedule(startingAt: restartDate, repeating: updateInterval)
-            Log.debug({
+            log.debug({
                 let intervalMs = updateInterval.toTimeInterval() * 1_000.0
-                return "Scheduling Behavior: \(Log.date.string(from: restartDate)) : \(intervalMs) ms"
+                return "Scheduling Behavior: \(logDate.string(from: restartDate)) : \(intervalMs) ms"
             }())
 
             self.watchdogInterval = updateInterval.toTimeInterval()
@@ -367,7 +316,7 @@ public class LightController: BehaviorController {
 
         if segment.endDate != Date.distantFuture {
             self.watchdogTimer.schedule(at: segment.endDate)
-            Log.info("New Watchdog Timer: \(Log.date.string(from: segment.endDate))")
+            log.info("New Watchdog Timer: \(logDate.string(from: segment.endDate))")
         } else {
             self.watchdogTimer.pause()
         }
@@ -375,7 +324,7 @@ public class LightController: BehaviorController {
 
     private func scheduleEvent(forDate now: Date) {
         guard !self.eventControllers.isEmpty else {
-            Log.info("Scheduling no event")
+            log.info("Scheduling no event")
             self.stopEventInternal()
             return
         }
@@ -392,9 +341,9 @@ public class LightController: BehaviorController {
 
             self.nextEvent = token
             self.eventTimer.schedule(at: eventDate)
-            Log.info("Next Event: \(token) (\(Log.date.string(from: eventDate)))")
+            log.info("Next Event: \(token) (\(logDate.string(from: eventDate)))")
         } else {
-            Log.error("Unable to schedule next event")
+            log.error("Unable to schedule next event")
         }
     }
 }

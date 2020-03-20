@@ -62,7 +62,7 @@ class PwmViaRaspberryPi: LEDModuleImpl {
 
     func applyIntensity(_ intensity: Intensity, toChannel channel: Int) {
         guard channel < self.pwm.count else {
-            Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
+            log.error("Attempted to apply intensity to unknown channel index: \(channel)")
             return
         }
 

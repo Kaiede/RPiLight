@@ -24,6 +24,12 @@
  */
 
 import Foundation
+import Logging
+
+//
+// Logger Object
+//
+let log = Logger(label: "rpilight.led")
 
 //
 // Module Implementation

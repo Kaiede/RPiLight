@@ -23,7 +23,6 @@
  SOFTWARE.)
  */
 
-import Logging
 import PCA9685
 import SingleBoard
 
@@ -61,7 +60,7 @@ class PwmViaPCA9685: LEDModuleImpl {
 
     internal func applyIntensity(_ intensity: Intensity, toChannel channel: Int) {
         guard channel < 16 else {
-            Log.error("Attempted to apply intensity to unknown channel index: \(channel)")
+            log.error("Attempted to apply intensity to unknown channel index: \(channel)")
             return
         }
 

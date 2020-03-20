@@ -58,8 +58,19 @@ extension ServiceControllerDescription: LEDModuleConfig {}
 // MARK: Casting Support between Logging and Service types
 //
 //
-extension LogLevel {
+extension Logger.Level {
     init(_ serviceLevel: ServiceLoggingLevel) {
-        self.init(fromString: serviceLevel.rawValue)
+        switch serviceLevel {
+        case .trace:
+            self = .trace
+        case .debug:
+            self = .debug
+        case .info:
+            self = .info
+        case .warn:
+            self = .warning
+        case .error:
+            self = .error
+        }
     }
 }
