@@ -224,7 +224,7 @@ EOT
     pushd "$PACKAGE_PATH"
 
     dpkg-shlibdeps -eopt/rpilight/RPiLight
-    render_control "$PACKAGE_CONTROL/control" "$PACKAGE_CONTROL/substvars" > "$PACKAGE_DEBIAN/control"
+    render_template "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/substvars" "$PACKAGE_DEBIAN/control"
     fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight\_$version\_$filename_arch.deb
 
     popd
