@@ -219,7 +219,7 @@ EOT
 
     pushd "$PACKAGE_PATH"
 
-    libraries=`ls opt/rpilight/lib`
+    libraries=`find . -iname \*.so`
     dpkg-shlibdeps -S"$PACKAGE_PATH" opt/rpilight/RPiLight $libraries
     render_template "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/substvars" "$PACKAGE_DEBIAN/control"
     fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight\_$version\_$filename_arch.deb
