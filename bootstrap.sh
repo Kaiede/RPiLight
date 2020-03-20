@@ -19,6 +19,17 @@ function process_distro() {
 #
 # Install Specific Versions of Swift
 #
+function install_swift_package() {
+    swift_package="swift5"
+    swift_version="5.1.3"
+    swift_repo="https://packagecloud.io/install/repositories/swift-arm/release/script.deb.sh"
+
+    # Configure Repository
+    curl -s "$swift_repo" | sudo bash
+
+    sudo apt-get install $swift_package=$swift_version
+}
+
 function install_swift_tarball() {
     swift_release="$1"
     swift_version="5.1.1"
@@ -90,6 +101,9 @@ function update_apt() {
 
 function install_dependencies() {
     install_common_dependencies
+
+    install_swift_package
+    return
 
     case "$distro_string" in
         debian-9)

@@ -150,27 +150,19 @@ function build_package() {
     version=""
     get_package_version version
 
+    swift_package="swift5"
+    swift_version="5.1.3"
+
     SYSTEM_ARCH=$(uname -m)
     case $SYSTEM_ARCH in
-        aarch64 )               package_arch=
-                                swift_package="swift4"
-                                swift_version="4.1.1"
-                                arch=arm64
-                                filename_arch=aarch64
-                                ;;
-        armv6l )                package_arch="-armv6"
-                                swift_package="swift3-armv6"
-                                swift_version="3.1.1"
-                                arch=armhf
+        aarch64 )               arch=arm64
                                 filename_arch=$arch
                                 ;;
-        armv7l )                package_arch=
-                                swift_package="swift3"
-                                swift_version="3.1.1"
-                                arch=armhf
+        armv6l | armv7l )       arch=armhf
                                 filename_arch=$arch
                                 ;;
-        * )                     exit 1
+        * )                     echo "Unknown Platform Architecture"
+                                exit 1
                                 ;;
     esac
 
