@@ -156,7 +156,19 @@ function get_package_version() {
 }
 
 function render_template() {
-  eval "echo \"$(sed 's/\"/\\\\"/g' $1)\""
+    SOURCE_FILE="$1"
+    SUBST_FILE="$2"
+    DEST_FILE="$3"
+
+    cp "$SOURCE_FILE" "$DEST_FILE"
+
+    cat "$SUBST_FILE" | while read line; do 
+        if [[ -n $line ]]; then
+            variable="${line%%=*}"
+            value="${line##*=}"
+            sed -i "s/\${$variable}/$value/g" "$DEST_FILE"
+        fi
+    done
 }
 
 #
@@ -193,11 +205,15 @@ function build_package() {
     esac
 
     mkdir -p "$PACKAGE_CONTROL"
-    cp "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/"
+    cp "$PACKAGE_ASSETS/control.source" "$PACKAGE_CONTROL/control"
+
+    cat <<EOT > "$PACKAGE_CONTROL/control"
+Source: rpilight
+EOPT
 
     cat <<EOT > "$PACKAGE_CONTROL/substvars"
-build:Architecture=${arch}
-build:Version=${version}
+dist:Architecture=${arch}
+dist:Version=${version}
 EOT
 
     # Package Content
@@ -205,9 +221,13 @@ EOT
     cp "$PACKAGE_ASSETS/preinst" "$PACKAGE_DEBIAN/"
     cp "$PACKAGE_ASSETS/postinst" "$PACKAGE_DEBIAN/"
 
-    fakeroot dpkg-shlibdeps -eopt/rpilight/RPiLight
-    fakeroot dpkg-gencontrol
-    fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight$package_arch\_$version\_$filename_arch.deb
+    pushd "$PACKAGE_PATH"
+
+    dpkg-shlibdeps -eopt/rpilight/RPiLight
+    render_control "$PACKAGE_CONTROL/control" "$PACKAGE_CONTROL/substvars" > "$PACKAGE_DEBIAN/control"
+    fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight\_$version\_$filename_arch.deb
+
+    popd
 }
 
 #
