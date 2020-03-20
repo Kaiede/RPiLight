@@ -85,7 +85,11 @@ function copy_binaries() {
     ROOT_DIR="$1"
     NEED_SUDO="$2"
 
+    SWIFT_BINARY=`which swift`
+    SWIFT_LIB_DIR="$(dirname $(dirname $SWIFT_BINARY))/lib/swift/linux"
+
     BINARY_PATH="$ROOT_DIR/opt/rpilight"
+    LIBRARY_PATH="$ROOT_DIR/opt/rpilight"
     CONFIG_PATH="$BINARY_PATH/config"
     SERVICE_PATH="$ROOT_DIR/lib/systemd/system"
 
@@ -96,14 +100,22 @@ function copy_binaries() {
     if [ ! -e "$BINARY_PATH" ]; then
         $NEED_SUDO mkdir -p "$BINARY_PATH"
     fi
+    if [ ! -e "$LIBRARY_PATH" ]; then
+        $NEED_SUDO mkdir -p "$LIBRARY_PATH"
+    fi
     if [ ! -e "$CONFIG_PATH" ]; then
         $NEED_SUDO mkdir -p "$CONFIG_PATH"
     fi
     if [ ! -e "$SERVICE_PATH" ]; then
         $NEED_SUDO mkdir -p "$SERVICE_PATH"
     fi
+
     echo "Copying Binaries to $BINARY_PATH"
     $NEED_SUDO cp "$RPILIGHT_BINARY" "$BINARY_PATH/RPiLight"
+
+    echo "Making Self-Sufficient..."
+    $NEED_SUDO chrpath -r "\$ORIGIN/lib" ./RPiLight
+    $NEED_SUDO cp "$SWIFT_LIB_DIR/*.so" "$LIBRARY_PATH"
 
     echo "Copying Examples"
     $NEED_SUDO rsync --delete -r "$RPILIGHT_EXAMPLES/" "$BINARY_PATH/examples/"
@@ -149,9 +161,6 @@ function build_package() {
 
     version=""
     get_package_version version
-
-    swift_package="swift5"
-    swift_version="5.1.3"
 
     SYSTEM_ARCH=$(uname -m)
     case $SYSTEM_ARCH in

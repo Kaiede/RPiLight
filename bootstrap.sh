@@ -19,20 +19,9 @@ function process_distro() {
 #
 # Install Specific Versions of Swift
 #
-function install_swift_package() {
-    swift_package="swift5"
-    swift_version="5.1.3"
-    swift_repo="https://packagecloud.io/install/repositories/swift-arm/release/script.deb.sh"
-
-    # Configure Repository
-    curl -s "$swift_repo" | sudo bash
-
-    sudo apt-get install $swift_package=$swift_version
-}
-
 function install_swift_tarball() {
     swift_release="$1"
-    swift_version="5.1.1"
+    swift_version="5.1.5"
     tarball_url="https://github.com/uraimo/buildSwiftOnARM/releases/download/${swift_version}/swift-${swift_version}-${swift_release}.tgz"
     swift_filename="swift-${swift_version}-${swift_release}.tgz"
 
@@ -67,6 +56,7 @@ function install_swift_tarball() {
 function install_common_dependencies() {
     echo "Installing Common Dependencies..."
     sudo apt-get install --yes \
+                    chrpath \
                     git \
                     pv
 }
