@@ -84,7 +84,7 @@ function build_rpilight() {
 function copy_libraries() {
     NEED_SUDO="$1"
     RPILIGHT_BINARY="$2"
-    SWIFT_DIR="$3"
+    SWIFT_LIBS="$3"
     LIBRARY_DIR="$4"
 
     # Start from Clean Folder
@@ -165,9 +165,10 @@ function render_template() {
 function build_package() {
     PACKAGE_PATH=$(realpath .package)
     PACKAGE_DEBIAN="$PACKAGE_PATH/DEBIAN"
+    PACKAGE_CONTROL="$PACKAGE_PATH/debian"
     PACKAGE_INSTALL="$PACKAGE_PATH/opt/rpilight"
     PACKAGE_SYSTEMD="$PACKAGE_PATH/lib/systemd/system"
-    PACKAGE_ASSETS="$(realpath Assets/DEBIAN)"
+    PACKAGE_ASSETS="$(realpath Assets/Package)"
 
     echo "Packaging..."
     rm -rf "$PACKAGE_PATH"
@@ -191,12 +192,21 @@ function build_package() {
                                 ;;
     esac
 
+    mkdir -p "$PACKAGE_CONTROL"
+    cp "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/"
 
+    cat <<EOT > "$PACKAGE_CONTROL/substvars"
+build:Architecture=${arch}
+build:Version=${version}
+EOT
+
+    # Package Content
     mkdir -p "$PACKAGE_DEBIAN"
-    render_template "$PACKAGE_ASSETS/control.tmpl" > "$PACKAGE_DEBIAN/control"
     cp "$PACKAGE_ASSETS/preinst" "$PACKAGE_DEBIAN/"
     cp "$PACKAGE_ASSETS/postinst" "$PACKAGE_DEBIAN/"
 
+    fakeroot dpkg-shlibdeps -eopt/rpilight/RPiLight
+    fakeroot dpkg-gencontrol
     fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight$package_arch\_$version\_$filename_arch.deb
 }
 

@@ -1,7 +1,10 @@
-Package: rpilight
-Version: ${version}
-Architecture: ${arch}
+Source: rpilight
 Maintainer: Kaiede <user@biticus.net>
+
+Package: rpilight
+Architecture: ${build:Architecture}
+Version: ${build:Version}
+Depends: ${shlibs:Depends}
 Section: misc
 Priority: optional
 Homepage: https://www.github.com/Kaiede/RPiLight
