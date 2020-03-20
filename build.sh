@@ -217,14 +217,20 @@ EOT
     cp "$PACKAGE_ASSETS/preinst" "$PACKAGE_DEBIAN/"
     cp "$PACKAGE_ASSETS/postinst" "$PACKAGE_DEBIAN/"
 
-    pushd "$PACKAGE_PATH"
+    pushd "$PACKAGE_PATH" >> /dev/null
+
+    $PACKAGE_NAME="rpilight\_$version\_$filename_arch.deb"
 
     libraries=`find . -iname \*.so`
     dpkg-shlibdeps -S"$PACKAGE_PATH" opt/rpilight/RPiLight $libraries
     render_template "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/substvars" "$PACKAGE_DEBIAN/control"
-    fakeroot dpkg-deb --build "$PACKAGE_PATH" rpilight\_$version\_$filename_arch.deb
+    fakeroot dpkg-deb --build "$PACKAGE_PATH" "$PACKAGE_NAME"
 
-    popd
+    if [ -f "$PACKAGE_NAME" ]; then
+        mv "$PACKAGE_NAME" ../
+    fi
+
+    popd >> /dev/null
 }
 
 #
