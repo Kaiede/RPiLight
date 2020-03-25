@@ -5,7 +5,9 @@
 
 function usage()
 {
-    echo "usage: bootstrap.sh [nobuild]"
+    echo "usage: bootstrap.sh"
+    echo
+    echo "Installs dependencies required to build (including Swift)"
 }
 
 #
@@ -92,9 +94,6 @@ function update_apt() {
 function install_dependencies() {
     install_common_dependencies
 
-    install_swift_package
-    return
-
     case "$distro_string" in
         debian-9)
             update_apt 0
@@ -149,15 +148,5 @@ cd ~
 
 # Install the Dependencies
 install_dependencies
-
-#
-# Clone & Build
-#
-if [ "$BUILD" == "1" ]; then
-    git clone https://github.com/Kaiede/RPiLight.git
-    pushd ~/RPiLight > /dev/null
-
-    ./build.sh stable install
-fi
 
 popd > /dev/null
