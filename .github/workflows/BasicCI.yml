@@ -12,12 +12,14 @@ jobs:
         os: [ubuntu-18.04]
     
     steps:
-    - name: Install Swift
-      uses: YOCKOW/Action-setup-swift@master
-      with:
-          swift-version: ${{ matrix.swift-version }}
     - name: Checkout
       uses: actions/checkout@v1
+    - name: Download Swift ${{ matrix.swift-version }}
+      run: wget -q https://swift.org/builds/swift-${{ matrix.swift-version }}-release/ubuntu1804/swift-${{ matrix.swift-version }}-RELEASE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04.tar.gz
+    - name: Extract Swift ${{ matrix.swift-version }}
+      run: tar xzf swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04.tar.gz
+    - name: Add Path
+      run: echo "::add-path::$GITHUB_WORKSPACE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04/usr/bin"      
     - name: Swift Package Information
       run: |
         swift --version
