@@ -7,31 +7,39 @@ on:
       - master
 
 jobs:
-  raspbianStretchBuild:
-    name: ARM Stretch - Swift ${{ matrix.swift-version }}
+  linuxBuild:
+    name: Ubuntu - ${{ matrix.swift-version }}
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        swift-version: [5.1.5]
+        swift-version: [5.2]
+        os: [ubuntu-18.04]
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v1.0.0
-      - name: Build in QEMU
-        uses: uraimo/run-on-arch-action@v1.0.5
-        id: runcmd
-        with:
-          architecture: armv6
-          distribution: stretch
-          run: |
-            apt update
-            apt install -y clang-3.8 libncurses-dev libxml2-dev libicu-dev libcurl4-nss-dev
-            apt install -y curl git
-            update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100
-            update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 100
-            curl -o swift-${{ matrix.swift-version }}.tgz -L https://github.com/uraimo/buildSwiftOnARM/releases/download/${{ matrix.swift-version }}/swift-${{ matrix.swift-version }}-armv6-RPi0123-RaspbianStretch.tgz
-            tar xzf swift-${{ matrix.swift-version }}.tgz
-            ./usr/bin/swift build -j 1
-            ./usr/bin/swift test
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Cache Swift ${{ matrix.swift-version }}
+      uses: actions/cache@v1
+      id: cache-swift
+      with:
+        path: ${{ github.workspace }}/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04
+        key: ${{ runner.os }}-swift-${{ matrix.swift-version }}
+    - name: Download Swift ${{ matrix.swift-version }}
+      if: steps.cache-swift.outputs.cache-hit != 'true'
+      run: wget -q https://swift.org/builds/swift-${{ matrix.swift-version }}-release/ubuntu1804/swift-${{ matrix.swift-version }}-RELEASE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04.tar.gz
+    - name: Extract Swift ${{ matrix.swift-version }}
+      if: steps.cache-swift.outputs.cache-hit != 'true'
+      run: tar xzf swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04.tar.gz
+    - name: Add Path
+      run: echo "::add-path::$GITHUB_WORKSPACE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04/usr/bin"      
+    - name: Swift Package Information
+      run: |
+        swift --version
+        swift package show-dependencies
+    - name: Build
+      run: swift build --build-tests
+    - name: Test
+      run: swift test
 
   swiftLintChecks:
     name: Swiftlint
