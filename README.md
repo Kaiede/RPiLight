@@ -2,45 +2,37 @@
 
 [![Actions Status](https://github.com/Kaiede/RPiLight/workflows/Full%20CI/badge.svg)](https://github.com/Kaiede/RPiLight/actions)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-![Swift](https://img.shields.io/badge/Swift-5.1-brightgreen.svg)
-![Swift](https://img.shields.io/badge/Swift-5.0-green.svg)
+![Swift](https://img.shields.io/badge/Swift-5.1.5-brightgreen.svg)
 
 An Aquarium Light Controller for the Raspberry Pi
 
 ### Hardware / OS
 
-![Recommended](https://img.shields.io/badge/-Recommended-blue.svg) ![Raspbian](https://img.shields.io/badge/ARM-Raspbian%20Buster-brightgreen.svg) ![Swift](https://img.shields.io/badge/Swift-5.1-brightgreen.svg)
+![Supported](https://img.shields.io/badge/-Supported-blue.svg)
 
-Raspbian Buster on any supported Raspberry Pi (Zero, 1, 2, 3, or 4) is the recommended configuration. Swift 5.1 is the official Swift version used. These both match up with what is used during testing.
+Raspbian Buster on any supported Raspberry Pi (Zero, 1, 2, 3, or 4) is the recommended configuration.
 
-Raspbian Stretch and Swift 5.0 are also supported, but are older. It's recommended to upgrade if you are still on these versions.
+While RPiLight depends on Swift, the binary packages include the needed pre-compiled libraries, and can be installed on a clean Raspberry Pi image. 
 
-![Experimental](https://img.shields.io/badge/-Experimental-orange.svg) ![Debian](https://img.shields.io/badge/ARM64-Debian-orange.svg) ![Ubuntu](https://img.shields.io/badge/ARM64-Ubuntu-orange.svg)
+![Experimental](https://img.shields.io/badge/-Experimental-orange.svg)
 
 Running on ARM64 Ubuntu 16.04 or 18.04, or Debian Buster is possible, but may have some issues. Generally, this means that hardware LED controllers may be more limited, and access to the PWM hardware on a Raspberry Pi is more locked down. Stick to I2C-based controllers like the PCA9685 or MCP4725 if you can.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local Raspberry Pi. It can be installed from binary, or you can grab source for development purposes.
 
 See the page on [Setting up the Raspberry Pi](Docs/HardwareSetup.md) for details.
 
 ### Installing RPiLight
 
-RPiLight includes a bootstrapping script that walks you through getting things setup from a freshly flashed OS:
-```
-source <(curl -s https://raw.githubusercontent.com/Kaiede/RPiLight/master/bootstrap.sh)
-```
+Grab the latest .deb package from [here](https://github.com/Kaiede/RPiLight/releases). You can grab it from the Pi using `curl`, usually.
 
-This will grab the source from github and build it against the latest released tag. No pre-built binaries are currently available. 
+Once downloaded you can install it using a command like this, where the final argument is the path to the package:
 
-You can update the service by running the following from the RPiLight root directory that was grabbed from GitHub:
-```
-git pull
-./build.sh [stable | latest] install
-```
+`sudo apt install ./rpilight_1.1.1_armhf.deb`
 
-stable will always grab the latest tagged release, while latest will grab the latest code, which may be newer.
+Once installed, you will then need to configure it. Under `/opt/rpilight/config` it is expected to find a `config.yml` and `schedule.yml` file. The first tells RPiLight how you're hardware is setup, while the second contains the light schedule.
 
 ## Configuration
 
@@ -50,12 +42,21 @@ See [Configuring the Light Schedule](Docs/Configuration.md) for full details.
 
 ### Starting the Daemon
 
-The install script will do most of the work, so you should only need to start it using `systemctl`, which will control the service:
+The installer will do most of the work, so you should only need to start it using `systemctl`, which will control the service:
 ```
 sudo systemctl start rpilight
 sudo systemctl restart rpilight
 sudo systemctl stop rpilight
 ```
+
+## Building From Source
+
+- Clone the repository on a Raspberry Pi, and then navigate to the directory
+- (One Time Only) `bash bootstrap.sh` - This will install dependencies needed for development. Specifically, it will download and install the version of Swift currently used for development, and anything else it may need.
+- `./build.sh` - This is a wrapper around the Swift build system. It mostly provides a couple functions:
+  - It can install a release build on the device using `./build.sh install`
+  - It can package a release build using `./build.sh package`
+  - You can add the `stable` or `latest` argument to have it fetch the latest tag (stable) or the latest master commit (latest) before building.
 
 ## Built With
 
