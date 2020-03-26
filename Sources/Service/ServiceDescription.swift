@@ -69,20 +69,36 @@ public struct ServiceDescription: Codable {
     public let username: String
     public let logLevel: ServiceLoggingLevel?
 
+    // MQTT Broker Config
+    public let broker: ServiceBrokerDescription?
+
     // LED Controller Settings
     public let board: ServiceBoardType
     public let gamma: Gamma?
     public let controllers: [ServiceControllerDescription]
 
-    // FUTURE: MQTT Broker Config
-
     enum CodingKeys: String, CodingKey {
         case username = "user"
         case logLevel = "log-level"
+        case broker
 
         case board
         case gamma
         case controllers
+    }
+}
+
+public struct ServiceBrokerDescription: Codable {
+    public let host: String
+    public let port: Int? // Default: 8883
+    public let clientId: String? // Default: rpilight
+    public let enableTls: Bool? // Default: false
+    
+    enum CodingKeys: String, CodingKey {
+        case host
+        case port
+        case clientId = "client-id"
+        case enableTls = "enable-tls"
     }
 }
 

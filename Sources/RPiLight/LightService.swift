@@ -25,6 +25,7 @@
 
 import Foundation
 
+import NIOMQTTClient
 import Yams
 
 import LED
@@ -32,6 +33,7 @@ import Logging
 import Service
 
 class LightService {
+    var router: MQTTRouter?
     var channels: LEDChannelSet
     let configuration: ServiceDescription
     var schedule: ScheduleDescription
@@ -46,6 +48,12 @@ class LightService {
         self.configuration = configuration
         self.schedule = schedule
         self.channels = channels
+        
+        if let brokerConfig = self.configuration.broker {
+            let mqttClient = MQTTClient(configuration: brokerConfig)
+            self.router = MQTTRouter(client: mqttClient)
+            self.router?.onConnect(closure: self.publishConfiguration)
+        }
     }
 
     func applyLoggingLevel() {
@@ -64,6 +72,11 @@ class LightService {
 
         log.info("Startup User: \(username)")
         log.info("Final User: \(configuration.username)")
+        
+        if let brokerConfig = self.configuration.broker {
+            log.info("MQTT Broker: \(brokerConfig.host):\(brokerConfig.port ?? 8883)")
+        }
+        
         log.info("Configured Board: \(configuration.board.rawValue)")
         log.info("Configured Gamma: \(gamma)")
         for controller in configuration.controllers {
@@ -106,11 +119,17 @@ class LightService {
                 controller.setEvent(controller: lunarCycleController)
             }
 
+            router?.client.connect()
             controller.start()
             dispatchMain()
         } catch {
             log.error("Unable to create Controller")
         }
+    }
+    
+    private func publishConfiguration() {
+        router?.client.publish(topic: "/aquarium/rpilight/config", message: "Hello World")
+        router?.client.publish(topic: "/aquarium/rpilight/schedule", message: "Hello World")
     }
 
     private func dropRoot() -> uid_t {
