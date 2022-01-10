@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  aquariumlights:
+    container_name: aquariumlights
+    image: kaiede/rpilight
+    restart: always
+    environment:
+        TZ: "America/Los_Angeles"
+    volumes:
+      - config:/opt/rpilight/config/
+      - /dev/gpiomem:/dev/gpiomem
+      - /dev/mem:/dev/mem

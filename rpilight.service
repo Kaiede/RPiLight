@@ -3,7 +3,7 @@ Description=RPiLight
 After=network.target
 
 [Service]
-ExecStart=/opt/rpilight/RPiLight
+ExecStart=/opt/rpilight/rpilight
 WorkingDirectory=/opt/rpilight/
 StandardOutput=journal
 StandardError=inherit

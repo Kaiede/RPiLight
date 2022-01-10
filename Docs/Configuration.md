@@ -128,7 +128,7 @@ The feature doesn't currently take moonrise or moonset into account.
 The `--preview` option was meant to test hardware configurations with simple ramps:
 ```
 cd /opt/rpilight
-RPiLight --preview
+rpilight --preview
 ```
 
 This file is expected to be in the `./config/` directory, and by default it will look for `./config/config.yml` for the hardware configuration, and `./config/schedule.yml` for the schedule. For now, it is required to be root to copy either file to the service's config directory: `sudo cp <myfile> /opt/rpilight/config/config.yml`. 

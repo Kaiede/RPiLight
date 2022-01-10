@@ -116,19 +116,32 @@ class LightService {
     private func dropRoot() -> uid_t {
         // Find target user
         let originalUid = getuid()
-        let targetUsername = configuration.username
-        guard let targetUid = getUid(username: targetUsername) else {
-            fatalError("Cannot find user '\(targetUsername)'.")
-        }
+        let targetUid = makeTargetUid()
 
         // Remove Access Now that We Are Memory Mapped
         if targetUid != originalUid {
             guard setuid(targetUid) == 0 else {
-                fatalError("Couldn't switch to user '\(targetUsername)'")
+                fatalError("Couldn't switch to user '\(targetUid)'")
             }
         }
 
+        log.debug("Switched from \(originalUid) to \(targetUid)")
+
         return originalUid
+    }
+
+    private func makeTargetUid() -> uid_t {
+        let targetUsername = configuration.username
+        let possibleUid = uid_t(targetUsername)
+        if let actualUid = possibleUid {
+            return actualUid
+        }
+
+        guard let targetUid = getUid(username: targetUsername) else {
+            fatalError("Cannot find user '\(targetUsername)'.")
+        }
+
+        return targetUid
     }
 
     static private func createChannelSet(
@@ -195,6 +208,7 @@ class LightService {
         do {
             return try loadDescription(ServiceDescription.self, file: file, name: "Configuration")
         } catch {
+            log.error("Could not load configuration file '\(file)'")
             fatalError("\(error)")
         }
     }
@@ -203,6 +217,7 @@ class LightService {
         do {
             return try loadDescription(ScheduleDescription.self, file: file, name: "Schedule")
         } catch {
+            log.error("Could not load schedule file '\(file)'")
             fatalError("\(error)")
         }
     }

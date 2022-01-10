@@ -73,7 +73,7 @@ function update_stable_source() {
 # Build It
 #
 function build_rpilight() {
-    echo "Building RPiLight (Release)..."
+    echo "Building rpilight (Release)..."
     # Need this to avoid causing real bad throttling on Pi.
     swift build -c release -j 2
 }
@@ -112,7 +112,7 @@ function copy_binaries() {
     CONFIG_PATH="$BINARY_PATH/config"
     SERVICE_PATH="$ROOT_DIR/lib/systemd/system"
 
-    RPILIGHT_BINARY=$(realpath .build/release/RPiLight)
+    RPILIGHT_BINARY=$(realpath .build/release/rpilight)
     RPILIGHT_EXAMPLES=$(realpath examples)
     RPILIGHT_SERVICE=$(realpath rpilight.service)
 
@@ -127,11 +127,11 @@ function copy_binaries() {
     fi
 
     echo "Copying Binaries to $BINARY_PATH"
-    $NEED_SUDO cp "$RPILIGHT_BINARY" "$BINARY_PATH/RPiLight"
+    $NEED_SUDO cp "$RPILIGHT_BINARY" "$BINARY_PATH/rpilight"
 
     echo "Making Self-Sufficient..."
-    $NEED_SUDO chrpath -r "\$ORIGIN/lib" "$BINARY_PATH/RPiLight"
-    copy_libraries "$NEED_SUDO" "$BINARY_PATH/RPiLight" "$SWIFT_LIB_DIR" "$LIBRARY_PATH"
+    $NEED_SUDO chrpath -r "\$ORIGIN/lib" "$BINARY_PATH/rpilight"
+    copy_libraries "$NEED_SUDO" "$BINARY_PATH/rpilight" "$SWIFT_LIB_DIR" "$LIBRARY_PATH"
 
     echo "Copying Examples"
     $NEED_SUDO rsync --delete -r "$RPILIGHT_EXAMPLES/" "$BINARY_PATH/examples/"
@@ -222,7 +222,7 @@ EOT
     PACKAGE_NAME="rpilight_${version}_${filename_arch}.deb"
 
     libraries=`find . -iname \*.so`
-    dpkg-shlibdeps -S"$PACKAGE_PATH" opt/rpilight/RPiLight $libraries
+    dpkg-shlibdeps -S"$PACKAGE_PATH" opt/rpilight/rpilight $libraries
     render_template "$PACKAGE_ASSETS/control" "$PACKAGE_CONTROL/substvars" "$PACKAGE_DEBIAN/control"
     fakeroot dpkg-deb --build "$PACKAGE_PATH" "$PACKAGE_NAME"
 
@@ -290,7 +290,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 # This is called just to make sure we can install swift
 ensure_swift_in_path || exit $?
 
-echo "RPiLight Directory: $SCRIPT_DIR"
+echo "rpilight Directory: $SCRIPT_DIR"
 if [ "$FETCH" != "0" ]; then
     echo "Fetch Source: $FETCH"
 fi
