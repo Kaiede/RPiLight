@@ -17,20 +17,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Cache Swift ${{ matrix.swift-version }}
-      uses: actions/cache@v1
-      id: cache-swift
+    - name: Install Swift
+      uses: YOCKOW/Action-setup-swift@v1
       with:
-        path: ${{ github.workspace }}/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04
-        key: ${{ runner.os }}-swift-${{ matrix.swift-version }}
-    - name: Download Swift ${{ matrix.swift-version }}
-      if: steps.cache-swift.outputs.cache-hit != 'true'
-      run: wget -q https://swift.org/builds/swift-${{ matrix.swift-version }}-release/ubuntu1804/swift-${{ matrix.swift-version }}-RELEASE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04.tar.gz
-    - name: Extract Swift ${{ matrix.swift-version }}
-      if: steps.cache-swift.outputs.cache-hit != 'true'
-      run: tar xzf swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04.tar.gz
-    - name: Add Path
-      run: echo "::add-path::$GITHUB_WORKSPACE/swift-${{ matrix.swift-version }}-RELEASE-ubuntu18.04/usr/bin"      
+          swift-version: ${{ matrix.swift-version }}   
     - name: Swift Package Information
       run: |
         swift --version
