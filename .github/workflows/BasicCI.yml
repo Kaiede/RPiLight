@@ -11,12 +11,12 @@ jobs:
         swift-version: [5.1.5, 5.5.2]
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
     - name: Install Swift
       uses: YOCKOW/Action-setup-swift@v1
       with:
-          swift-version: ${{ matrix.swift-version }}  
+          swift-version: ${{ matrix.swift-version }}
+    - name: Checkout
+      uses: actions/checkout@v1
     - name: Swift Package Information
       run: |
         swift --version
@@ -25,9 +25,13 @@ jobs:
       run: swift build --build-tests
     - name: Test
       run: swift test
+    - name: SwiftLint
+      uses: norio-nomura/action-swiftlint@3.2.1
+      env:
+          WORKING_DIRECTORY: Sources
 
   macOSBuild:
-    name: Xcode
+    name: macOS - Latest
     runs-on: macos-latest
         
     steps:
@@ -43,7 +47,3 @@ jobs:
         run: swift build --build-tests
       - name: Test
         run: swift test
-      - name: Swiftlint
-        run: |
-          brew install swiftlint
-          swiftlint
