@@ -4,7 +4,7 @@ on:
     types: [assigned, opened, synchronize, reopened]
   push:
     branches:
-      - master
+      - main
 
 jobs:
   linuxBuild:
@@ -12,8 +12,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        swift-version: [5.2]
-        os: [ubuntu-18.04]
+        swift-version: [5.1.5, 5.5.2]
     
     steps:
     - name: Checkout
